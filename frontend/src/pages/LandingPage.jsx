@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, ShoppingCart, User, Menu, ChevronDown, SlidersHorizontal, Mail, MapPin, Send, CreditCard } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
+import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiSliders, FiMail, FiMapPin, FiSend, FiCreditCard, FiMenu, FiX } from 'react-icons/fi';
 
 const DUMMY_PRODUCTS = [
   { id: 1, name: 'Italian Avocado', shop: '(Local shop)', weight: '500 gm.', price: '14.99', img: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=500&auto=format&fit=crop&q=60' },
@@ -22,68 +22,169 @@ const footerLinks = [
 
 const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  const navLinks = [
+    { name: 'Home', path: '/' },
+    { name: 'Categories', path: '/categories' },
+    { name: 'Top Sales', path: '/top-sales' },
+    { name: 'Contact Us', path: '/contact' }
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-20">
       
       {/* Top Navbar Header */}
-      <div className="bg-[#114B43] text-white px-4 py-3 md:px-8 flex items-center justify-between gap-4 md:gap-8 rounded-b-2xl mx-2 shadow-md">
+      <div className="bg-white px-4 pt-4 pb-3 md:px-8 shadow-sm relative z-50">
         
-        {/* Logo & Menu */}
-        <div className="flex items-center gap-4 shrink-0">
-          <Menu className="w-6 h-6 cursor-pointer hover:text-orange-400" />
-          <Link to="/" className="flex items-center gap-2 group">
-             <ShoppingCart className="w-7 h-7 text-orange-400 group-hover:text-orange-300 transition-colors" />
-             <span className="text-2xl font-bold hidden md:block">NexusAI</span>
-          </Link>
+        {/* Top Row: Logo, Search, Actions */}
+        <div className="flex items-center justify-between gap-4 md:gap-8">
+          
+          {/* Menu & Logo */}
+          <div className="flex items-center gap-3 shrink-0">
+             <button 
+                className="md:hidden p-1 text-gray-700 hover:text-orange-500 transition-colors"
+                onClick={() => setIsMobileMenuOpen(true)}
+             >
+                <FiMenu className="w-7 h-7" />
+             </button>
+             <Link to="/" className="flex items-center gap-2 group">
+                <FiShoppingCart className="w-8 h-8 text-orange-500 group-hover:text-orange-400 transition-colors" />
+                <span className="text-2xl font-extrabold text-[#114B43] tracking-tight hidden sm:block">peraStore</span>
+             </Link>
+          </div>
+
+          {/* Search Bar - Center (Desktop) */}
+          <div className="flex-1 max-w-2xl relative hidden md:block">
+             <input 
+               type="text" 
+               placeholder="Search for Grocery, Stores, Vegetable or Meat..."
+               value={searchQuery}
+               onChange={(e) => setSearchQuery(e.target.value)}
+               className="w-full pl-5 pr-12 py-2.5 rounded-full text-gray-800 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all"
+             />
+             <FiSearch className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-orange-500" />
+          </div>
+
+          {/* Right side actions */}
+          <div className="flex items-center gap-4 md:gap-6 shrink-0">
+             
+             {/* Currency & Language (Hidden on small screens) */}
+             <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-600 border-r border-gray-200 pr-6">
+                <div className="flex items-center gap-1.5 cursor-pointer hover:text-orange-500 transition-colors">
+                   <span>USD</span> <FiChevronDown className="w-4 h-4" />
+                </div>
+                <div className="flex items-center gap-1.5 cursor-pointer hover:text-orange-500 transition-colors">
+                   <span>ENG</span> <FiChevronDown className="w-4 h-4" />
+                </div>
+             </div>
+             
+             {/* Cart */}
+             <div className="relative cursor-pointer text-gray-700 hover:text-orange-500 transition-colors">
+                <FiShoppingCart className="w-6 h-6" />
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">2</span>
+             </div>
+             
+             {/* Auth */}
+             <div className="hidden md:flex gap-3 items-center ml-2">
+                <Link to="/login" className="text-sm font-medium text-gray-700 hover:text-orange-500 transition-colors">Log in</Link>
+                <Link to="/signup" className="text-sm font-medium bg-orange-500 text-white hover:bg-orange-600 px-5 py-2 rounded-full transition-colors shadow-sm">Sign up</Link>
+             </div>
+             
+             {/* Mobile User Icon */}
+             <Link to="/login" className="md:hidden bg-gray-100 p-2 rounded-full text-gray-700 hover:bg-gray-200">
+                <FiUser className="w-5 h-5" />
+             </Link>
+          </div>
         </div>
 
-        {/* Search Bar - Center */}
-        <div className="flex-1 max-w-2xl relative hidden sm:block">
-           <input 
-             type="text" 
-             placeholder="Search for Grocery, Stores, Vegetable or Meat"
-             value={searchQuery}
-             onChange={(e) => setSearchQuery(e.target.value)}
-             className="w-full pl-6 pr-12 py-3 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
-           />
-           <Search className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 cursor-pointer hover:text-[#114B43]" />
-        </div>
-
-        {/* Right side icons & Auth */}
-        <div className="flex items-center gap-4 shrink-0">
-           <div className="hidden lg:flex items-center gap-1 text-sm font-medium text-orange-200">
-               <span className="text-orange-400">⚡</span> Order now and get it within <span className="text-orange-400 font-bold">15 mint!</span>
+        {/* Bottom Row: Navigation Links & Mobile Search */}
+        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+           {/* Mobile Search Bar */}
+           <div className="md:hidden relative w-full">
+              <input 
+                 type="text" 
+                 placeholder="Search products..."
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 className="w-full pl-4 pr-10 py-2.5 rounded-full text-gray-800 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
+              />
+              <FiSearch className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
            </div>
-           
-           {/* Cart & Profile / Auth */}
-           <div className="flex items-center gap-4 ml-4">
-              <div className="relative cursor-pointer">
-                 <ShoppingCart className="w-6 h-6 hover:text-orange-400" />
-                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">2</span>
-              </div>
-              <div className="hidden md:flex gap-3">
-                 <Link to="/login" className="text-sm font-medium hover:text-orange-300 px-2 py-1">Log in</Link>
-                 <Link to="/signup" className="text-sm font-medium bg-orange-500 text-white hover:bg-orange-600 px-4 py-1.5 rounded-full transition-colors">Sign up</Link>
-              </div>
-              {/* Mobile User Icon */}
-              <Link to="/login" className="md:hidden bg-gray-200/20 p-1.5 rounded-full">
-                 <User className="w-5 h-5 text-white" />
-              </Link>
+
+           {/* Navigation Links (Desktop) */}
+           <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-1000">
+              {navLinks.map((link) => (
+                 <Link 
+                    key={link.name} 
+                    to={link.path} 
+                    className={`${currentPath === link.path ? 'text-orange-500 border-b-2 border-orange-500' : 'hover:text-orange-500'} transition-colors pb-1`}
+                 >
+                    {link.name}
+                 </Link>
+              ))}
            </div>
         </div>
       </div>
 
-      {/* Mobile Search Bar (Shows only on small screens) */}
-      <div className="sm:hidden px-4 mt-4 relative">
-         <input 
-             type="text" 
-             placeholder="Search products..."
-             value={searchQuery}
-             onChange={(e) => setSearchQuery(e.target.value)}
-             className="w-full pl-4 pr-10 py-2.5 rounded-full text-gray-800 bg-white shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
-         />
-         <Search className="w-5 h-5 absolute right-8 top-1/2 -translate-y-1/2 text-gray-500" />
+      {/* Mobile Menu Overlay */}
+      <div 
+         className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+         onClick={() => setIsMobileMenuOpen(false)}
+      >
+         {/* Slide-out Menu */}
+         <div 
+            className={`fixed top-0 left-0 bottom-0 w-[80%] max-w-sm bg-white shadow-xl z-[70] flex flex-col transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+            onClick={(e) => e.stopPropagation()}
+         >
+            {/* Header */}
+            <div className="p-4 flex items-center justify-between border-b border-gray-100">
+               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
+                  <FiShoppingCart className="w-7 h-7 text-orange-500" />
+                  <span className="text-xl font-extrabold text-[#114B43]">peraStore</span>
+               </Link>
+               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500 hover:text-red-500 bg-gray-50 rounded-full transition-colors">
+                  <FiX className="w-5 h-5" />
+               </button>
+            </div>
+            
+            {/* Links */}
+            <div className="flex flex-col p-4 gap-2 flex-1 overflow-y-auto">
+               <div className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Navigation</div>
+               {navLinks.map((link) => (
+                  <Link
+                     key={link.name}
+                     to={link.path}
+                     onClick={() => setIsMobileMenuOpen(false)}
+                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-colors ${currentPath === link.path ? 'bg-orange-50 text-orange-500' : 'text-gray-700 hover:bg-gray-50'}`}
+                  >
+                     {link.name}
+                  </Link>
+               ))}
+               
+               <div className="mt-6 mb-2 border-t border-gray-100 pt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Settings</div>
+               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl mb-2">
+                  <span className="font-semibold text-gray-700">Currency</span>
+                  <div className="flex items-center gap-1 text-orange-500 font-bold text-sm cursor-pointer">
+                     USD <FiChevronDown className="w-4 h-4" />
+                  </div>
+               </div>
+               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl">
+                  <span className="font-semibold text-gray-700">Language</span>
+                  <div className="flex items-center gap-1 text-orange-500 font-bold text-sm cursor-pointer">
+                     ENG <FiChevronDown className="w-4 h-4" />
+                  </div>
+               </div>
+            </div>
+            
+            {/* Bottom Actions */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50">
+               <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl flex justify-center mb-3 hover:bg-gray-100 transition-colors">Log In</Link>
+               <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl flex justify-center hover:bg-orange-600 transition-colors shadow-sm">Sign Up</Link>
+            </div>
+         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8">
@@ -103,7 +204,7 @@ const LandingPage = () => {
                        Keep Exploring
                     </Link>
                     <Link to="/login" className="bg-transparent border-2 border-white/30 text-white font-bold px-8 py-3 rounded-full hover:bg-white/10 transition-colors shadow-sm flex items-center gap-2">
-                       <Search className="w-4 h-4" /> Visual Search
+                       <FiSearch className="w-4 h-4" /> Visual Search
                     </Link>
                  </div>
               </div>
@@ -120,37 +221,37 @@ const LandingPage = () => {
 
           {/* Filtering Section Wrapper */}
           <div className="mt-12 space-y-6">
-             <h2 className="text-2xl md:text-3xl font-bold text-[#114B43]">NexusAI / All category</h2>
+            
 
              {/* Pill Filters */}
              <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
                 <button className="flex items-center gap-1.5 bg-[#114B43] text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm">
-                   All Categories <ChevronDown className="w-4 h-4" />
+                   All Categories <FiChevronDown className="w-4 h-4" />
                 </button>
                 <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Price <ChevronDown className="w-4 h-4" />
+                   Price <FiChevronDown className="w-4 h-4" />
                 </button>
                 <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Review <ChevronDown className="w-4 h-4" />
+                   Review <FiChevronDown className="w-4 h-4" />
                 </button>
                 <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Color <ChevronDown className="w-4 h-4" />
+                   Color <FiChevronDown className="w-4 h-4" />
                 </button>
                 <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Material <ChevronDown className="w-4 h-4" />
+                   Material <FiChevronDown className="w-4 h-4" />
                 </button>
                 <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm hidden sm:flex">
-                   Offer <ChevronDown className="w-4 h-4" />
+                   Offer <FiChevronDown className="w-4 h-4" />
                 </button>
                 <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   All Filters <SlidersHorizontal className="w-4 h-4 ml-1" />
+                   All Filters <FiSliders className="w-4 h-4 ml-1" />
                 </button>
 
                 <div className="flex-1 min-w-[20px]"></div>
 
                 {/* Sort By Dropdown */}
                 <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-300 px-5 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Sort by <ChevronDown className="w-4 h-4" />
+                   Sort by <FiChevronDown className="w-4 h-4" />
                 </button>
              </div>
           </div>
@@ -200,8 +301,8 @@ const LandingPage = () => {
             {/* Column 1: Brand & About */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 text-white">
-                <ShoppingCart className="w-8 h-8 text-orange-400" />
-                <span className="text-2xl font-bold">NexusAI</span>
+                <FiShoppingCart className="w-8 h-8 text-orange-400" />
+                <span className="text-2xl font-bold">peraStore</span>
               </div>
               <p className="text-sm leading-relaxed text-slate-400">
                 Experience the next generation of e-commerce. Upload an image, let our Visual Search AI find the perfect match instantly. Shopping, smarter.
@@ -247,18 +348,18 @@ const LandingPage = () => {
                   className="w-full bg-slate-800 text-white text-sm rounded-l-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-orange-400"
                 />
                 <button className="bg-orange-500 hover:bg-orange-600 px-4 rounded-r-lg transition-colors flex items-center justify-center">
-                  <Send className="w-4 h-4 text-white" />
+                  <FiSend className="w-4 h-4 text-white" />
                 </button>
               </div>
 
               <ul className="space-y-3">
                  <li className="flex items-start gap-3 text-sm text-slate-400">
-                    <MapPin className="w-5 h-5 shrink-0 text-slate-500" />
+                    <FiMapPin className="w-5 h-5 shrink-0 text-slate-500" />
                     <span>123 Innovation Drive,<br/>Tech City, TC 90210</span>
                  </li>
                  <li className="flex items-center gap-3 text-sm text-slate-400">
-                    <Mail className="w-5 h-5 shrink-0 text-slate-500" />
-                    <a href="mailto:support@nexusai.com" className="hover:text-orange-400 transition-colors">support@nexusai.com</a>
+                    <FiMail className="w-5 h-5 shrink-0 text-slate-500" />
+                    <a href="mailto:support@perastore.com" className="hover:text-orange-400 transition-colors">support@perastore.com</a>
                  </li>
               </ul>
             </div>
@@ -268,12 +369,12 @@ const LandingPage = () => {
           {/* Bottom Bar: Copyright & Payments */}
           <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
              <p className="text-sm text-slate-500 text-center md:text-left">
-               &copy; {new Date().getFullYear()} E-commerse-web-app. All rights reserved.
+               &copy; {new Date().getFullYear()} peraStore. All rights reserved.
              </p>
              
              {/* Payment Icons */}
              <div className="flex items-center gap-3 text-slate-500">
-                <CreditCard className="w-8 h-8" />
+                <FiCreditCard className="w-8 h-8" />
                 <span className="text-xs font-bold border border-slate-700 px-2 py-1 rounded">VISA</span>
                 <span className="text-xs font-bold border border-slate-700 px-2 py-1 rounded">MASTERCARD</span>
                 <span className="text-xs font-bold border border-slate-700 px-2 py-1 rounded">PAYPAL</span>
