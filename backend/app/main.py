@@ -1,5 +1,7 @@
-import app.models  # noqa: F401
+import app.models
+# pyrefly: ignore [missing-import]
 from fastapi import Depends, FastAPI
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from sqlalchemy.orm import Session
