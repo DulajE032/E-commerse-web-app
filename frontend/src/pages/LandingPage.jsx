@@ -1,20 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiSliders, FiMail, FiMapPin, FiSend, FiCreditCard, FiMenu, FiX } from 'react-icons/fi';
+import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiSliders, FiMail, FiMapPin, FiSend, FiCreditCard, FiMenu, FiX, FiPlus } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-
-const DUMMY_PRODUCTS = [
-  { id: 1, name: 'Italian Avocado', shop: '(Local shop)', weight: '500 gm.', price: '14.99', img: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=500&auto=format&fit=crop&q=60' },
-  { id: 2, name: 'Cold drinks (Sprite)', shop: '(Grocery)', weight: '500 ml.', price: '06.99', img: 'https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=500&auto=format&fit=crop&q=60' },
-  { id: 3, name: 'Beetroot', shop: '(Local shop)', weight: '500 gm.', price: '17.99', img: 'https://images.unsplash.com/photo-1593259037207-1c39050d27ad?w=500&auto=format&fit=crop&q=60' },
-  { id: 4, name: 'Szam amm', shop: '(Process food)', weight: '500 gm.', price: '13.99', img: 'https://images.unsplash.com/photo-1582284540020-8ac90f4b1da9?w=500&auto=format&fit=crop&q=60' },
-  { id: 5, name: 'Beef Mixed', shop: '(Cut Bone)', weight: '500 gm.', price: '12.99', img: 'https://images.unsplash.com/photo-1603048297172-c92544798d5e?w=500&auto=format&fit=crop&q=60' },
-  { id: 6, name: 'Fresh Carrots', shop: '(Farm direct)', weight: '1 kg.', price: '08.50', img: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=500&auto=format&fit=crop&q=60' },
-  { id: 7, name: 'Whole Wheat Bread', shop: '(Bakery)', weight: '1 loaf', price: '04.99', img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&auto=format&fit=crop&q=60' },
-  { id: 8, name: 'Organic Honey', shop: '(Local shop)', weight: '250 gm.', price: '15.00', img: 'https://images.unsplash.com/photo-1587049352847-4d4b12608298?w=500&auto=format&fit=crop&q=60' },
-  { id: 9, name: 'Cherry Tomatoes', shop: '(Farm direct)', weight: '250 gm.', price: '05.99', img: 'https://images.unsplash.com/photo-1506484381205-f7945653044d?w=500&auto=format&fit=crop&q=60' },
-  { id: 10, name: 'Almond Milk', shop: '(Dairy shop)', weight: '1 L.', price: '07.50', img: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=500&auto=format&fit=crop&q=60' },
-];
+import { api } from '../services/api';
+import { useCart } from '../services/CartContext';
 
 const footerLinks = [
   { title: "QUICK LINKS", links: ["Home", "Shop All", "New Arrivals", "Best Sellers"] },
@@ -24,8 +13,27 @@ const footerLinks = [
 const LandingPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const { addToCart, cartCount } = useCart();
   const location = useLocation();
   const currentPath = location.pathname;
+
+  // Fetch categories on mount
+  useEffect(() => {
+    api.getCategories().then(setCategories).catch(console.error);
+  }, []);
+
+  // Fetch products when category changes
+  useEffect(() => {
+    setLoading(true);
+    api.getProducts(selectedCategory)
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [selectedCategory]);
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -85,7 +93,9 @@ const LandingPage = () => {
              {/* Cart */}
              <div className="relative cursor-pointer text-gray-700 hover:text-orange-500 transition-colors">
                 <FiShoppingCart className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">2</span>
+                {cartCount > 0 && (
+                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{cartCount}</span>
+                )}
              </div>
              
              {/* Auth */}
@@ -236,29 +246,31 @@ const LandingPage = () => {
           >
             
 
-             {/* Pill Filters */}
+             {/* Category Pill Filters */}
              <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                <button className="flex items-center gap-1.5 bg-[#114B43] text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm">
-                   All Categories <FiChevronDown className="w-4 h-4" />
+                <button 
+                   onClick={() => setSelectedCategory(null)}
+                   className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-colors ${
+                     selectedCategory === null 
+                       ? 'bg-[#114B43] text-white' 
+                       : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                   }`}
+                >
+                   All Categories
                 </button>
-                <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Price <FiChevronDown className="w-4 h-4" />
-                </button>
-                <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Review <FiChevronDown className="w-4 h-4" />
-                </button>
-                <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Color <FiChevronDown className="w-4 h-4" />
-                </button>
-                <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Material <FiChevronDown className="w-4 h-4" />
-                </button>
-                <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm hidden sm:flex">
-                   Offer <FiChevronDown className="w-4 h-4" />
-                </button>
-                <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-200 px-4 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   All Filters <FiSliders className="w-4 h-4 ml-1" />
-                </button>
+                {categories.map((cat) => (
+                   <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.name)}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-colors ${
+                        selectedCategory === cat.name
+                          ? 'bg-[#114B43] text-white'
+                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+                      }`}
+                   >
+                      {cat.name}
+                   </button>
+                ))}
 
                 <div className="flex-1 min-w-[20px]"></div>
 
@@ -271,35 +283,69 @@ const LandingPage = () => {
 
           {/* Product Grid */}
           <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-             {DUMMY_PRODUCTS.map((product) => (
-                <div key={product.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col h-full">
-                    {/* Image Box */}
-                    <div className="relative w-full aspect-square rounded-xl bg-gray-50 mb-4 overflow-hidden flex items-center justify-center p-4">
-                       <img 
-                          src={product.img} 
-                          alt={product.name} 
-                          className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-                        />
-                        {/* Hover Overlay overlay for "View Match" */}
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                          <span className="bg-white text-[#114B43] px-3 py-1.5 rounded-full text-xs font-bold shadow-md transform translate-y-2 group-hover:translate-y-0 transition-all">View Detail</span>
-                       </div>
-                    </div>
-
-                    {/* Product Details */}
-                    <div className="text-center flex-1 flex flex-col">
-                       <h3 className="text-gray-900 font-bold text-sm md:text-base leading-tight mb-1">{product.name}</h3>
-                       <p className="text-gray-500 text-xs md:text-sm font-medium mb-1">{product.shop}</p>
-                       <p className="text-gray-400 text-xs mb-3 flex-1">{product.weight}</p>
-                       
-                       <div className="mt-auto">
-                          <span className="text-xl md:text-2xl font-extrabold text-[#114B43] tracking-tighter">
-                             <span className="text-sm align-super">$</span>{product.price}
-                          </span>
-                       </div>
-                    </div>
+             {loading ? (
+                // Loading skeleton
+                Array.from({ length: 10 }).map((_, i) => (
+                   <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse">
+                      <div className="w-full aspect-square rounded-xl bg-gray-200 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded mb-2 w-3/4 mx-auto"></div>
+                      <div className="h-3 bg-gray-200 rounded mb-2 w-1/2 mx-auto"></div>
+                      <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto"></div>
+                   </div>
+                ))
+             ) : products.length === 0 ? (
+                <div className="col-span-full text-center py-16 text-gray-400">
+                   <p className="text-lg font-semibold">No products found</p>
+                   <p className="text-sm mt-1">Try selecting a different category or add products via the Admin Panel.</p>
                 </div>
-             ))}
+             ) : (
+                products.map((product) => (
+                   <motion.div 
+                      key={product.id} 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col h-full"
+                   >
+                       {/* Image Box */}
+                       <div className="relative w-full aspect-square rounded-xl bg-gray-50 mb-4 overflow-hidden flex items-center justify-center p-4">
+                          {product.images && product.images.length > 0 ? (
+                             <img 
+                                src={`http://127.0.0.1:8000${product.images[0]}`}
+                                alt={product.name} 
+                                className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
+                             />
+                          ) : (
+                             <div className="text-gray-300 text-sm">No Image</div>
+                          )}
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                             <span className="bg-white text-[#114B43] px-3 py-1.5 rounded-full text-xs font-bold shadow-md transform translate-y-2 group-hover:translate-y-0 transition-all">View Detail</span>
+                          </div>
+                       </div>
+
+                       {/* Product Details */}
+                       <div className="text-center flex-1 flex flex-col">
+                          <h3 className="text-gray-900 font-bold text-sm md:text-base leading-tight mb-1">{product.name}</h3>
+                          {product.category && <p className="text-gray-500 text-xs md:text-sm font-medium mb-1">{product.category}</p>}
+                          {product.brand && <p className="text-gray-400 text-xs mb-3 flex-1">{product.brand}</p>}
+                          
+                          <div className="mt-auto flex items-center justify-between gap-2">
+                             <span className="text-xl md:text-2xl font-extrabold text-[#114B43] tracking-tighter">
+                                <span className="text-sm align-super">$</span>{product.price.toFixed(2)}
+                             </span>
+                             <button 
+                                onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                                className="bg-[#114B43] text-white p-2 rounded-full hover:bg-[#0d3a34] transition-colors shadow-md"
+                                title="Add to cart"
+                             >
+                                <FiPlus className="w-4 h-4" />
+                             </button>
+                          </div>
+                       </div>
+                   </motion.div>
+                ))
+             )}
           </div>
 
       </div>
