@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiSliders, FiMail, FiMapPin, FiSend, FiCreditCard, FiMenu, FiX } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
 const DUMMY_PRODUCTS = [
   { id: 1, name: 'Italian Avocado', shop: '(Local shop)', weight: '500 gm.', price: '14.99', img: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=500&auto=format&fit=crop&q=60' },
@@ -190,7 +191,13 @@ const LandingPage = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8">
           
           {/* Main Hero Banner */}
-          <div className="rounded-3xl overflow-hidden shadow-xl flex flex-col md:flex-row relative">
+          <motion.div 
+             initial={{ opacity: 0, y: 50 }} 
+             whileInView={{ opacity: 1, y: 0 }} 
+             transition={{ duration: 0.8, ease: "easeOut" }} 
+             viewport={{ once: true }}
+             className="rounded-3xl overflow-hidden shadow-xl flex flex-col md:flex-row relative"
+          >
               {/* Left Side (Red CTA) */}
               <div className="bg-[#8A2F2D] text-white p-10 md:p-16 flex-1 flex flex-col justify-center relative z-10 md:rounded-r-[40px]">
                  <h1 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">
@@ -217,10 +224,16 @@ const LandingPage = () => {
                     className="absolute inset-0 w-full h-full object-cover object-center mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-700"
                  />
               </div>
-          </div>
+          </motion.div>
 
           {/* Filtering Section Wrapper */}
-          <div className="mt-12 space-y-6">
+          <motion.div 
+             initial={{ opacity: 0 }} 
+             whileInView={{ opacity: 1 }} 
+             transition={{ duration: 0.5, delay: 0.2 }} 
+             viewport={{ once: true }}
+             className="mt-12 space-y-6"
+          >
             
 
              {/* Pill Filters */}
@@ -254,7 +267,7 @@ const LandingPage = () => {
                    Sort by <FiChevronDown className="w-4 h-4" />
                 </button>
              </div>
-          </div>
+          </motion.div>
 
           {/* Product Grid */}
           <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
