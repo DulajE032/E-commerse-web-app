@@ -59,6 +59,15 @@ export const AuthProvider = ({ children }) => {
     return establishSession(response.access_token);
   }, [establishSession]);
 
+  const adminLogin = useCallback(async (email, password) => {
+    const response = await api.adminLogin({ email, password });
+    const profile = await establishSession(response.access_token);
+    if (profile.role !== 'admin') {
+      throw new Error('Admin access required');
+    }
+    return profile;
+  }, [establishSession]);
+
   const signup = useCallback(async ({ fullName, email, password }) => {
     await api.signup({
       full_name: fullName,
@@ -82,10 +91,11 @@ export const AuthProvider = ({ children }) => {
       isInitializing,
       isAuthenticated: Boolean(token && user),
       login,
+      adminLogin,
       signup,
       logout,
     }),
-    [token, user, isInitializing, login, signup, logout],
+    [token, user, isInitializing, login, adminLogin, signup, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

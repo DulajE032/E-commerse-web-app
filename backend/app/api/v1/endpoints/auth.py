@@ -39,6 +39,31 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    if user.role == UserRole.ADMIN.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Use admin login endpoint for admin access",
+        )
+
+    token = create_access_token(subject=str(user.id), role=user.role)
+    return TokenResponse(access_token=token)
+
+
+@router.post("/admin-login", response_model=TokenResponse)
+def admin_login(credentials: UserLogin, db: Session = Depends(get_db)):
+    email = normalize_email(credentials.email)
+    user = crud_user.get_user_by_email(db, email)
+    if (
+        not user
+        or user.role != UserRole.ADMIN.value
+        or not verify_password(credentials.password, user.password_hash)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid admin credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     token = create_access_token(subject=str(user.id), role=user.role)
     return TokenResponse(access_token=token)
 
