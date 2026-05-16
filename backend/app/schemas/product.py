@@ -23,3 +23,16 @@ class ProductRead(ProductBase):
     createdAt: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    brand: Optional[str] = None
+    price: Optional[float] = None
+    discountPrice: Optional[float] = None
+    stock: Optional[int] = None
+    images: Optional[List[str]] = None
+    rating: Optional[float] = None
+    featured: Optional[bool] = None
+    specifications: Optional[Dict[str, Any]] = None
