@@ -3,7 +3,10 @@ import shutil
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+
+from app.core.security import require_role
+from app.models.user import User
 
 router = APIRouter()
 
@@ -12,7 +15,10 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def upload_image(file: UploadFile = File(...)):
+async def upload_image(
+    file: UploadFile = File(...),
+    _: User = Depends(require_role("admin")),
+):
     """
     Upload a product image locally.
     Returns the URL path to access the image.

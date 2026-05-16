@@ -1,7 +1,16 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import { FiHome, FiBox, FiPlusCircle, FiLogOut } from 'react-icons/fi';
+import { useAuth } from '../services/AuthContext';
 
 const AdminLayout = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
@@ -21,7 +30,10 @@ const AdminLayout = () => {
           </Link>
         </nav>
         <div className="p-4 border-t border-gray-700">
-          <button className="flex items-center gap-3 w-full p-3 rounded hover:bg-red-600 transition text-red-400 hover:text-white">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 w-full p-3 rounded hover:bg-red-600 transition text-red-400 hover:text-white"
+          >
             <FiLogOut /> Logout
           </button>
         </div>
@@ -33,7 +45,9 @@ const AdminLayout = () => {
         <header className="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6">
           <div className="text-xl font-semibold">Dashboard</div>
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">A</div>
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+              {user?.full_name?.charAt(0)?.toUpperCase() || 'A'}
+            </div>
           </div>
         </header>
 
