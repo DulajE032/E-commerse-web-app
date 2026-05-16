@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from app.models.product import Product
-from app.schemas.product import ProductCreate
+from app.schemas.product import ProductCreate, ProductUpdate
 
 
 def get_products(db: Session, skip: int = 0, limit: int = 20, category: Optional[str] = None) -> list[Product]:
@@ -12,8 +12,15 @@ def get_products(db: Session, skip: int = 0, limit: int = 20, category: Optional
     return query.offset(skip).limit(limit).all()
 
 
+
+def get_existing_product(db: Session, product_id: int) -> Optional[Product]:
+    return db.query(Product).filter(Product.id == product_id).first()
+
+
 def get_product(db: Session, product_id: int) -> Product | None:
     return db.query(Product).filter(Product.id == product_id).first()
+
+
 
 
 def create_product(db: Session, product_in: ProductCreate) -> Product:
@@ -23,3 +30,31 @@ def create_product(db: Session, product_in: ProductCreate) -> Product:
     db.refresh(product)
     return product
 
+
+
+
+def update_product(db:Session,product_in: ProductUpdate, product_id: int) -> Optional[Product]:
+    product = get_product(db, product_id)#getting exiting product from database
+    if not product:
+        return None
+
+    for field, value in product_in.model_dump(exclude_unset=True).items():
+        setattr(product, field, value)
+
+    db.commit()
+    db.refresh(product)
+    return product
+
+
+
+def delete_product(db:Session, product_id: int) -> bool:
+    if product_id <= 0:
+        raise ValueError("Product ID must be a positive integer")
+    
+    product = get_product(db, product_id)
+    if not product:
+        return False
+
+    db.delete(product)
+    db.commit()
+    return True

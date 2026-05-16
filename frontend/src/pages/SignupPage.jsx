@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShoppingBag, Loader2, CheckCircle2, Shield } from 'lucide-react';
+import { useAuth } from '../services/AuthContext';
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  const { signup } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -47,12 +49,18 @@ const SignupPage = () => {
     setIsLoading(true);
 
     try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      localStorage.setItem('token', 'dummy_jwt_token_123');
-      navigate('/dashboard');
+      const user = await signup({
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+      });
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
-      setError('Something went wrong. Please try again.');
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setIsLoading(false);
     }

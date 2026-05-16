@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { ShoppingBag, Loader2, Shield } from 'lucide-react';
+import { useAuth } from '../services/AuthContext';
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -23,12 +25,14 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      // Simulating API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      localStorage.setItem('token', 'dummy_jwt_token_123');
-      navigate('/dashboard');
+      const user = await login(formData.email, formData.password);
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      setError(err.message || 'Invalid email or password. Please try again.');
     } finally {
       setIsLoading(false);
     }

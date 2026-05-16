@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { api } from '../../services/api';
 
 const AddProduct = () => {
   const [formData, setFormData] = useState({
@@ -33,17 +34,7 @@ const AddProduct = () => {
 
       // 1. Upload the image if selected
       if (imageFile) {
-        const imageFormData = new FormData();
-        imageFormData.append('file', imageFile);
-
-        const uploadRes = await fetch('http://127.0.0.1:8000/api/v1/upload', {
-          method: 'POST',
-          body: imageFormData,
-        });
-
-        if (!uploadRes.ok) throw new Error("Image upload failed");
-        
-        const uploadData = await uploadRes.json();
+        const uploadData = await api.uploadImage(imageFile);
         imageUrls.push(uploadData.url);
       }
 
@@ -56,15 +47,7 @@ const AddProduct = () => {
         images: imageUrls,
       };
 
-      const productRes = await fetch('http://127.0.0.1:8000/api/v1/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(productPayload),
-      });
-
-      if (!productRes.ok) throw new Error("Product creation failed");
+      await api.createProduct(productPayload);
 
       setMessage('Product created successfully!');
       // Reset form
