@@ -12,6 +12,8 @@ class UserBase(BaseModel):
     email: str
     full_name: str
 
+    model_config = ConfigDict(extra="forbid")
+
 
 class UserCreate(UserBase):
     password: str = Field(min_length=8)
@@ -24,6 +26,8 @@ class UserSignup(UserCreate):
 class UserLogin(BaseModel):
     email: str
     password: str
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class UserRead(UserBase):
