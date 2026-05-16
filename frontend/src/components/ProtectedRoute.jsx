@@ -8,7 +8,7 @@ const RouteLoader = () => (
   </div>
 );
 
-export const ProtectedRoute = ({ children }) => {
+export const ProtectedRoute = ({ children, loginPath = '/login' }) => {
   const { isAuthenticated, isInitializing } = useAuth();
 
   if (isInitializing) {
@@ -16,13 +16,13 @@ export const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={loginPath} replace />;
   }
 
   return children;
 };
 
-export const AdminRoute = ({ children }) => {
+export const AdminRoute = ({ children, loginPath = '/admin/login' }) => {
   const { isAuthenticated, isInitializing, user } = useAuth();
 
   if (isInitializing) {
@@ -30,7 +30,7 @@ export const AdminRoute = ({ children }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={loginPath} replace />;
   }
 
   if (user.role !== 'admin') {

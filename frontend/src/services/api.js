@@ -45,6 +45,14 @@ export const api = {
     });
   },
 
+  adminLogin: async (payload) => {
+    return request(`${API_BASE}/auth/admin-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  },
+
   getProfile: async (token) => {
     return request(`${API_BASE}/auth/me`, {
       headers: withAuthHeaders({}, token),

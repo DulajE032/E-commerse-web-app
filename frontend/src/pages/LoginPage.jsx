@@ -25,12 +25,8 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const user = await login(formData.email, formData.password);
-      if (user.role === 'admin') {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
+      await login(formData.email, formData.password);
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Invalid email or password. Please try again.');
     } finally {
