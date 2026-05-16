@@ -71,6 +71,21 @@ export const api = {
     });
   },
 
+  updateProduct: async (id, payload, token) => {
+    return request(`${API_BASE}/products/${id}`, {
+      method: 'PUT',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteProduct: async (id, token) => {
+    return request(`${API_BASE}/products/${id}`, {
+      method: 'DELETE',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
   // Categories
   getCategories: async () => {
     return request(`${API_BASE}/categories`);
