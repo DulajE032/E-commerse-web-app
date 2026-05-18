@@ -1,447 +1,290 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiSliders, FiMail, FiMapPin, FiSend, FiCreditCard, FiMenu, FiX, FiPlus } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { FiSearch, FiShoppingCart, FiArrowRight, FiShield, FiTruck, FiRefreshCw, FiStar, FiCamera, FiFilter } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
 
-const footerLinks = [
-  { title: "QUICK LINKS", links: ["Home", "Shop All", "New Arrivals", "Best Sellers"] },
-  { title: "CUSTOMER SUPPORT", links: ["Order Tracking", "Shipping Policy", "Returns & Exchanges", "FAQ"] },
-];
-
 const LandingPage = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { addToCart, cartCount } = useCart();
-  const location = useLocation();
-  const currentPath = location.pathname;
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
 
-  // Fetch categories on mount
   useEffect(() => {
-    api.getCategories().then(setCategories).catch(console.error);
+    // Fetch categories or mock them for the UI
+    api.getCategories().then(res => {
+        if (res && res.length > 0) setCategories(res);
+        else setCategories([{id: 1, name: 'Electronics'}, {id: 2, name: 'Accessories'}, {id: 3, name: 'Audio'}]);
+    }).catch(console.error);
   }, []);
 
-  // Fetch products when category changes
   useEffect(() => {
     setLoading(true);
+    // User will integrate exact backend logic for filtering Top Selling
     api.getProducts(selectedCategory)
-      .then(setProducts)
+      .then(res => setProducts(res.slice(0, 8))) 
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [selectedCategory]);
 
-  const navLinks = [
-    { name: 'Home', path: '/' },
-    { name: 'Categories', path: '/categories' },
-    { name: 'Top Sales', path: '/top-sales' },
-    { name: 'Contact Us', path: '/contact' }
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-50 font-sans pb-20">
+    <div className="pb-20 bg-gray-50">
       
-      {/* Top Navbar Header */}
-      <div className="bg-white px-4 pt-4 pb-3 md:px-8 shadow-sm relative z-50">
-        
-        {/* Top Row: Logo, Search, Actions */}
-        <div className="flex items-center justify-between gap-4 md:gap-8">
-          
-          {/* Menu & Logo */}
-          <div className="flex items-center gap-3 shrink-0">
-             <button 
-                className="md:hidden p-1 text-gray-700 hover:text-orange-500 transition-colors"
-                onClick={() => setIsMobileMenuOpen(true)}
-             >
-                <FiMenu className="w-7 h-7" />
-             </button>
-             <Link to="/" className="flex items-center gap-2 group">
-                <FiShoppingCart className="w-8 h-8 text-orange-500 group-hover:text-orange-400 transition-colors" />
-                <span className="text-2xl font-extrabold text-[#114B43] tracking-tight hidden sm:block">peraStore</span>
-             </Link>
-          </div>
-
-          {/* Search Bar - Center (Desktop) */}
-          <div className="flex-1 max-w-2xl relative hidden md:block">
-             <input 
-               type="text" 
-               placeholder="Search for Grocery, Stores, Vegetable or Meat..."
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="w-full pl-5 pr-12 py-2.5 rounded-full text-gray-800 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all"
-             />
-             <FiSearch className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-orange-500" />
-          </div>
-
-          {/* Right side actions */}
-          <div className="flex items-center gap-4 md:gap-6 shrink-0">
-             
-             {/* Currency & Language (Hidden on small screens) */}
-             <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-600 border-r border-gray-200 pr-6">
-                <div className="flex items-center gap-1.5 cursor-pointer hover:text-orange-500 transition-colors">
-                   <span>USD</span> <FiChevronDown className="w-4 h-4" />
-                </div>
-                <div className="flex items-center gap-1.5 cursor-pointer hover:text-orange-500 transition-colors">
-                   <span>ENG</span> <FiChevronDown className="w-4 h-4" />
-                </div>
-             </div>
-             
-             {/* Cart */}
-             <div className="relative cursor-pointer text-gray-700 hover:text-orange-500 transition-colors">
-                <FiShoppingCart className="w-6 h-6" />
-                {cartCount > 0 && (
-                   <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{cartCount}</span>
-                )}
-             </div>
-             
-             {/* Auth */}
-             <div className="hidden md:flex gap-3 items-center ml-2">
-                <Link to="/login" className="text-sm font-medium text-gray-700 hover:text-orange-500 transition-colors">Log in</Link>
-                <Link to="/signup" className="text-sm font-medium bg-orange-500 text-white hover:bg-orange-600 px-5 py-2 rounded-full transition-colors shadow-sm">Sign up</Link>
-             </div>
-             
-             {/* Mobile User Icon */}
-             <Link to="/login" className="md:hidden bg-gray-100 p-2 rounded-full text-gray-700 hover:bg-gray-200">
-                <FiUser className="w-5 h-5" />
-             </Link>
-          </div>
-        </div>
-
-        {/* Bottom Row: Navigation Links & Mobile Search */}
-        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-           {/* Mobile Search Bar */}
-           <div className="md:hidden relative w-full">
-              <input 
-                 type="text" 
-                 placeholder="Search products..."
-                 value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full pl-4 pr-10 py-2.5 rounded-full text-gray-800 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-              <FiSearch className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
-           </div>
-
-           {/* Navigation Links (Desktop) */}
-           <div className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-1000">
-              {navLinks.map((link) => (
-                 <Link 
-                    key={link.name} 
-                    to={link.path} 
-                    className={`${currentPath === link.path ? 'text-orange-500 border-b-2 border-orange-500' : 'hover:text-orange-500'} transition-colors pb-1`}
-                 >
-                    {link.name}
-                 </Link>
-              ))}
-           </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <div 
-         className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-         onClick={() => setIsMobileMenuOpen(false)}
-      >
-         {/* Slide-out Menu */}
-         <div 
-            className={`fixed top-0 left-0 bottom-0 w-[80%] max-w-sm bg-white shadow-xl z-[70] flex flex-col transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-            onClick={(e) => e.stopPropagation()}
-         >
-            {/* Header */}
-            <div className="p-4 flex items-center justify-between border-b border-gray-100">
-               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
-                  <FiShoppingCart className="w-7 h-7 text-orange-500" />
-                  <span className="text-xl font-extrabold text-[#114B43]">peraStore</span>
-               </Link>
-               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500 hover:text-red-500 bg-gray-50 rounded-full transition-colors">
-                  <FiX className="w-5 h-5" />
-               </button>
-            </div>
-            
-            {/* Links */}
-            <div className="flex flex-col p-4 gap-2 flex-1 overflow-y-auto">
-               <div className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Navigation</div>
-               {navLinks.map((link) => (
-                  <Link
-                     key={link.name}
-                     to={link.path}
-                     onClick={() => setIsMobileMenuOpen(false)}
-                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-colors ${currentPath === link.path ? 'bg-orange-50 text-orange-500' : 'text-gray-700 hover:bg-gray-50'}`}
-                  >
-                     {link.name}
-                  </Link>
-               ))}
-               
-               <div className="mt-6 mb-2 border-t border-gray-100 pt-6 text-xs font-bold text-gray-400 uppercase tracking-wider">Settings</div>
-               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl mb-2">
-                  <span className="font-semibold text-gray-700">Currency</span>
-                  <div className="flex items-center gap-1 text-orange-500 font-bold text-sm cursor-pointer">
-                     USD <FiChevronDown className="w-4 h-4" />
-                  </div>
-               </div>
-               <div className="flex items-center justify-between px-4 py-3 bg-gray-50 rounded-xl">
-                  <span className="font-semibold text-gray-700">Language</span>
-                  <div className="flex items-center gap-1 text-orange-500 font-bold text-sm cursor-pointer">
-                     ENG <FiChevronDown className="w-4 h-4" />
-                  </div>
-               </div>
-            </div>
-            
-            {/* Bottom Actions */}
-            <div className="p-4 border-t border-gray-100 bg-gray-50">
-               <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl flex justify-center mb-3 hover:bg-gray-100 transition-colors">Log In</Link>
-               <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl flex justify-center hover:bg-orange-600 transition-colors shadow-sm">Sign Up</Link>
-            </div>
-         </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-8">
-          
-          {/* Main Hero Banner */}
-          <motion.div 
-             initial={{ opacity: 0, y: 50 }} 
-             whileInView={{ opacity: 1, y: 0 }} 
-             transition={{ duration: 0.8, ease: "easeOut" }} 
-             viewport={{ once: true }}
-             className="rounded-3xl overflow-hidden shadow-xl flex flex-col md:flex-row relative"
-          >
-              {/* Left Side (Red CTA) */}
-              <div className="bg-[#8A2F2D] text-white p-10 md:p-16 flex-1 flex flex-col justify-center relative z-10 md:rounded-r-[40px]">
-                 <h1 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight">
-                    GET 10% CASHBACK <br/> ON SHOPPING $150
-                 </h1>
-                 <p className="text-red-100 text-sm md:text-base max-w-md mb-8 leading-relaxed">
-                    Shopping is a bit of a relaxing hobby for me, which is sometimes troubling for the bank balance. But with our Visual Search AI, find exactly what you want instantly.
-                 </p>
-                 <div className="flex gap-4 flex-wrap">
-                    <Link to="/dashboard" className="bg-[#FFB84D] text-[#8A2F2D] font-bold px-8 py-3 rounded-full hover:bg-[#ffaa2b] transition-transform hover:scale-105 shadow-md">
-                       Keep Exploring
-                    </Link>
-                    <Link to="/login" className="bg-transparent border-2 border-white/30 text-white font-bold px-8 py-3 rounded-full hover:bg-white/10 transition-colors shadow-sm flex items-center gap-2">
-                       <FiSearch className="w-4 h-4" /> Visual Search
-                    </Link>
-                 </div>
-              </div>
+      {/* Premium Hero Section (Dark Blue Theme) */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.8, ease: "easeOut" }} 
+          className="rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col md:flex-row relative min-h-[500px]"
+        >
+          {/* Left Content Area */}
+          <div className="bg-slate-900 text-white p-10 md:p-16 lg:p-20 flex-1 flex flex-col justify-center relative z-10 md:w-1/2">
+            <motion.span 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-cyan-400 font-bold tracking-widest text-sm uppercase mb-4 block"
+            >
+              Next Generation E-Commerce
+            </motion.span>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight tracking-tight text-white"
+            >
+              Shop Smarter <br/> Not Harder
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="text-slate-300 text-sm md:text-base max-w-md mb-10 leading-relaxed"
+            >
+              Discover top-tier products with our intelligent visual search AI. Just snap a picture and find exactly what you're looking for.
+            </motion.p>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+              className="flex gap-4 flex-wrap"
+            >
+              <Link to="/products" className="bg-blue-600 text-white font-bold px-8 py-4 rounded-full hover:bg-blue-500 transition-all hover:scale-105 hover:shadow-xl hover:shadow-blue-600/30 flex items-center gap-2">
+                Explore Shop <FiArrowRight className="w-5 h-5" />
+              </Link>
               
-              {/* Right Side (Image / Spices) */}
-              <div className="flex-1 bg-[#F7D2B6] min-h-[250px] relative hidden md:block group overflow-hidden">
-                 <img 
-                    src="https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=1000&auto=format&fit=crop" 
-                    alt="Spices and Lentils" 
-                    className="absolute inset-0 w-full h-full object-cover object-center mix-blend-multiply opacity-90 group-hover:scale-105 transition-transform duration-700"
-                 />
-              </div>
-          </motion.div>
-
-          {/* Filtering Section Wrapper */}
-          <motion.div 
-             initial={{ opacity: 0 }} 
-             whileInView={{ opacity: 1 }} 
-             transition={{ duration: 0.5, delay: 0.2 }} 
-             viewport={{ once: true }}
-             className="mt-12 space-y-6"
-          >
+              {/* Visual Search CTA */}
+              <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold px-8 py-4 rounded-full hover:bg-white/20 transition-all shadow-sm flex items-center gap-2">
+                 <FiCamera className="w-5 h-5 text-cyan-400" /> Visual Search
+              </button>
+            </motion.div>
             
+            {/* Decorative circles */}
+            <div className="absolute top-[-20%] left-[-10%] w-64 h-64 rounded-full bg-blue-500/20 blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-80 h-80 rounded-full bg-cyan-500/20 blur-3xl pointer-events-none"></div>
+          </div>
+          
+          {/* Right Image Area */}
+          <div className="flex-1 min-h-[300px] relative hidden md:block group overflow-hidden bg-slate-800">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="absolute inset-0 w-full h-full"
+            >
+              <img 
+                src="https://images.unsplash.com/photo-1550009158-9effb66236b0?q=80&w=2000&auto=format&fit=crop" 
+                alt="Premium Tech" 
+                className="w-full h-full object-cover object-center mix-blend-overlay opacity-80"
+              />
+            </motion.div>
+            {/* Glassmorphism Badge */}
+            <motion.div 
+              initial={{ opacity: 0, x: 50 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 1 }}
+              className="absolute bottom-10 left-10 bg-slate-900/60 backdrop-blur-lg border border-slate-700 p-4 rounded-2xl shadow-2xl max-w-[200px]"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex text-cyan-400"><FiStar className="fill-current"/><FiStar className="fill-current"/><FiStar className="fill-current"/><FiStar className="fill-current"/><FiStar className="fill-current"/></div>
+              </div>
+              <p className="text-white text-xs font-medium leading-relaxed">"The AI visual search saved me hours of browsing!"</p>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
 
-             {/* Category Pill Filters */}
-             <div className="flex flex-wrap items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                <button 
-                   onClick={() => setSelectedCategory(null)}
-                   className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-colors ${
-                     selectedCategory === null 
-                       ? 'bg-[#114B43] text-white' 
-                       : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                   }`}
-                >
-                   All Categories
-                </button>
-                {categories.map((cat) => (
-                   <button
-                      key={cat.id}
-                      onClick={() => setSelectedCategory(cat.name)}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-colors ${
-                        selectedCategory === cat.name
-                          ? 'bg-[#114B43] text-white'
-                          : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                      }`}
-                   >
-                      {cat.name}
-                   </button>
-                ))}
+      {/* Trust Elements */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[
+            { icon: FiShield, title: "Secure Payments", desc: "100% secure checkout with 256-bit encryption" },
+            { icon: FiTruck, title: "Fast Delivery", desc: "Free shipping on orders over $150" },
+            { icon: FiRefreshCw, title: "Easy Returns", desc: "30-day money back guarantee" }
+          ].map((item, idx) => (
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.2 }}
+              className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:-translate-y-2 transition-transform duration-300"
+            >
+              <div className="bg-blue-50 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                <item.icon className="w-8 h-8" />
+              </div>
+              <h3 className="text-slate-900 font-bold text-lg mb-2">{item.title}</h3>
+              <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
 
-                <div className="flex-1 min-w-[20px]"></div>
-
-                {/* Sort By Dropdown */}
-                <button className="flex items-center gap-1.5 bg-white text-gray-700 border border-gray-300 px-5 py-2 rounded-full text-sm font-medium hover:bg-gray-50 shadow-sm">
-                   Sort by <FiChevronDown className="w-4 h-4" />
+      {/* Top Selling Products & Filters */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+           
+           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
+             <div>
+               <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Top Selling Products</h2>
+               <p className="text-slate-500">Discover what's trending right now. Use filters to narrow down.</p>
+             </div>
+             
+             {/* Filter & Category UI */}
+             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                {/* Category Pills */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 md:flex-none">
+                  <button 
+                    onClick={() => setSelectedCategory(null)}
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm border ${
+                      selectedCategory === null 
+                      ? 'bg-slate-900 text-white border-slate-900' 
+                      : 'bg-white text-slate-600 border-gray-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {categories.map((cat) => (
+                     <button
+                        key={cat.id}
+                        onClick={() => setSelectedCategory(cat.name)}
+                        className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm border ${
+                          selectedCategory === cat.name
+                          ? 'bg-blue-600 text-white border-blue-600'
+                          : 'bg-white text-slate-600 border-gray-200 hover:bg-slate-50'
+                        }`}
+                     >
+                        {cat.name}
+                     </button>
+                  ))}
+                </div>
+                
+                {/* Advanced Filter Button */}
+                <button className="bg-white border border-gray-200 text-slate-700 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+                   <FiFilter className="w-4 h-4" /> Filters
                 </button>
              </div>
-          </motion.div>
+           </div>
 
-          {/* Product Grid */}
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+           {/* Product Grid */}
+           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
              {loading ? (
-                // Loading skeleton
-                Array.from({ length: 10 }).map((_, i) => (
-                   <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse">
-                      <div className="w-full aspect-square rounded-xl bg-gray-200 mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded mb-2 w-3/4 mx-auto"></div>
-                      <div className="h-3 bg-gray-200 rounded mb-2 w-1/2 mx-auto"></div>
-                      <div className="h-6 bg-gray-200 rounded w-1/3 mx-auto"></div>
-                   </div>
-                ))
+               Array.from({ length: 8 }).map((_, i) => (
+                 <div key={i} className="bg-gray-50 rounded-2xl p-4 animate-pulse">
+                   <div className="w-full aspect-[4/5] rounded-xl bg-gray-200 mb-4"></div>
+                   <div className="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+                   <div className="h-6 bg-gray-200 rounded w-1/3 mt-4"></div>
+                 </div>
+               ))
              ) : products.length === 0 ? (
-                <div className="col-span-full text-center py-16 text-gray-400">
-                   <p className="text-lg font-semibold">No products found</p>
-                   <p className="text-sm mt-1">Try selecting a different category or add products via the Admin Panel.</p>
+                <div className="col-span-full py-20 text-center flex flex-col items-center">
+                   <FiFilter className="w-12 h-12 text-slate-300 mb-4" />
+                   <h3 className="text-xl font-bold text-slate-800">No products found</h3>
+                   <p className="text-slate-500">Try selecting a different category.</p>
                 </div>
              ) : (
-                products.map((product) => (
-                   <motion.div 
-                      key={product.id} 
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group cursor-pointer flex flex-col h-full"
-                   >
-                       {/* Image Box */}
-                       <div className="relative w-full aspect-square rounded-xl bg-gray-50 mb-4 overflow-hidden flex items-center justify-center p-4">
-                          {product.images && product.images.length > 0 ? (
-                             <img 
-                                src={`http://127.0.0.1:8000${product.images[0]}`}
-                                alt={product.name} 
-                                className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-                             />
-                          ) : (
-                             <div className="text-gray-300 text-sm">No Image</div>
-                          )}
-                          {/* Hover Overlay */}
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                             <span className="bg-white text-[#114B43] px-3 py-1.5 rounded-full text-xs font-bold shadow-md transform translate-y-2 group-hover:translate-y-0 transition-all">View Detail</span>
-                          </div>
-                       </div>
+               products.map((product, idx) => (
+                 <motion.div 
+                   key={product.id}
+                   initial={{ opacity: 0, y: 30 }}
+                   whileInView={{ opacity: 1, y: 0 }}
+                   viewport={{ once: true }}
+                   transition={{ duration: 0.5, delay: idx * 0.1 }}
+                   className="bg-white rounded-2xl p-4 md:p-5 border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer flex flex-col h-full relative"
+                   onClick={() => navigate(`/product/${product.id}`)}
+                 >
+                   {/* Image Box */}
+                   <div className="relative w-full aspect-[4/5] rounded-xl bg-slate-50 mb-5 overflow-hidden flex items-center justify-center p-6 group-hover:bg-slate-100 transition-colors">
+                     {product.images && product.images.length > 0 ? (
+                       <img 
+                         src={`http://127.0.0.1:8000${product.images[0]}`}
+                         alt={product.name} 
+                         className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500 ease-out"
+                       />
+                     ) : (
+                       <div className="text-slate-300 text-sm font-medium">No Image</div>
+                     )}
+                     
+                     {/* Quick Add overlay */}
+                     <div className="absolute inset-x-4 bottom-4 translate-y-[150%] group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
+                       <button 
+                         onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                         className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                       >
+                         <FiShoppingCart className="w-4 h-4" /> Quick Add
+                       </button>
+                     </div>
+                   </div>
 
-                       {/* Product Details */}
-                       <div className="text-center flex-1 flex flex-col">
-                          <h3 className="text-gray-900 font-bold text-sm md:text-base leading-tight mb-1">{product.name}</h3>
-                          {product.category && <p className="text-gray-500 text-xs md:text-sm font-medium mb-1">{product.category}</p>}
-                          {product.brand && <p className="text-gray-400 text-xs mb-3 flex-1">{product.brand}</p>}
-                          
-                          <div className="mt-auto flex items-center justify-between gap-2">
-                             <span className="text-xl md:text-2xl font-extrabold text-[#114B43] tracking-tighter">
-                                <span className="text-sm align-super">$</span>{product.price.toFixed(2)}
-                             </span>
-                             <button 
-                                onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                                className="bg-[#114B43] text-white p-2 rounded-full hover:bg-[#0d3a34] transition-colors shadow-md"
-                                title="Add to cart"
-                             >
-                                <FiPlus className="w-4 h-4" />
-                             </button>
-                          </div>
+                   {/* Details */}
+                   <div className="flex-1 flex flex-col text-left">
+                     <p className="text-blue-500 text-xs font-bold uppercase tracking-wider mb-1">{product.category}</p>
+                     <h3 className="text-slate-900 font-bold text-sm md:text-base leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">{product.name}</h3>
+                     <div className="mt-auto flex items-center justify-between">
+                       <span className="text-lg md:text-xl font-extrabold text-slate-900">
+                         ${product.price.toFixed(2)}
+                       </span>
+                       <div className="flex items-center text-amber-400 text-xs gap-1 font-bold">
+                         <FiStar className="fill-current w-3 h-3" /> 4.9
                        </div>
-                   </motion.div>
-                ))
+                     </div>
+                   </div>
+                 </motion.div>
+               ))
              )}
-          </div>
-
-      </div>
-
-      {/* Professional Multi-Column Footer */}
-      <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 mt-20">
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          
-          {/* Main 4 Columns */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-            
-            {/* Column 1: Brand & About */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 text-white">
-                <FiShoppingCart className="w-8 h-8 text-orange-400" />
-                <span className="text-2xl font-bold">peraStore</span>
-              </div>
-              <p className="text-sm leading-relaxed text-slate-400">
-                Experience the next generation of e-commerce. Upload an image, let our Visual Search AI find the perfect match instantly. Shopping, smarter.
-              </p>
-              <div className="flex gap-4">
-                <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-orange-500 hover:text-white transition-all">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95z"/></svg>
-                </a>
-                <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-orange-500 hover:text-white transition-all">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                </a>
-                <a href="#" className="bg-slate-800 p-2 rounded-full hover:bg-orange-500 hover:text-white transition-all">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5v-14c0-2.76-2.24-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.27c-.97 0-1.75-.79-1.75-1.76s.78-1.75 1.75-1.75 1.75.79 1.75 1.75-.78 1.76-1.75 1.76zm13.5 12.27h-3v-5.6c0-3.36-4-3.11-4 0v5.6h-3v-11h3v1.76c1.39-2.58 7-2.78 7 2.47v6.77z"/></svg>
-                </a>
-              </div>
-            </div>
-
-            {/* Columns 2 & 3: Quick Links & Support (Mapped from array) */}
-            {footerLinks.map((section, idx) => (
-              <div key={idx}>
-                <h4 className="text-white font-bold tracking-wider mb-6">{section.title}</h4>
-                <ul className="space-y-4">
-                  {section.links.map((link, linkIdx) => (
-                    <li key={linkIdx}>
-                      <Link to="/" className="text-sm hover:text-orange-400 transition-colors">
-                        {link}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-
-            {/* Column 4: Newsletter & Contact */}
-            <div>
-              <h4 className="text-white font-bold tracking-wider mb-6">STAY CONNECTED</h4>
-              <p className="text-sm text-slate-400 mb-4">Subscribe to get AI-curated deals directly to your inbox.</p>
-              
-              <div className="flex mb-6 relative">
-                <input 
-                  type="email" 
-                  placeholder="Enter your email" 
-                  className="w-full bg-slate-800 text-white text-sm rounded-l-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-orange-400"
-                />
-                <button className="bg-orange-500 hover:bg-orange-600 px-4 rounded-r-lg transition-colors flex items-center justify-center">
-                  <FiSend className="w-4 h-4 text-white" />
-                </button>
-              </div>
-
-              <ul className="space-y-3">
-                 <li className="flex items-start gap-3 text-sm text-slate-400">
-                    <FiMapPin className="w-5 h-5 shrink-0 text-slate-500" />
-                    <span>123 Innovation Drive,<br/>Tech City, TC 90210</span>
-                 </li>
-                 <li className="flex items-center gap-3 text-sm text-slate-400">
-                    <FiMail className="w-5 h-5 shrink-0 text-slate-500" />
-                    <a href="mailto:support@perastore.com" className="hover:text-orange-400 transition-colors">support@perastore.com</a>
-                 </li>
-              </ul>
-            </div>
-
-          </div>
-
-          {/* Bottom Bar: Copyright & Payments */}
-          <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-             <p className="text-sm text-slate-500 text-center md:text-left">
-               &copy; {new Date().getFullYear()} peraStore. All rights reserved.
-             </p>
-             
-             {/* Payment Icons */}
-             <div className="flex items-center gap-3 text-slate-500">
-                <FiCreditCard className="w-8 h-8" />
-                <span className="text-xs font-bold border border-slate-700 px-2 py-1 rounded">VISA</span>
-                <span className="text-xs font-bold border border-slate-700 px-2 py-1 rounded">MASTERCARD</span>
-                <span className="text-xs font-bold border border-slate-700 px-2 py-1 rounded">PAYPAL</span>
-             </div>
-          </div>
-
+           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Promotion Banner */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-24">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="rounded-[2.5rem] bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 p-10 md:p-16 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-2xl shadow-blue-900/20"
+        >
+          {/* Decor */}
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+          <div className="absolute -left-20 -top-20 w-64 h-64 bg-cyan-500/30 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div className="relative z-10 text-white md:w-1/2 text-center md:text-left mb-8 md:mb-0">
+            <span className="bg-cyan-500/20 text-cyan-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border border-cyan-500/30 mb-6 inline-block shadow-sm">AI Enhanced</span>
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight text-white">Experience Smart <br/> Shopping</h2>
+            <p className="text-blue-100 mb-8 max-w-sm mx-auto md:mx-0 leading-relaxed text-sm md:text-base">Upload an image and let our visual AI find identical or similar products instantly. Try it now.</p>
+            <button className="bg-cyan-500 text-slate-900 font-bold px-8 py-4 rounded-full hover:bg-cyan-400 transition-colors inline-flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+              <FiCamera className="w-5 h-5" /> Try Visual Search
+            </button>
+          </div>
+
+          <div className="relative z-10 w-full max-w-sm md:w-1/3">
+             <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop" alt="Headphones Promotion" className="rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-8 border-white/5 mix-blend-luminosity hover:mix-blend-normal transition-all duration-500" />
+          </div>
+        </motion.div>
+      </section>
     </div>
   );
 };

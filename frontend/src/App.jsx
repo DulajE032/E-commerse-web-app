@@ -2,16 +2,30 @@ import React from 'react';
 import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './services/CartContext';
 import { AuthProvider } from './services/AuthContext';
+
+// Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import Dashboard from './pages/Dashboard';
+import ProductsPage from './pages/ProductsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+
+// Layouts
+import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
+
+// Admin Pages
 import AdminDashboard from './admin/pages/AdminDashboard';
 import Products from './admin/pages/Products';
 import AddProduct from './admin/pages/AddProduct';
+
+// Auth Components
 import { AdminRoute, ProtectedRoute } from './components/ProtectedRoute';
+
 import './App.css';
 
 function App() {
@@ -20,21 +34,31 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/admin12345/login" element={<AdminLoginPage />} />
+            
+            {/* Public Routes with Layout */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/product/:id" element={<ProductDetailPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
 
-            {/* Protected User Routes */}
-            <Route
-              path="/dashboard"
-              element={(
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              )}
-            />
+              {/* Protected User Routes within Layout */}
+              <Route
+                path="/dashboard"
+                element={(
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                )}
+              />
+            </Route>
+
+            {/* Admin Auth */}
+            <Route path="/admin12345/login" element={<AdminLoginPage />} />
 
             {/* Admin Routes */}
             <Route
@@ -50,6 +74,7 @@ function App() {
               <Route path="products" element={<Products />} />
               <Route path="add-product" element={<AddProduct />} />
             </Route>
+            
           </Routes>
         </Router>
       </AuthProvider>

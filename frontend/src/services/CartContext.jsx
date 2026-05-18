@@ -6,6 +6,7 @@ export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
+  const [toastMessage, setToastMessage] = useState(null);
 
   const addToCart = (product) => {
     setCartItems((prev) => {
@@ -18,6 +19,10 @@ export const CartProvider = ({ children }) => {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+    
+    // Show Toast
+    setToastMessage(`Added ${product.name} to cart`);
+    setTimeout(() => setToastMessage(null), 3000);
   };
 
   const removeFromCart = (productId) => {
@@ -40,7 +45,7 @@ export const CartProvider = ({ children }) => {
   const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal, toastMessage, setToastMessage }}>
       {children}
     </CartContext.Provider>
   );
