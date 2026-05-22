@@ -1,0 +1,34 @@
+ @'
+ import pandas as pd
+ from pathlib import Path
+ from PIL import Image
+ from torch.utils.data import Dataset, DataLoader
+ from torchvision import transforms
+ from app.services.Ai_ML.hybrid_model import ModelManager
+ 
+ csv_path = Path("app/services/Ai_ML/data/products_index.csv")
+ df = pd.read_csv(csv_path).dropna(subset=["image_path","name"])
+ df["description"] = (df["brand"].fillna("") + " " + df["name"]).str.strip()
+ df = df[df["image_path"].apply(lambda p: Path(p).exists())]
+ 
+ class ProductDataset(Dataset):
+     def __init__(self, paths, texts):
+         self.paths = paths
+         self.texts = texts
+         self.transform = transforms.Compose([
+             transforms.Resize((224, 224)),
+             transforms.ToTensor(),
+             transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                  std=[0.229, 0.224, 0.225]),
+         ])
+     def __len__(self): return len(self.paths)
+     def __getitem__(self, idx):
+         image = Image.open(self.paths[idx]).convert("RGB")
+         return self.transform(image), self.texts[idx]
+ 
+ dataset = ProductDataset(df["image_path"].tolist(), df["description"].tolist())
+ loader = DataLoader(dataset, batch_size=32, shuffle=True, num_workers=0)
+ 
+ manager = ModelManager(model_path="models/hybrid_model.pt")
+ manager.train_epoch(loader, num_epochs=2)
+ '@ | python
