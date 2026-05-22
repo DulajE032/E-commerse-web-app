@@ -1,5 +1,8 @@
 """Visual Search Service - Main orchestrator for image search"""
 import io
+from pathlib import Path
+from urllib.parse import urlparse
+
 import numpy as np
 from PIL import Image
 import torch
@@ -176,17 +179,37 @@ class VisualSearchService:
             try:
                 # Use first image
                 image_url = product.images[0]
-                # Download and process image
-                import requests
+                image_bytes = None
 
-                response = requests.get(image_url, timeout=10)
-                if response.status_code == 200:
-                    description = product.description or product.name
-                    result = self.index_product(
-                        product.id, response.content, description, db
-                    )
-                    if result["status"] == "success":
-                        indexed_count += 1
+                # Try local path first (absolute or relative)
+                local_path = Path(image_url)
+                if local_path.exists():
+                    image_bytes = local_path.read_bytes()
+                elif image_url.startswith("/uploads/"):
+                    upload_path = Path(image_url.lstrip("/"))
+                    if upload_path.exists():
+                        image_bytes = upload_path.read_bytes()
+                    else:
+                        raise FileNotFoundError(f"Upload not found: {image_url}")
+                else:
+                    parsed = urlparse(image_url)
+                    if parsed.scheme in ("http", "https"):
+                        import requests
+
+                        response = requests.get(image_url, timeout=10)
+                        if response.status_code == 200:
+                            image_bytes = response.content
+                        else:
+                            raise ValueError(
+                                f"Failed to fetch image (status {response.status_code})"
+                            )
+                    else:
+                        raise ValueError(f"Unsupported image URL: {image_url}")
+
+                description = product.description or product.name
+                result = self.index_product(product.id, image_bytes, description, db)
+                if result["status"] == "success":
+                    indexed_count += 1
             except Exception as e:
                 errors.append(f"Product {product.id}: {str(e)}")
 
