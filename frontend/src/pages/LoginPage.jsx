@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiShoppingCart, FiShield, FiLoader, FiArrowRight } from 'react-icons/fi';
+import { FiShoppingCart, FiShield, FiArrowRight } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 import { motion } from 'framer-motion';
+import Loader from '../components/Loader';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -143,7 +144,10 @@ const LoginPage = () => {
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 group"
                 >
                   {isLoading ? (
-                    <><FiLoader className="w-5 h-5 animate-spin" /> Authenticating...</>
+                    <span className="flex items-center gap-2">
+                      <Loader size={18} dotSize={6} border={3} />
+                      Authenticating...
+                    </span>
                   ) : (
                     <>Sign In <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
                   )}

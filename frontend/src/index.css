@@ -3,3 +3,39 @@
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+
+.loader {
+  width: var(--loader-size, 80px);
+  aspect-ratio: 1;
+  border: var(--loader-border, 10px) solid #000;
+  box-sizing: border-box;
+  background:
+    radial-gradient(farthest-side, #fff 98%, #0000) top,
+    radial-gradient(farthest-side, #fff 98%, #0000) top,
+    radial-gradient(farthest-side, #fff 98%, #0000) left,
+    radial-gradient(farthest-side, #fff 98%, #0000) right,
+    radial-gradient(farthest-side, #fff 98%, #0000) bottom,
+    #000;
+  background-size: var(--loader-dot, 20px) var(--loader-dot, 20px);
+  background-repeat: no-repeat;
+  filter: blur(4px) contrast(10);
+  animation: l19 2s infinite;
+}
+
+@keyframes l19 {
+  0% {
+    background-position: top, top, left, right, bottom;
+  }
+  25% {
+    background-position: right, top, left, right, bottom;
+  }
+  50% {
+    background-position: bottom, top, left, right, bottom;
+  }
+  75% {
+    background-position: left, top, left, right, bottom;
+  }
+  100% {
+    background-position: top, top, left, right, bottom;
+  }
+}

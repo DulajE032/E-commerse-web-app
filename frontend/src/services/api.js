@@ -109,4 +109,22 @@ export const api = {
       body: formData,
     });
   },
+
+  // Visual Search
+  searchByText: async (query, top_k = 5) => {
+    return request(`${API_BASE}/visual-search/search-by-text/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, top_k }),
+    });
+  },
+
+  searchByImage: async (file, top_k = 5) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request(`${API_BASE}/visual-search/search-by-image/?top_k=${top_k}`, {
+      method: 'POST',
+      body: formData,
+    });
+  },
 };
