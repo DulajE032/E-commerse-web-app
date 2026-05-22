@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { api } from '../../services/api';
+import Loader from '../../components/Loader';
 
 const Products = () => {
   const [products, setProducts] = useState([]);
@@ -93,7 +94,13 @@ const Products = () => {
     }
   };
 
-  if (loading) return <p className="text-gray-400">Loading products...</p>;
+  if (loading) {
+    return (
+      <div className="flex justify-center py-10">
+        <Loader size={48} dotSize={12} border={6} />
+      </div>
+    );
+  }
 
   return (
     <div>

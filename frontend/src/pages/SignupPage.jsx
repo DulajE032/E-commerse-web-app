@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FiShoppingCart, FiShield, FiLoader, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
+import { FiShoppingCart, FiShield, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 import { motion } from 'framer-motion';
+import Loader from '../components/Loader';
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -219,7 +220,10 @@ const SignupPage = () => {
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-4 group"
                 >
                   {isLoading ? (
-                    <><FiLoader className="w-5 h-5 animate-spin" /> Creating Account...</>
+                    <span className="flex items-center gap-2">
+                      <Loader size={18} dotSize={6} border={3} />
+                      Creating Account...
+                    </span>
                   ) : (
                     <>Sign Up <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
                   )}

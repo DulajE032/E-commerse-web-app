@@ -13,6 +13,7 @@ import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import VisualSearchPage from './pages/VisualSearchPage';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
@@ -39,6 +40,7 @@ function App() {
             <Route element={<PublicLayout />}>
               <Route path="/" element={<LandingPage />} />
               <Route path="/products" element={<ProductsPage />} />
+              <Route path="/visual-search" element={<VisualSearchPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />

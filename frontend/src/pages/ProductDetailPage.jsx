@@ -4,6 +4,7 @@ import { FiMinus, FiPlus, FiShoppingCart, FiCreditCard, FiStar, FiChevronRight, 
 import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
+import Loader from '../components/Loader';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -32,7 +33,7 @@ const ProductDetailPage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <Loader size={64} dotSize={16} border={8} />
       </div>
     );
   }

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Loader2, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import { useAuth } from '../services/AuthContext';
+import Loader from '../components/Loader';
 
 const AdminLoginPage = () => {
   const navigate = useNavigate();
@@ -91,7 +92,14 @@ const AdminLoginPage = () => {
             disabled={isLoading || !formData.email || !formData.password}
             className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-2.5 font-medium disabled:opacity-60 flex items-center justify-center gap-2"
           >
-            {isLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</> : 'Sign in as Admin'}
+            {isLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader size={16} dotSize={6} border={3} />
+                Signing in...
+              </span>
+            ) : (
+              'Sign in as Admin'
+            )}
           </button>
         </form>
 
