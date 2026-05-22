@@ -4,6 +4,7 @@ import { FiFilter, FiChevronDown, FiStar, FiShoppingCart, FiCheck } from 'react-
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
+import Loader from '../components/Loader';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -262,13 +263,9 @@ const ProductsPage = () => {
           <div className="flex-1">
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
               {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="bg-white rounded-[1.5rem] p-4 shadow-sm border border-gray-100 animate-pulse">
-                    <div className="w-full aspect-square rounded-xl bg-gray-100 mb-4"></div>
-                    <div className="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
-                    <div className="h-6 bg-gray-200 rounded w-1/3 mt-4"></div>
-                  </div>
-                ))
+                <div className="col-span-full flex justify-center py-16">
+                  <Loader size={64} dotSize={16} border={8} />
+                </div>
               ) : products.length === 0 ? (
                 <div className="col-span-full text-center py-20 bg-white rounded-[2rem] border border-dashed border-gray-300">
                   <div className="bg-blue-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">

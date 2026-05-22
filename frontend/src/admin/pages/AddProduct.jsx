@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { api } from '../../services/api';
+import Loader from '../../components/Loader';
 
 const AddProduct = () => {
   const [formData, setFormData] = useState({
@@ -118,7 +119,14 @@ const AddProduct = () => {
             </div>
 
             <button type="submit" disabled={loading} className="mt-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-2 px-6 rounded transition">
-              {loading ? 'Saving...' : 'Save Product'}
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Loader size={16} dotSize={6} border={3} />
+                  Saving...
+                </span>
+              ) : (
+                'Save Product'
+              )}
             </button>
           </div>
         </div>

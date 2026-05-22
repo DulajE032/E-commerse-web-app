@@ -4,6 +4,7 @@ import { FiSearch, FiShoppingCart, FiArrowRight, FiShield, FiTruck, FiRefreshCw,
 import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
+import Loader from '../components/Loader';
 
 const LandingPage = () => {
   const [products, setProducts] = useState([]);
@@ -78,9 +79,9 @@ const LandingPage = () => {
               </Link>
               
               {/* Visual Search CTA */}
-              <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold px-8 py-4 rounded-full hover:bg-white/20 transition-all shadow-sm flex items-center gap-2">
+              <Link to="/visual-search" className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold px-8 py-4 rounded-full hover:bg-white/20 transition-all shadow-sm flex items-center gap-2">
                  <FiCamera className="w-5 h-5 text-cyan-400" /> Visual Search
-              </button>
+              </Link>
             </motion.div>
             
             {/* Decorative circles */}
@@ -192,13 +193,9 @@ const LandingPage = () => {
            {/* Product Grid */}
            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
              {loading ? (
-               Array.from({ length: 8 }).map((_, i) => (
-                 <div key={i} className="bg-gray-50 rounded-2xl p-4 animate-pulse">
-                   <div className="w-full aspect-[4/5] rounded-xl bg-gray-200 mb-4"></div>
-                   <div className="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
-                   <div className="h-6 bg-gray-200 rounded w-1/3 mt-4"></div>
-                 </div>
-               ))
+               <div className="col-span-full flex justify-center py-16">
+                 <Loader size={64} dotSize={16} border={8} />
+               </div>
              ) : products.length === 0 ? (
                 <div className="col-span-full py-20 text-center flex flex-col items-center">
                    <FiFilter className="w-12 h-12 text-slate-300 mb-4" />
@@ -275,9 +272,9 @@ const LandingPage = () => {
             <span className="bg-cyan-500/20 text-cyan-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border border-cyan-500/30 mb-6 inline-block shadow-sm">AI Enhanced</span>
             <h2 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight text-white">Experience Smart <br/> Shopping</h2>
             <p className="text-blue-100 mb-8 max-w-sm mx-auto md:mx-0 leading-relaxed text-sm md:text-base">Upload an image and let our visual AI find identical or similar products instantly. Try it now.</p>
-            <button className="bg-cyan-500 text-slate-900 font-bold px-8 py-4 rounded-full hover:bg-cyan-400 transition-colors inline-flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
+            <Link to="/visual-search" className="bg-cyan-500 text-slate-900 font-bold px-8 py-4 rounded-full hover:bg-cyan-400 transition-colors inline-flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
               <FiCamera className="w-5 h-5" /> Try Visual Search
-            </button>
+            </Link>
           </div>
 
           <div className="relative z-10 w-full max-w-sm md:w-1/3">
