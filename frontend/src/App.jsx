@@ -60,7 +60,7 @@ function App() {
             </Route>
 
             {/* Admin Auth */}
-            <Route path="/admin12345/login" element={<AdminLoginPage />} />
+            <Route path="/admin/login" element={<AdminLoginPage />} />
 
             {/* Admin Routes */}
             <Route
