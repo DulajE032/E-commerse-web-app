@@ -20,10 +20,10 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="bg-white/95 backdrop-blur-md px-4 pt-4 pb-3 md:px-8 shadow-sm border-b border-gray-100 relative z-50 sticky top-0 transition-all">
-        <div className="flex items-center justify-between gap-4 md:gap-8 max-w-7xl mx-auto">
-          {/* Menu & Logo */}
-          <div className="flex items-center gap-3 shrink-0">
+      <div className="bg-white/100 backdrop-blur-md px-6 pt-4 pb-3 md:px-8 shadow-sm border-b border-gray-100 relative z-50 sticky top-0 transition-all">
+        <div className="flex items-center gap-4 md:gap-6 max-w-7xl mx-auto">
+          {/* Menu, Logo & Nav Links */}
+          <div className="flex items-center gap-6 shrink-0">
              <button 
                 className="md:hidden p-1 text-gray-700 hover:text-orange-500 transition-colors"
                 onClick={() => setIsMobileMenuOpen(true)}
@@ -34,19 +34,34 @@ const Navbar = () => {
                 <FiShoppingCart className="w-8 h-8 text-blue-600 group-hover:text-blue-500 transition-colors" />
                 <span className="text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">peraStore</span>
              </Link>
+             <div className="hidden md:flex items-center gap-6 text-base font-bold text-gray-700">
+               {navLinks.map((link) => (
+                  <Link 
+                     key={link.name} 
+                     to={link.path} 
+                     className={`relative py-1 transition-colors ${currentPath === link.path ? 'text-blue-600' : 'hover:text-blue-500'}`}
+                  >
+                     {link.name}
+                     {currentPath === link.path && (
+                       <motion.div layoutId="underline" className="absolute left-0 right-0 bottom-[-4px] h-[3px] bg-blue-600 rounded-t-md" />
+                     )}
+                  </Link>
+               ))}
+             </div>
           </div>
 
-          {/* Search Bar - Center (Desktop) */}
-          <div className="flex-1 max-w-2xl relative hidden md:block group mx-8">
-             <input 
-               type="text" 
-               placeholder="Search for products, categories..."
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="w-full pl-12 pr-6 py-3 rounded-2xl text-gray-800 bg-gray-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner group-hover:bg-white group-hover:border-gray-200"
-             />
-             <FiSearch className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-             <div className="hidden absolute right-3 top-1/2 -translate-y-1/2 bg-white px-2 py-0.5 rounded text-[10px] font-bold text-gray-400 border border-gray-200 group-focus-within:block">Enter</div>
+          {/* Search Bar - Small (Desktop) */}
+          <div className="hidden md:flex flex-1 justify-center">
+             <div className="w-full max-w-xs relative group">
+                <input 
+                  type="text" 
+                  placeholder="Search products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl text-gray-800 bg-gray-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner group-hover:bg-white group-hover:border-gray-200"
+                />
+                <FiSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+             </div>
           </div>
 
           {/* Right side actions */}
@@ -86,10 +101,9 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Bottom Row: Navigation Links & Mobile Search */}
-        <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4 max-w-7xl mx-auto">
-           {/* Mobile Search Bar */}
-           <div className="md:hidden relative w-full">
+        {/* Bottom Row: Mobile Search */}
+        <div className="mt-4 md:hidden max-w-7xl mx-auto">
+           <div className="relative w-full">
               <input 
                  type="text" 
                  placeholder="Search products..."
@@ -98,22 +112,6 @@ const Navbar = () => {
                  className="w-full pl-4 pr-10 py-2.5 rounded-full text-gray-800 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
               <FiSearch className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
-           </div>
-
-           {/* Navigation Links (Desktop) */}
-           <div className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-700">
-              {navLinks.map((link) => (
-                 <Link 
-                    key={link.name} 
-                    to={link.path} 
-                    className={`relative py-1 transition-colors ${currentPath === link.path ? 'text-blue-600' : 'hover:text-blue-500'}`}
-                 >
-                    {link.name}
-                    {currentPath === link.path && (
-                      <motion.div layoutId="underline" className="absolute left-0 right-0 bottom-[-4px] h-[3px] bg-blue-600 rounded-t-md" />
-                    )}
-                 </Link>
-              ))}
            </div>
         </div>
       </div>

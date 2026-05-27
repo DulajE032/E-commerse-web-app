@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
 import Loader from '../components/Loader';
+import heroImage from '../assets/hero.png';
 
 const LandingPage = () => {
   const [products, setProducts] = useState([]);
@@ -97,7 +98,7 @@ const LandingPage = () => {
               className="absolute inset-0 w-full h-full"
             >
               <img 
-                src="https://images.unsplash.com/photo-1550009158-9effb66236b0?q=80&w=2000&auto=format&fit=crop" 
+                src={heroImage}
                 alt="Premium Tech" 
                 className="w-full h-full object-cover object-center mix-blend-overlay opacity-80"
               />
