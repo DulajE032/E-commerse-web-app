@@ -14,6 +14,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import VisualSearchPage from './pages/VisualSearchPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
@@ -57,6 +58,9 @@ function App() {
                   </ProtectedRoute>
                 )}
               />
+              
+              {/* Catch-all 404 Route */}
+              <Route path="*" element={<NotFoundPage />} />
             </Route>
 
             {/* Admin Auth */}

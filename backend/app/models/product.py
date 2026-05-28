@@ -16,6 +16,7 @@ class Product(Base):
     discountPrice: Mapped[float | None] = mapped_column(Float, nullable=True)
     stock: Mapped[int] = mapped_column(Integer, default=0)
     images: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
+    videos: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
     rating: Mapped[float | None] = mapped_column(Float, default=0.0)
     featured: Mapped[bool] = mapped_column(Boolean, default=False)
     specifications: Mapped[dict | None] = mapped_column(JSON, nullable=True)
