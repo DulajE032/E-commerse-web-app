@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { FiFilter, FiChevronDown, FiStar, FiShoppingCart, FiCheck } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
@@ -16,54 +16,51 @@ const ProductsPage = () => {
   // Filter States
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedBrands, setSelectedBrands] = useState([]);
-  const [selectedRating, setSelectedRating] = useState(null);
-  const [selectedSize, setSelectedSize] = useState([]);
-  const [selectedColor, setSelectedColor] = useState([]);
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState('Recommended');
   const [isSortOpen, setIsSortOpen] = useState(false);
-
-  // Mock data for new filters
-  const brands = ['Apple', 'Samsung', 'Sony', 'Nike', 'Adidas'];
-  const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-  const colors = [
-    { name: 'Black', hex: '#000000' },
-    { name: 'White', hex: '#FFFFFF' },
-    { name: 'Red', hex: '#EF4444' },
-    { name: 'Blue', hex: '#3B82F6' },
-    { name: 'Green', hex: '#10B981' }
-  ];
+  const [brands, setBrands] = useState([]);
+  const [inStockOnly, setInStockOnly] = useState(false);
+  
   const sortOptions = ['Recommended', 'Price: Low to High', 'Price: High to Low', 'Newest First', 'Popularity'];
-
-  useEffect(() => {
-    api.getCategories().then(res => {
-        if (res && res.length > 0) setCategories(res);
-        else setCategories([{id: 1, name: 'Electronics'}, {id: 2, name: 'Fashion'}, {id: 3, name: 'Home Appliances'}]);
-    }).catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    // Passing selected filters to backend API would happen here.
-    // For now, we fetch all and let the backend integration happen later.
-    const queryCategory = selectedCategory === 'All' ? null : selectedCategory;
-    api.getProducts(queryCategory)
-      .then(setProducts)
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [selectedCategory]);
 
   const toggleBrand = (brand) => {
     setSelectedBrands(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
   };
 
-  const toggleSize = (size) => {
-    setSelectedSize(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
-  };
+  useEffect(() => {
+    
+    api.getProductFilters()
+      .then((data) => {
+        setCategories(data.categories || []);
+        setBrands(data.brands || []);
+        
+        if (data.priceRange) {
+          setPriceRange({
+            min: data.priceRange.min ?? '',
+            max: data.priceRange.max ?? '',
+          })
+        
+        }
+      
+      
+      }).catch(console.error);
+  }, []);
+  
+   useEffect(() => {
+   setLoading(true);
+   api.getProducts({
+     category: selectedCategory === 'All' ? null : selectedCategory,
+     brands: selectedBrands,
+     minPrice: priceRange.min === '' ? null : Number(priceRange.min),
+     maxPrice: priceRange.max === '' ? null : Number(priceRange.max),
+     inStock: inStockOnly,
+   })
+     .then(setProducts)
+     .catch(console.error)
+     .finally(() => setLoading(false));
+ }, [selectedCategory, selectedBrands, priceRange, inStockOnly]);
 
-  const toggleColor = (colorName) => {
-    setSelectedColor(prev => prev.includes(colorName) ? prev.filter(c => c !== colorName) : [...prev, colorName]);
-  };
 
   return (
     <div className="bg-gray-50 min-h-screen py-10">
@@ -193,65 +190,16 @@ const ProductsPage = () => {
                 </div>
              </div>
 
-             {/* 4. Rating Filter */}
              <div className="border-t border-gray-200 pt-6">
-                <h3 className="font-bold text-slate-900 mb-4 uppercase tracking-widest text-xs">Rating</h3>
-                <div className="space-y-3">
-                  {[5, 4, 3].map(rating => (
-                    <label key={rating} className="flex items-center gap-3 cursor-pointer group">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${selectedRating === rating ? 'border-blue-600' : 'border-gray-300 group-hover:border-blue-500'}`}>
-                         {selectedRating === rating && <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>}
-                      </div>
-                      <input type="radio" name="rating" className="hidden" checked={selectedRating === rating} onChange={() => setSelectedRating(rating)} />
-                      <div className="flex items-center gap-1">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <FiStar key={i} className={`w-4 h-4 ${i < rating ? 'fill-amber-400 text-amber-400' : 'fill-gray-200 text-gray-200'}`} />
-                        ))}
-                        <span className="text-sm font-medium text-slate-600 ml-1">& Up</span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-             </div>
-
-             {/* 5. Size Filter (Pills) */}
-             <div className="border-t border-gray-200 pt-6">
-                <h3 className="font-bold text-slate-900 mb-4 uppercase tracking-widest text-xs">Size</h3>
-                <div className="flex flex-wrap gap-2">
-                  {sizes.map(size => (
-                    <button 
-                      key={size}
-                      onClick={() => toggleSize(size)}
-                      className={`min-w-[40px] h-10 rounded-xl text-sm font-bold border transition-all ${
-                        selectedSize.includes(size) 
-                        ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
-                        : 'bg-white text-slate-600 border-gray-200 hover:border-slate-900 hover:text-slate-900'
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
-             </div>
-
-             {/* 6. Color Filter (Circles) */}
-             <div className="border-t border-gray-200 pt-6">
-                <h3 className="font-bold text-slate-900 mb-4 uppercase tracking-widest text-xs">Color</h3>
-                <div className="flex flex-wrap gap-3">
-                  {colors.map(color => (
-                    <button 
-                      key={color.name}
-                      onClick={() => toggleColor(color.name)}
-                      className={`w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center ${selectedColor.includes(color.name) ? 'border-blue-600 scale-110 shadow-md' : 'border-transparent hover:scale-110 shadow-sm'}`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                    >
-                       {selectedColor.includes(color.name) && color.hex === '#FFFFFF' && <FiCheck className="w-4 h-4 text-black" />}
-                       {selectedColor.includes(color.name) && color.hex !== '#FFFFFF' && <FiCheck className="w-4 h-4 text-white" />}
-                    </button>
-                  ))}
-                </div>
-             </div>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={inStockOnly}
+                  onChange={() => setInStockOnly((v) => !v)}
+                />
+                <span className="text-sm font-medium text-slate-700">In stock only</span>
+              </label>
+            </div>
 
              <button className="w-full mt-8 bg-blue-600 text-white py-3.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/30">
                 Apply All Filters
@@ -277,9 +225,6 @@ const ProductsPage = () => {
                     onClick={() => {
                       setSelectedCategory('All');
                       setSelectedBrands([]);
-                      setSelectedRating(null);
-                      setSelectedSize([]);
-                      setSelectedColor([]);
                       setPriceRange({ min: '', max: '' });
                     }}
                     className="mt-6 font-bold text-blue-600 hover:text-blue-700 underline underline-offset-4"

@@ -60,12 +60,7 @@ export const api = {
   },
 
   // Products
-  getProducts: async (category = null) => {
-    const url = category 
-      ? `${API_BASE}/products?category=${encodeURIComponent(category)}`
-      : `${API_BASE}/products`;
-    return request(url);
-  },
+  
 
   getProduct: async (id) => {
     return request(`${API_BASE}/products/${id}`);
@@ -129,4 +124,25 @@ export const api = {
     });
     return data && Array.isArray(data.results) ? data.results : data;
   },
+  
+  getProducts: async (filters = {}) => {
+   const params = new URLSearchParams();
+ 
+   if (filters.category) params.append('category', filters.category);
+   if (filters.minPrice != null) params.append('min_price', filters.minPrice);
+   if (filters.maxPrice != null) params.append('max_price', filters.maxPrice);
+   if (filters.inStock != null) params.append('in_stock', filters.inStock);
+ 
+   if (Array.isArray(filters.brands)) {
+     filters.brands.forEach((b) => params.append('brands', b));
+   }
+ 
+   const qs = params.toString();
+   return request(`${API_BASE}/products${qs ? `?${qs}` : ''}`);
+ },
+ 
+  getProductFilters: async () => {
+   return request(`${API_BASE}/products/filters`);
+ },
 };
+
