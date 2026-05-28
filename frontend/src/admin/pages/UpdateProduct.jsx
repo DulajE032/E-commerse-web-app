@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import Loader from '../../components/Loader';
 
-const AddProduct = () => {
+const UpdateProduct = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [fileType, setFileType] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [message, setMessage] = useState('');
   const [categories, setCategories] = useState([]);
+  
   const [formData, setFormData] = useState({
    name: '',
    description: '',
@@ -17,16 +22,46 @@ const AddProduct = () => {
    category: '',
    brand: '',
    stock: '',
- });
+   existingImages: [],
+   existingVideos: [],
+  });
  
   useEffect(() => {
-    api.getCategories()
-      .then(data => {
-        // Handle array response or object response depending on backend structure
-        setCategories(Array.isArray(data) ? data : (data.categories || []));
-      })
-      .catch(console.error);
-  }, []);
+    // Fetch categories and product data
+    Promise.all([
+      api.getCategories(),
+      api.getProduct(id)
+    ])
+    .then(([catData, productData]) => {
+      setCategories(Array.isArray(catData) ? catData : (catData.categories || []));
+      
+      setFormData({
+        name: productData.name || '',
+        description: productData.description || '',
+        price: productData.price || '',
+        category: productData.category || '',
+        brand: productData.brand || '',
+        stock: productData.stock || 0,
+        existingImages: productData.images || [],
+        existingVideos: productData.videos || [],
+      });
+      
+      // Setup initial media preview if available
+      if (productData.videos && productData.videos.length > 0) {
+        setImagePreview(`http://127.0.0.1:8000${productData.videos[0]}`);
+        setFileType('video');
+      } else if (productData.images && productData.images.length > 0) {
+        setImagePreview(`http://127.0.0.1:8000${productData.images[0]}`);
+        setFileType('image');
+      }
+      
+    })
+    .catch(err => {
+      console.error(err);
+      setMessage(`Error loading data: ${err.message}`);
+    })
+    .finally(() => setFetching(false));
+  }, [id]);
   
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -47,19 +82,17 @@ const AddProduct = () => {
     setMessage('');
     const token = localStorage.getItem('token');
     
-
     try {
-      let imageUrls = [];
-      let videoUrls = [];
+      let imageUrls = [...formData.existingImages];
+      let videoUrls = [...formData.existingVideos];
 
-      // 1. Upload the media if selected
+      // 1. Upload new media if selected (replacing old ones for simplicity in this MVP)
       if (imageFile) {
-        // Using the same upload endpoint for both images and videos (we will update backend)
         const uploadData = await api.uploadImage(imageFile, token);
         if (fileType === 'video') {
-            videoUrls.push(uploadData.url);
+            videoUrls = [uploadData.url]; // Replace primary video
         } else {
-            imageUrls.push(uploadData.url);
+            imageUrls = [uploadData.url]; // Replace primary image
         }
       }
 
@@ -75,25 +108,27 @@ const AddProduct = () => {
           videos: videoUrls,
         };
 
-      await api.createProduct(productPayload,token);
+      await api.updateProduct(id, productPayload, token);
 
-      setMessage('Product created successfully!');
-      // Reset form
-      setFormData({ name: '', description: '', price: '', category: '', brand: '', stock: '' });
-      setImageFile(null);
-      setImagePreview(null);
-      setFileType(null);
+      setMessage('Product updated successfully!');
+      setTimeout(() => navigate('/admin/products'), 1500);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
-
   };
+
+  if (fetching) {
+    return <div className="flex justify-center py-10"><Loader size={48} dotSize={12} border={6} /></div>;
+  }
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="text-2xl font-bold mb-6">Add New Product</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Update Product</h2>
+        <button type="button" onClick={() => navigate('/admin/products')} className="text-gray-400 hover:text-white transition">Cancel</button>
+      </div>
       
       {message && (
         <div className={`p-4 mb-4 rounded ${message.includes('Error') ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}`}>
@@ -106,6 +141,7 @@ const AddProduct = () => {
         <div className="w-full md:w-1/3">
           <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-md">
             <h3 className="font-semibold mb-4 text-gray-300">Product Media (Image/Video)</h3>
+            <p className="text-xs text-gray-500 mb-4">Uploading a new file will replace the current primary media.</p>
             <label className="border-2 border-dashed border-gray-600 rounded-lg h-64 flex flex-col items-center justify-center text-gray-500 hover:text-gray-400 hover:border-gray-500 cursor-pointer transition relative overflow-hidden">
               {imagePreview ? (
                 fileType === 'video' ? (
@@ -160,6 +196,17 @@ const AddProduct = () => {
               </div>
             </div>
 
+            <div className="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Stock Quantity</label>
+                <input required type="number" min="0" name="stock" value={formData.stock} onChange={handleInputChange} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500" placeholder="0" />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Brand</label>
+                <input type="text" name="brand" value={formData.brand} onChange={handleInputChange} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500" placeholder="Brand name" />
+              </div>
+            </div>
+
             <button type="submit" disabled={loading} className="mt-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-2 px-6 rounded transition">
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -167,7 +214,7 @@ const AddProduct = () => {
                   Saving...
                 </span>
               ) : (
-                'Save Product'
+                'Save Changes'
               )}
             </button>
           </div>
@@ -177,4 +224,4 @@ const AddProduct = () => {
   );
 };
 
-export default AddProduct;
+export default UpdateProduct;

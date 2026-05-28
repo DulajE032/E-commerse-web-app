@@ -31,7 +31,7 @@ const Navbar = () => {
                 <FiMenu className="w-7 h-7" />
              </button>
              <Link to="/" className="flex items-center gap-2 group">
-                <FiShoppingCart className="w-8 h-8 text-blue-600 group-hover:text-blue-500 transition-colors" />
+                <img src="/logo.png" alt="peraStore" className="w-9 h-9 object-contain" />
                 <span className="text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">peraStore</span>
              </Link>
              <div className="hidden md:flex items-center gap-6 text-base font-bold text-gray-700">
@@ -127,7 +127,7 @@ const Navbar = () => {
          >
             <div className="p-4 flex items-center justify-between border-b border-gray-100">
                <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
-                  <FiShoppingCart className="w-7 h-7 text-orange-500" />
+                  <img src="/logo.png" alt="peraStore" className="w-8 h-8 object-contain" />
                   <span className="text-xl font-extrabold text-[#114B43]">peraStore</span>
                </Link>
                <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500 hover:text-red-500 bg-gray-50 rounded-full transition-colors">
