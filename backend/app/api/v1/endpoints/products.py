@@ -12,6 +12,7 @@ from app.services import crud_category
 router = APIRouter()
 
 
+@router.get("/", response_model=list[ProductRead])
 def list_products(
      skip: int = 0,
      limit: int = 20,
@@ -33,11 +34,22 @@ def list_products(
          in_stock=in_stock,
      )
 
+@router.get("/filters", response_model=ProductFiltersResponse)
+def get_product_filters(db: Session = Depends(get_db)):
+     categories = crud_category.get_categories(db=db, skip=0, limit=1000)
+     brands = crud_product.get_brands(db=db)
+     min_price, max_price = crud_product.get_price_range(db=db)
+     return ProductFiltersResponse(
+        categories=categories,
+        brands=brands,
+        priceRange=PriceRange(min=min_price, max=max_price),
+     )
+
 @router.get("/{product_id}", response_model=ProductRead)
 def get_product(product_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
     product = crud_product.get_product(db=db, product_id=product_id)
     if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+       raise HTTPException(status_code=404, detail="Product not found")
     return product
 
 
@@ -72,16 +84,3 @@ def delete_product(
     if not success:
         raise HTTPException(status_code=404, detail="Product not found")
     return None
-
-#--------------apply the filter
-
-@router.get("/filters", response_model=ProductFiltersResponse)
-def get_product_filters(db: Session = Depends(get_db)):
-     categories = crud_category.get_categories(db=db, skip=0, limit=1000)
-     brands = crud_product.get_brands(db=db)
-     min_price, max_price = crud_product.get_price_range(db=db)
-     return ProductFiltersResponse(
-         categories=categories,
-         brands=brands,
-         priceRange=PriceRange(min=min_price, max=max_price),
-     )

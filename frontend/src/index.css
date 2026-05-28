@@ -5,37 +5,57 @@ body {
 }
 
 .loader {
-  width: var(--loader-size, 80px);
-  aspect-ratio: 1;
-  border: var(--loader-border, 10px) solid #000;
+  width: var(--loader-size, 48px);
+  height: var(--loader-size, 48px);
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  border: var(--loader-border, 3px) solid;
+  border-color: #fff #fff transparent transparent;
   box-sizing: border-box;
-  background:
-    radial-gradient(farthest-side, #fff 98%, #0000) top,
-    radial-gradient(farthest-side, #fff 98%, #0000) top,
-    radial-gradient(farthest-side, #fff 98%, #0000) left,
-    radial-gradient(farthest-side, #fff 98%, #0000) right,
-    radial-gradient(farthest-side, #fff 98%, #0000) bottom,
-    #000;
-  background-size: var(--loader-dot, 20px) var(--loader-dot, 20px);
-  background-repeat: no-repeat;
-  filter: blur(4px) contrast(10);
-  animation: l19 2s infinite;
+  animation: rotation 1s linear infinite;
 }
 
-@keyframes l19 {
+.loader::after,
+.loader::before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  border: var(--loader-border, 3px) solid;
+  border-color: transparent transparent #ff3d00 #ff3d00;
+  width: calc(var(--loader-size, 48px) - var(--loader-gap, 8px));
+  height: calc(var(--loader-size, 48px) - var(--loader-gap, 8px));
+  border-radius: 50%;
+  animation: rotationBack 0.5s linear infinite;
+  transform-origin: center center;
+}
+
+.loader::before {
+  width: calc(var(--loader-size, 48px) - var(--loader-gap-2, 16px));
+  height: calc(var(--loader-size, 48px) - var(--loader-gap-2, 16px));
+  border-color: #fff #fff transparent transparent;
+  animation: rotation 1.5s linear infinite;
+}
+
+@keyframes rotation {
   0% {
-    background-position: top, top, left, right, bottom;
-  }
-  25% {
-    background-position: right, top, left, right, bottom;
-  }
-  50% {
-    background-position: bottom, top, left, right, bottom;
-  }
-  75% {
-    background-position: left, top, left, right, bottom;
+    transform: rotate(0deg);
   }
   100% {
-    background-position: top, top, left, right, bottom;
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotationBack {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(-360deg);
   }
 }
