@@ -3,17 +3,20 @@ import { api } from '../../services/api';
 import Loader from '../../components/Loader';
 
 const AddProduct = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    category: '',
-  });
+  
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-
+  const [formData, setFormData] = useState({
+   name: '',
+   description: '',
+   price: '',
+   category: '',
+   brand: '',
+   stock: '',
+ });
+  
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -29,26 +32,30 @@ const AddProduct = () => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
+    const token = localStorage.getItem('token');
+    
 
     try {
       let imageUrls = [];
 
       // 1. Upload the image if selected
       if (imageFile) {
-        const uploadData = await api.uploadImage(imageFile);
+        const uploadData = await api.uploadImage(imageFile, token);
         imageUrls.push(uploadData.url);
       }
 
       // 2. Submit the product data
       const productPayload = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price) || 0,
-        category: formData.category,
-        images: imageUrls,
-      };
+          name: formData.name,
+          description: formData.description,
+          price: parseFloat(formData.price) || 0,
+          category: formData.category,
+          brand: formData.brand,
+          stock: parseInt(formData.stock, 10) || 0,
+          images:imageUrls,
+        };
 
-      await api.createProduct(productPayload);
+      await api.createProduct(productPayload,token);
 
       setMessage('Product created successfully!');
       // Reset form
@@ -60,6 +67,7 @@ const AddProduct = () => {
     } finally {
       setLoading(false);
     }
+
   };
 
   return (
