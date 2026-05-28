@@ -1,6 +1,8 @@
 from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import List, Optional, Dict, Any
+from app.schemas.category import CategoryRead
+
 
 class ProductBase(BaseModel):
     name: str
@@ -36,3 +38,12 @@ class ProductUpdate(BaseModel):
     rating: Optional[float] = None
     featured: Optional[bool] = None
     specifications: Optional[Dict[str, Any]] = None
+    
+class PriceRange(BaseModel):
+    min:Optional[float]=None,
+    max:Optional[float]=None
+    
+class ProductFiltersResponse(BaseModel):
+     categories: list[CategoryRead]
+     brands: list[str]
+     priceRange: PriceRange
