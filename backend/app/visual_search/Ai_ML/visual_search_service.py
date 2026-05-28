@@ -9,10 +9,10 @@ import torch
 from torchvision import transforms
 from sqlalchemy.orm import Session
 
-from app.services.Ai_ML.hybrid_model import ModelManager
+from app.visual_search.Ai_ML.hybrid_model import ModelManager
 from app.models.product_embedding import ProductEmbedding
 from app.models.product import Product
-from app.crud.crud_product import get_product
+from app.services.crud_product import get_product
 
 
 class VisualSearchService:
@@ -166,7 +166,7 @@ class VisualSearchService:
         """
         Bulk index all products (run periodically or once)
         """
-        from app.crud.crud_product import get_products
+        from app.services.crud_product import get_products
 
         products = get_products(db)
         indexed_count = 0

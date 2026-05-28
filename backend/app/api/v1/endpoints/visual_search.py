@@ -2,7 +2,7 @@ from fastapi import APIRouter, UploadFile, File, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.services.Ai_ML.ai_engine import run_visual_search, search_by_text, index_product_embedding
+from app.visual_search.Ai_ML.ai_engine import run_visual_search, search_by_text, index_product_embedding
 from app.db.session import get_db
 
 router = APIRouter()
@@ -50,7 +50,7 @@ async def index_product(
 @router.post("/index-all-products/")
 def index_all_products(db: Session = Depends(get_db)):
     """Index all products in the database (downloads from image URLs)"""
-    from app.services.Ai_ML.visual_search_service import VisualSearchService
+    from app.visual_search.Ai_ML.visual_search_service import VisualSearchService
     service = VisualSearchService()
     result = service.index_all_products(db)
     return result

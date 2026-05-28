@@ -1,26 +1,37 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status,Query
 from sqlalchemy.orm import Session
 
 from app.core.security import require_role
-from app.crud import crud_product
+from app.services import crud_product
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.product import ProductCreate, ProductRead, ProductUpdate   
-
+from app.schemas.product import ProductCreate, ProductRead, ProductUpdate ,ProductFiltersResponse,PriceRange 
+from app.services import crud_category
 router = APIRouter()
 
 
-@router.get("/", response_model=list[ProductRead])
 def list_products(
-    skip: int = 0,
-    limit: int = 20,
-    category: Optional[str] = None,
-    db: Session = Depends(get_db),
-):
-    return crud_product.get_products(db=db, skip=skip, limit=limit, category=category)
-
+     skip: int = 0,
+     limit: int = 20,
+     category: str | None = None,
+     brands: list[str] | None = Query(None),
+     min_price: float | None = Query(None, ge=0),
+     max_price: float | None = Query(None, ge=0),
+     in_stock: bool | None = None,
+     db: Session = Depends(get_db),
+ ):
+     return crud_product.get_products(
+         db=db,
+         skip=skip,
+         limit=limit,
+         category=category,
+         brands=brands,
+         min_price=min_price,
+         max_price=max_price,
+         in_stock=in_stock,
+     )
 
 @router.get("/{product_id}", response_model=ProductRead)
 def get_product(product_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
@@ -61,3 +72,16 @@ def delete_product(
     if not success:
         raise HTTPException(status_code=404, detail="Product not found")
     return None
+
+#--------------apply the filter
+
+@router.get("/filters", response_model=ProductFiltersResponse)
+def get_product_filters(db: Session = Depends(get_db)):
+     categories = crud_category.get_categories(db=db, skip=0, limit=1000)
+     brands = crud_product.get_brands(db=db)
+     min_price, max_price = crud_product.get_price_range(db=db)
+     return ProductFiltersResponse(
+         categories=categories,
+         brands=brands,
+         priceRange=PriceRange(min=min_price, max=max_price),
+     )

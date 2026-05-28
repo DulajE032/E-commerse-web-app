@@ -1,4 +1,4 @@
-from app.services.Ai_ML.visual_search_service import VisualSearchService
+from app.visual_search.Ai_ML.visual_search_service import VisualSearchService
 
 visual_search_service = VisualSearchService()
 
