@@ -15,18 +15,19 @@ UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def upload_image(
+async def upload_media(
     file: UploadFile = File(...),
     _: User = Depends(require_role("admin")),
 ):
     """
-    Upload a product image locally.
-    Returns the URL path to access the image.
+    Upload a product image or video locally.
+    Returns the URL path to access the media.
     """
-    if not file.content_type.startswith("image/"):
+    allowed_types = ["image/", "video/"]
+    if not any(file.content_type.startswith(t) for t in allowed_types):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="File provided is not an image."
+            detail="File provided is not an image or video."
         )
 
     # Generate unique filename to prevent overwrites

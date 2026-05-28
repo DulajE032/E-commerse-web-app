@@ -4,7 +4,9 @@ from sqlalchemy import func
 from fastapi import HTTPException
 
 from app.models.product import Product
+from app.models.review import Review
 from app.schemas.product import ProductCreate, ProductUpdate
+from app.schemas.review import ReviewCreate
 
 def get_products(
     db: Session,
@@ -101,3 +103,28 @@ def delete_product(db: Session, product_id: int) -> bool:
     db.delete(product)
     db.commit()
     return True
+
+def get_reviews(db: Session, product_id: int):
+    return db.query(Review).filter(Review.product_id == product_id).order_by(Review.created_at.desc()).all()
+
+def create_review(db: Session, product_id: int, user_id: int, review_in: ReviewCreate) -> Review:
+    review = Review(
+        product_id=product_id,
+        user_id=user_id,
+        rating=review_in.rating,
+        comment=review_in.comment
+    )
+    db.add(review)
+    db.commit()
+    db.refresh(review)
+    
+    # Optionally update the product's average rating here
+    product = get_product(db, product_id)
+    if product:
+        all_reviews = get_reviews(db, product_id)
+        if all_reviews:
+            avg_rating = sum(r.rating for r in all_reviews) / len(all_reviews)
+            product.rating = avg_rating
+            db.commit()
+            
+    return review

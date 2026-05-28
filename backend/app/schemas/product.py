@@ -13,6 +13,7 @@ class ProductBase(BaseModel):
     discountPrice: Optional[float] = None
     stock: int = 0
     images: Optional[List[str]] = None
+    videos: Optional[List[str]] = None
     rating: Optional[float] = 0.0
     featured: bool = False
     specifications: Optional[Dict[str, Any]] = None
@@ -35,6 +36,7 @@ class ProductUpdate(BaseModel):
     discountPrice: Optional[float] = None
     stock: Optional[int] = None
     images: Optional[List[str]] = None
+    videos: Optional[List[str]] = None
     rating: Optional[float] = None
     featured: Optional[bool] = None
     specifications: Optional[Dict[str, Any]] = None

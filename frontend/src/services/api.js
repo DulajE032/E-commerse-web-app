@@ -66,6 +66,18 @@ export const api = {
     return request(`${API_BASE}/products/${id}`);
   },
 
+  getProductReviews: async (id) => {
+    return request(`${API_BASE}/products/${id}/reviews`);
+  },
+
+  createProductReview: async (id, reviewData, token) => {
+    return request(`${API_BASE}/products/${id}/reviews`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify(reviewData),
+    });
+  },
+
   createProduct: async (productData, token) => {
     return request(`${API_BASE}/products`, {
       method: 'POST',
