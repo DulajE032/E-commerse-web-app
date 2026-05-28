@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
 import Loader from '../components/Loader';
+import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
 
 const ProductsPage = () => {
   const [products, setProducts] = useState([]);
@@ -12,6 +13,8 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  
+  const showLoader = useMinLoadingTime(loading, 600);
 
   // Filter States
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -210,7 +213,7 @@ const ProductsPage = () => {
           {/* Product Grid */}
           <div className="flex-1">
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-              {loading ? (
+              {showLoader ? (
                 <div className="col-span-full flex justify-center py-16">
                   <Loader size={64} dotSize={16} border={8} />
                 </div>

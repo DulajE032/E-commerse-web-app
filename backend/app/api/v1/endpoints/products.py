@@ -8,6 +8,7 @@ from app.services import crud_product
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.product import ProductCreate, ProductRead, ProductUpdate ,ProductFiltersResponse,PriceRange 
+from app.schemas.review import ReviewCreate, ReviewRead
 from app.services import crud_category
 router = APIRouter()
 
@@ -84,3 +85,30 @@ def delete_product(
     if not success:
         raise HTTPException(status_code=404, detail="Product not found")
     return None
+
+@router.get("/{product_id}/reviews", response_model=list[ReviewRead])
+def get_product_reviews(product_id: int = Path(..., gt=0), db: Session = Depends(get_db)):
+    product = crud_product.get_product(db=db, product_id=product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    reviews = crud_product.get_reviews(db=db, product_id=product_id)
+    # Map user_name for the response
+    for review in reviews:
+        review.user_name = review.user.full_name if review.user else "Anonymous"
+    return reviews
+
+@router.post("/{product_id}/reviews", response_model=ReviewRead, status_code=status.HTTP_201_CREATED)
+def create_product_review(
+    review_in: ReviewCreate,
+    product_id: int = Path(..., gt=0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("user")), # Or any authenticated user
+):
+    product = crud_product.get_product(db=db, product_id=product_id)
+    if not product:
+        raise HTTPException(status_code=404, detail="Product not found")
+        
+    review = crud_product.create_review(db=db, product_id=product_id, user_id=current_user.id, review_in=review_in)
+    review.user_name = current_user.full_name
+    return review
