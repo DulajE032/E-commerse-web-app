@@ -3,5 +3,7 @@ from app.models.user import User
 from app.models.category import Category
 from app.models.review import Review
 from app.models.product_embedding import ProductEmbedding
+from app.models.order import Order
 
-__all__ = ["Product", "User", "Category", "Review", "ProductEmbedding"]
+
+__all__ = ["Product", "User", "Category", "Review", "ProductEmbedding", "Order"]
