@@ -1,6 +1,7 @@
 # 💳 Payment Integration & 📊 Admin Dashboard Guide
 
 > A complete guide tailored to your e-commerce app:
+>
 > - **Frontend:** React + Vite + Tailwind CSS
 > - **Backend:** FastAPI + SQLAlchemy + PostgreSQL
 
@@ -33,6 +34,7 @@ const handlePlaceOrder = (e) => {
 ```
 
 This means:
+
 - ❌ No real money is charged
 - ❌ No order is saved to the database
 - ❌ No payment validation happens
@@ -65,14 +67,14 @@ sequenceDiagram
 
 ### Why Stripe?
 
-| Feature | Stripe | PayPal | Razorpay |
-|---------|--------|--------|----------|
-| Best for | International | PayPal users | India-focused |
-| Card support | ✅ All major | ✅ Limited | ✅ All major |
-| UPI / Local methods | Via integrations | ❌ | ✅ Built-in |
-| Developer Experience | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| Test mode | ✅ Excellent | ✅ Sandbox | ✅ Good |
-| Webhooks | ✅ Rich | ✅ Basic | ✅ Good |
+| Feature              | Stripe           | PayPal       | Razorpay      |
+| -------------------- | ---------------- | ------------ | ------------- |
+| Best for             | International    | PayPal users | India-focused |
+| Card support         | ✅ All major     | ✅ Limited   | ✅ All major  |
+| UPI / Local methods  | Via integrations | ❌           | ✅ Built-in   |
+| Developer Experience | ⭐⭐⭐⭐⭐       | ⭐⭐⭐       | ⭐⭐⭐⭐      |
+| Test mode            | ✅ Excellent     | ✅ Sandbox   | ✅ Good       |
+| Webhooks             | ✅ Rich          | ✅ Basic     | ✅ Good       |
 
 > [!TIP]
 > If your target audience is in **Sri Lanka/India**, consider **Razorpay** or **PayHere** instead. The architecture is almost identical — only the SDK and API calls change.
@@ -102,28 +104,28 @@ class Order(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
-    
+
     # Payment info
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     payment_method: Mapped[str] = mapped_column(String(50), nullable=False)  # "card", "paypal", "cod"
     payment_status: Mapped[str] = mapped_column(String(50), default="pending")  # "pending", "paid", "failed", "refunded"
-    
+
     # Order info
     status: Mapped[str] = mapped_column(String(50), default="pending")  # "pending", "confirmed", "shipped", "delivered", "cancelled"
     total_amount: Mapped[float] = mapped_column(Float, nullable=False)
     shipping_cost: Mapped[float] = mapped_column(Float, default=0.0)
     tax_amount: Mapped[float] = mapped_column(Float, default=0.0)
-    
+
     # Shipping address (stored as JSON)
     shipping_address: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    
+
     # Contact
     email: Mapped[str] = mapped_column(String(255), nullable=False)
-    phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
-    
+    phone: Mapped[str | None] = mapped_column(String(50), nullable=False)
+
     # Items snapshot (JSON array of {product_id, name, price, quantity, image})
     items: Mapped[list | None] = mapped_column(JSON, nullable=True)
-    
+
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
@@ -232,11 +234,11 @@ async def create_order(
     # current_user = Depends(get_current_user)  # Add auth dependency
 ):
     """Create a new order and (if card payment) create a Stripe PaymentIntent."""
-    
+
     # 1. Calculate total
     subtotal = sum(item.price * item.quantity for item in order_data.items)
     total = subtotal + order_data.shipping_cost + order_data.tax_amount
-    
+
     # 2. Create the order in database
     new_order = Order(
         user_id=1,  # Replace with current_user.id
@@ -251,9 +253,9 @@ async def create_order(
         shipping_address=order_data.shipping_address.model_dump(),
         items=[item.model_dump() for item in order_data.items],
     )
-    
+
     client_secret = None
-    
+
     # 3. If paying by card, create Stripe PaymentIntent
     if order_data.payment_method == "card":
         try:
@@ -266,15 +268,15 @@ async def create_order(
             client_secret = intent.client_secret
         except stripe.error.StripeError as e:
             raise HTTPException(status_code=400, detail=str(e))
-    
+
     # 4. For COD, mark as confirmed immediately
     if order_data.payment_method == "cod":
         new_order.status = "confirmed"
-    
+
     db.add(new_order)
     db.commit()
     db.refresh(new_order)
-    
+
     # 5. Return order with client_secret (for card payments)
     response = OrderResponse.model_validate(new_order)
     response.client_secret = client_secret
@@ -310,7 +312,7 @@ async def update_order_status(
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    
+
     order.status = status
     db.commit()
     return {"message": f"Order #{order_id} status updated to '{status}'"}
@@ -339,7 +341,7 @@ async def stripe_webhook(request: Request, db: Session = next(get_db())):
     """
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
-    
+
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
@@ -348,7 +350,7 @@ async def stripe_webhook(request: Request, db: Session = next(get_db())):
         raise HTTPException(status_code=400, detail="Invalid payload")
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Invalid signature")
-    
+
     # Handle the event
     if event["type"] == "payment_intent.succeeded":
         intent = event["data"]["object"]
@@ -360,7 +362,7 @@ async def stripe_webhook(request: Request, db: Session = next(get_db())):
             order.payment_status = "paid"
             order.status = "confirmed"
             db.commit()
-    
+
     elif event["type"] == "payment_intent.payment_failed":
         intent = event["data"]["object"]
         order = db.query(Order).filter(
@@ -369,7 +371,7 @@ async def stripe_webhook(request: Request, db: Session = next(get_db())):
         if order:
             order.payment_status = "failed"
             db.commit()
-    
+
     return {"status": "ok"}
 ```
 
@@ -426,11 +428,16 @@ updateOrderStatus: async (id, status, token) => {
 Here's how your [CheckoutPage.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/pages/CheckoutPage.jsx) `handlePlaceOrder` should work with real Stripe:
 
 ```jsx
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  CardElement,
+  useStripe,
+  useElements,
+} from "@stripe/react-stripe-js";
 
 // Load Stripe outside of component (only once)
-const stripePromise = loadStripe('pk_test_YOUR_PUBLISHABLE_KEY');
+const stripePromise = loadStripe("pk_test_YOUR_PUBLISHABLE_KEY");
 
 const CheckoutForm = () => {
   const stripe = useStripe();
@@ -457,7 +464,7 @@ const CheckoutForm = () => {
         state: formData.state,
         zip_code: formData.zipCode,
       },
-      items: cartItems.map(item => ({
+      items: cartItems.map((item) => ({
         product_id: item.id,
         name: item.name,
         price: item.price,
@@ -472,17 +479,15 @@ const CheckoutForm = () => {
       // Your backend creates a Stripe PaymentIntent and returns client_secret
       const order = await api.createOrder(orderData, token);
 
-      if (paymentMethod === 'card') {
+      if (paymentMethod === "card") {
         // STEP 2: Confirm the payment with Stripe directly
-        const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-          order.client_secret,
-          {
+        const { error: stripeError, paymentIntent } =
+          await stripe.confirmCardPayment(order.client_secret, {
             payment_method: {
               card: elements.getElement(CardElement),
               billing_details: { email: formData.email },
             },
-          }
-        );
+          });
 
         if (stripeError) {
           setError(stripeError.message);
@@ -490,11 +495,11 @@ const CheckoutForm = () => {
           return;
         }
 
-        if (paymentIntent.status === 'succeeded') {
+        if (paymentIntent.status === "succeeded") {
           setIsSuccess(true);
           clearCart();
         }
-      } else if (paymentMethod === 'cod') {
+      } else if (paymentMethod === "cod") {
         // COD — order is already confirmed by backend
         setIsSuccess(true);
         clearCart();
@@ -502,24 +507,24 @@ const CheckoutForm = () => {
     } catch (err) {
       setError(err.message);
     }
-    
+
     setIsProcessing(false);
   };
 
   return (
     <form onSubmit={handlePlaceOrder}>
       {/* ... your existing form fields ... */}
-      
+
       {/* Replace your manual card inputs with Stripe's secure CardElement */}
-      {paymentMethod === 'card' && (
+      {paymentMethod === "card" && (
         <div className="p-4 border border-gray-200 rounded-xl bg-gray-50">
           <CardElement
             options={{
               style: {
                 base: {
-                  fontSize: '16px',
-                  color: '#1f2937',
-                  '::placeholder': { color: '#9ca3af' },
+                  fontSize: "16px",
+                  color: "#1f2937",
+                  "::placeholder": { color: "#9ca3af" },
                 },
               },
             }}
@@ -528,9 +533,9 @@ const CheckoutForm = () => {
       )}
 
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-      
+
       <button type="submit" disabled={isProcessing || !stripe}>
-        {isProcessing ? 'Processing...' : 'Place Order'}
+        {isProcessing ? "Processing..." : "Place Order"}
       </button>
     </form>
   );
@@ -602,22 +607,22 @@ graph TD
     A --> D[🛍️ Product Management]
     A --> E[👥 User Management]
     A --> F[💰 Revenue Reports]
-    
+
     B --> B1[Total Revenue]
     B --> B2[Total Orders]
     B --> B3[Total Products]
     B --> B4[Total Users]
     B --> B5[Revenue Chart]
     B --> B6[Recent Orders Table]
-    
+
     C --> C1[Order List with Filters]
     C --> C2[Order Status Update]
     C --> C3[Order Details View]
-    
+
     D --> D1["Products List ✅ (You have this)"]
     D --> D2["Add Product ✅ (You have this)"]
     D --> D3["Edit Product ✅ (You have this)"]
-    
+
     E --> E1[User List]
     E --> E2[User Roles]
 ```
@@ -674,23 +679,23 @@ router = APIRouter()
 @router.get("/stats")
 async def get_dashboard_stats(db: Session = Depends(get_db)):
     """Get overview stats for the admin dashboard."""
-    
+
     total_revenue = db.query(func.sum(Order.total_amount)).filter(
         Order.payment_status == "paid"
     ).scalar() or 0
-    
+
     total_orders = db.query(func.count(Order.id)).scalar() or 0
     total_products = db.query(func.count(Product.id)).scalar() or 0
     total_users = db.query(func.count(User.id)).scalar() or 0
-    
+
     # Orders by status
     pending_orders = db.query(func.count(Order.id)).filter(Order.status == "pending").scalar() or 0
     shipped_orders = db.query(func.count(Order.id)).filter(Order.status == "shipped").scalar() or 0
     delivered_orders = db.query(func.count(Order.id)).filter(Order.status == "delivered").scalar() or 0
-    
+
     # Recent orders
     recent_orders = db.query(Order).order_by(Order.created_at.desc()).limit(10).all()
-    
+
     return {
         "total_revenue": total_revenue,
         "total_orders": total_orders,
@@ -733,10 +738,19 @@ getDashboardStats: async (token) => {
 Here's the full replacement for your [AdminDashboard.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/admin/pages/AdminDashboard.jsx):
 
 ```jsx
-import React, { useState, useEffect } from 'react';
-import { FiDollarSign, FiShoppingBag, FiBox, FiUsers, FiTrendingUp, FiClock, FiCheck, FiTruck } from 'react-icons/fi';
-import { api } from '../../services/api';
-import { useAuth } from '../../services/AuthContext';
+import React, { useState, useEffect } from "react";
+import {
+  FiDollarSign,
+  FiShoppingBag,
+  FiBox,
+  FiUsers,
+  FiTrendingUp,
+  FiClock,
+  FiCheck,
+  FiTruck,
+} from "react-icons/fi";
+import { api } from "../../services/api";
+import { useAuth } from "../../services/AuthContext";
 
 const AdminDashboard = () => {
   const { token } = useAuth();
@@ -749,7 +763,7 @@ const AdminDashboard = () => {
         const data = await api.getDashboardStats(token);
         setStats(data);
       } catch (error) {
-        console.error('Failed to fetch stats:', error);
+        console.error("Failed to fetch stats:", error);
       } finally {
         setLoading(false);
       }
@@ -767,45 +781,47 @@ const AdminDashboard = () => {
 
   const statCards = [
     {
-      title: 'Total Revenue',
+      title: "Total Revenue",
       value: `$${(stats?.total_revenue || 0).toLocaleString()}`,
       icon: FiDollarSign,
-      color: 'from-green-500 to-emerald-600',
-      change: '+12.5%',
+      color: "from-green-500 to-emerald-600",
+      change: "+12.5%",
     },
     {
-      title: 'Total Orders',
-      value: stats?.total_orders?.toLocaleString() || '0',
+      title: "Total Orders",
+      value: stats?.total_orders?.toLocaleString() || "0",
       icon: FiShoppingBag,
-      color: 'from-blue-500 to-indigo-600',
-      change: '+8.2%',
+      color: "from-blue-500 to-indigo-600",
+      change: "+8.2%",
     },
     {
-      title: 'Products',
-      value: stats?.total_products?.toLocaleString() || '0',
+      title: "Products",
+      value: stats?.total_products?.toLocaleString() || "0",
       icon: FiBox,
-      color: 'from-orange-500 to-amber-600',
-      change: '+3.1%',
+      color: "from-orange-500 to-amber-600",
+      change: "+3.1%",
     },
     {
-      title: 'Customers',
-      value: stats?.total_users?.toLocaleString() || '0',
+      title: "Customers",
+      value: stats?.total_users?.toLocaleString() || "0",
       icon: FiUsers,
-      color: 'from-purple-500 to-violet-600',
-      change: '+15.3%',
+      color: "from-purple-500 to-violet-600",
+      change: "+15.3%",
     },
   ];
 
   const getStatusBadge = (status) => {
     const styles = {
-      pending:   'bg-yellow-500/20 text-yellow-400',
-      confirmed: 'bg-blue-500/20 text-blue-400',
-      shipped:   'bg-purple-500/20 text-purple-400',
-      delivered: 'bg-green-500/20 text-green-400',
-      cancelled: 'bg-red-500/20 text-red-400',
+      pending: "bg-yellow-500/20 text-yellow-400",
+      confirmed: "bg-blue-500/20 text-blue-400",
+      shipped: "bg-purple-500/20 text-purple-400",
+      delivered: "bg-green-500/20 text-green-400",
+      cancelled: "bg-red-500/20 text-red-400",
     };
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${styles[status] || styles.pending}`}>
+      <span
+        className={`px-3 py-1 rounded-full text-xs font-semibold ${styles[status] || styles.pending}`}
+      >
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -815,15 +831,22 @@ const AdminDashboard = () => {
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold">Dashboard Overview</h2>
-        <p className="text-gray-400 mt-1">Welcome back! Here's what's happening with your store.</p>
+        <p className="text-gray-400 mt-1">
+          Welcome back! Here's what's happening with your store.
+        </p>
       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {statCards.map((card, idx) => (
-          <div key={idx} className="bg-gray-800 rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600 transition-all">
+          <div
+            key={idx}
+            className="bg-gray-800 rounded-2xl p-6 border border-gray-700/50 hover:border-gray-600 transition-all"
+          >
             <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 bg-gradient-to-br ${card.color} rounded-xl flex items-center justify-center`}>
+              <div
+                className={`w-12 h-12 bg-gradient-to-br ${card.color} rounded-xl flex items-center justify-center`}
+              >
                 <card.icon className="w-6 h-6 text-white" />
               </div>
               <span className="text-green-400 text-sm font-medium flex items-center gap-1">
@@ -844,7 +867,9 @@ const AdminDashboard = () => {
           </div>
           <div>
             <p className="text-gray-400 text-sm">Pending</p>
-            <p className="text-2xl font-bold">{stats?.orders_by_status?.pending || 0}</p>
+            <p className="text-2xl font-bold">
+              {stats?.orders_by_status?.pending || 0}
+            </p>
           </div>
         </div>
         <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700/50 flex items-center gap-4">
@@ -853,7 +878,9 @@ const AdminDashboard = () => {
           </div>
           <div>
             <p className="text-gray-400 text-sm">Shipped</p>
-            <p className="text-2xl font-bold">{stats?.orders_by_status?.shipped || 0}</p>
+            <p className="text-2xl font-bold">
+              {stats?.orders_by_status?.shipped || 0}
+            </p>
           </div>
         </div>
         <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700/50 flex items-center gap-4">
@@ -862,7 +889,9 @@ const AdminDashboard = () => {
           </div>
           <div>
             <p className="text-gray-400 text-sm">Delivered</p>
-            <p className="text-2xl font-bold">{stats?.orders_by_status?.delivered || 0}</p>
+            <p className="text-2xl font-bold">
+              {stats?.orders_by_status?.delivered || 0}
+            </p>
           </div>
         </div>
       </div>
@@ -876,22 +905,41 @@ const AdminDashboard = () => {
           <table className="w-full">
             <thead className="bg-gray-900/50">
               <tr>
-                <th className="text-left p-4 text-gray-400 text-sm font-medium">Order ID</th>
-                <th className="text-left p-4 text-gray-400 text-sm font-medium">Customer</th>
-                <th className="text-left p-4 text-gray-400 text-sm font-medium">Amount</th>
-                <th className="text-left p-4 text-gray-400 text-sm font-medium">Status</th>
-                <th className="text-left p-4 text-gray-400 text-sm font-medium">Payment</th>
-                <th className="text-left p-4 text-gray-400 text-sm font-medium">Date</th>
+                <th className="text-left p-4 text-gray-400 text-sm font-medium">
+                  Order ID
+                </th>
+                <th className="text-left p-4 text-gray-400 text-sm font-medium">
+                  Customer
+                </th>
+                <th className="text-left p-4 text-gray-400 text-sm font-medium">
+                  Amount
+                </th>
+                <th className="text-left p-4 text-gray-400 text-sm font-medium">
+                  Status
+                </th>
+                <th className="text-left p-4 text-gray-400 text-sm font-medium">
+                  Payment
+                </th>
+                <th className="text-left p-4 text-gray-400 text-sm font-medium">
+                  Date
+                </th>
               </tr>
             </thead>
             <tbody>
               {stats?.recent_orders?.map((order) => (
-                <tr key={order.id} className="border-t border-gray-700/30 hover:bg-gray-700/20 transition-colors">
+                <tr
+                  key={order.id}
+                  className="border-t border-gray-700/30 hover:bg-gray-700/20 transition-colors"
+                >
                   <td className="p-4 font-mono text-sm">#{order.id}</td>
                   <td className="p-4 text-sm">{order.email}</td>
-                  <td className="p-4 text-sm font-semibold">${order.total_amount.toFixed(2)}</td>
+                  <td className="p-4 text-sm font-semibold">
+                    ${order.total_amount.toFixed(2)}
+                  </td>
                   <td className="p-4">{getStatusBadge(order.status)}</td>
-                  <td className="p-4">{getStatusBadge(order.payment_status)}</td>
+                  <td className="p-4">
+                    {getStatusBadge(order.payment_status)}
+                  </td>
                   <td className="p-4 text-sm text-gray-400">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
@@ -915,16 +963,16 @@ export default AdminDashboard;
 This page lets admins view all orders and update their status:
 
 ```jsx
-import React, { useState, useEffect } from 'react';
-import { FiSearch, FiFilter, FiChevronDown } from 'react-icons/fi';
-import { api } from '../../services/api';
-import { useAuth } from '../../services/AuthContext';
+import React, { useState, useEffect } from "react";
+import { FiSearch, FiFilter, FiChevronDown } from "react-icons/fi";
+import { api } from "../../services/api";
+import { useAuth } from "../../services/AuthContext";
 
 const Orders = () => {
   const { token } = useAuth();
   const [orders, setOrders] = useState([]);
-  const [filter, setFilter] = useState('all'); // all, pending, shipped, delivered
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState("all"); // all, pending, shipped, delivered
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -937,12 +985,14 @@ const Orders = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     await api.updateOrderStatus(orderId, newStatus, token);
     // Refresh the list
-    setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    setOrders(
+      orders.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o)),
+    );
   };
 
   const filteredOrders = orders
-    .filter(o => filter === 'all' || o.status === filter)
-    .filter(o => o.email.toLowerCase().includes(search.toLowerCase()));
+    .filter((o) => filter === "all" || o.status === filter)
+    .filter((o) => o.email.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-6">
@@ -961,14 +1011,14 @@ const Orders = () => {
           />
         </div>
         <div className="flex gap-2">
-          {['all', 'pending', 'confirmed', 'shipped', 'delivered'].map(s => (
+          {["all", "pending", "confirmed", "shipped", "delivered"].map((s) => (
             <button
               key={s}
               onClick={() => setFilter(s)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 filter === s
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-400 hover:bg-gray-700"
               }`}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
@@ -992,17 +1042,26 @@ const Orders = () => {
             </tr>
           </thead>
           <tbody>
-            {filteredOrders.map(order => (
-              <tr key={order.id} className="border-t border-gray-700/30 hover:bg-gray-700/20">
+            {filteredOrders.map((order) => (
+              <tr
+                key={order.id}
+                className="border-t border-gray-700/30 hover:bg-gray-700/20"
+              >
                 <td className="p-4 font-mono text-sm">#{order.id}</td>
                 <td className="p-4 text-sm">{order.email}</td>
-                <td className="p-4 text-sm">{order.items?.length || 0} items</td>
-                <td className="p-4 text-sm font-semibold">${order.total_amount.toFixed(2)}</td>
+                <td className="p-4 text-sm">
+                  {order.items?.length || 0} items
+                </td>
+                <td className="p-4 text-sm font-semibold">
+                  ${order.total_amount.toFixed(2)}
+                </td>
                 <td className="p-4 text-sm">{order.payment_method}</td>
                 <td className="p-4">
                   <select
                     value={order.status}
-                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                    onChange={(e) =>
+                      handleStatusChange(order.id, e.target.value)
+                    }
                     className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="pending">Pending</option>
@@ -1072,26 +1131,26 @@ Add to [App.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/App.jsx):
 
 ### New Files to Create
 
-| File | Purpose |
-|------|---------|
-| `backend/app/models/order.py` | Order database model |
-| `backend/app/schemas/order.py` | Pydantic schemas for orders |
-| `backend/app/api/v1/endpoints/orders.py` | Order CRUD API |
-| `backend/app/api/v1/endpoints/webhooks.py` | Stripe webhook handler |
-| `backend/app/api/v1/endpoints/dashboard.py` | Dashboard stats API |
-| `frontend/src/admin/pages/Orders.jsx` | Admin order management page |
+| File                                        | Purpose                     |
+| ------------------------------------------- | --------------------------- |
+| `backend/app/models/order.py`               | Order database model        |
+| `backend/app/schemas/order.py`              | Pydantic schemas for orders |
+| `backend/app/api/v1/endpoints/orders.py`    | Order CRUD API              |
+| `backend/app/api/v1/endpoints/webhooks.py`  | Stripe webhook handler      |
+| `backend/app/api/v1/endpoints/dashboard.py` | Dashboard stats API         |
+| `frontend/src/admin/pages/Orders.jsx`       | Admin order management page |
 
 ### Files to Modify
 
-| File | What to Change |
-|------|----------------|
-| [models/\_\_init\_\_.py](file:///d:/clone/E-commerse-web-app/backend/app/models/__init__.py) | Register `Order` model |
-| [api.js](file:///d:/clone/E-commerse-web-app/frontend/src/services/api.js) | Add order + dashboard API functions |
-| [CheckoutPage.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/pages/CheckoutPage.jsx) | Real Stripe integration |
-| [AdminDashboard.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/admin/pages/AdminDashboard.jsx) | Live data + charts |
-| [AdminLayout.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/layouts/AdminLayout.jsx) | Add Orders nav link |
-| [App.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/App.jsx) | Add Orders route |
-| `backend/.env` | Add Stripe keys |
+| File                                                                                                  | What to Change                      |
+| ----------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| [models/\_\_init\_\_.py](file:///d:/clone/E-commerse-web-app/backend/app/models/__init__.py)          | Register `Order` model              |
+| [api.js](file:///d:/clone/E-commerse-web-app/frontend/src/services/api.js)                            | Add order + dashboard API functions |
+| [CheckoutPage.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/pages/CheckoutPage.jsx)           | Real Stripe integration             |
+| [AdminDashboard.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/admin/pages/AdminDashboard.jsx) | Live data + charts                  |
+| [AdminLayout.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/layouts/AdminLayout.jsx)           | Add Orders nav link                 |
+| [App.jsx](file:///d:/clone/E-commerse-web-app/frontend/src/App.jsx)                                   | Add Orders route                    |
+| `backend/.env`                                                                                        | Add Stripe keys                     |
 
 ### Dependencies to Install
 
