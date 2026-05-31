@@ -1,4 +1,4 @@
-# 🛍️ [Your Project Name] - Next-Gen E-Commerce Platform
+# 🛍️ Pera store - Next-Gen E-Commerce Platform
 
 A modern, high-performance e-commerce platform designed to provide a seamless and immersive shopping experience. This project goes beyond standard online shopping by integrating **AI-powered Visual Search** and **Dynamic Product Carousels** to maximize user engagement and conversion.
 
@@ -25,8 +25,8 @@ A modern, high-performance e-commerce platform designed to provide a seamless an
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** React.js / Next.js, Tailwind CSS, Framer Motion (for carousel animations)
-* **Backend:** Node.js / Express (or Django / Spring Boot)
+* **Frontend:** React.js , Tailwind CSS, Framer Motion (for carousel animations)
+* **Backend:** Fast api
 * **Database:** PostgreSQL (Relational data) / MongoDB (Product catalogs)
 * **Visual Search API:** Cloud Vision API / Custom Python ML Model
 * **Payments:** Stripe API
