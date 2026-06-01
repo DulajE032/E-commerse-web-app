@@ -18,4 +18,8 @@ build/
 
 # OS files
 .DS_Store
-Thumbs.db"*.pt" 
+Thumbs.db
+
+# Large model files
+*.pt
+*.pth

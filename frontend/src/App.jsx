@@ -25,6 +25,7 @@ import AdminDashboard from './admin/pages/AdminDashboard';
 import Products from './admin/pages/Products';
 import AddProduct from './admin/pages/AddProduct';
 import UpdateProduct from './admin/pages/UpdateProduct';
+import Orders from './admin/pages/Orders';
 
 // Auth Components
 import { AdminRoute, ProtectedRoute } from './components/ProtectedRoute';
@@ -45,7 +46,14 @@ function App() {
               <Route path="/visual-search" element={<VisualSearchPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/cart" element={<CartPage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route
+                path="/checkout"
+                element={(
+                  <ProtectedRoute>
+                    <CheckoutPage />
+                  </ProtectedRoute>
+                )}
+              />
               
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
@@ -78,6 +86,7 @@ function App() {
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="orders" element={<Orders />} />
               <Route path="products" element={<Products />} />
               <Route path="add-product" element={<AddProduct />} />
               <Route path="products/edit/:id" element={<UpdateProduct />} />

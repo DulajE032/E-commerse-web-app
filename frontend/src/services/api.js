@@ -155,6 +155,49 @@ export const api = {
  
   getProductFilters: async () => {
    return request(`${API_BASE}/products/filters`);
- },
-};
+  },
+  
+  //order
+  createOrder: async (orderData, token) => {
+    return request(`${API_BASE}/orders`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify(orderData),
+    });
+  },
+  
+  getOrders: async (token) => {
+    return request(`${API_BASE}/orders`, {
+      headers: withAuthHeaders({}, token),
+    }
+    );
+  },
 
+  getMyOrders: async (token, status) => {
+    const query = status ? `?status=${encodeURIComponent(status)}` : '';
+    return request(`${API_BASE}/orders/me${query}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getOrder: async (id, token) => {
+    return request(`${API_BASE}/orders/${id}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+  
+  updateOrderStatus: async (id, status, token) => {
+  return request(`${API_BASE}/orders/${id}/status?status=${status}`, {
+    method: 'PATCH',
+    headers: withAuthHeaders({}, token),
+  });
+},
+
+  getDashboardStats: async (token) => {
+    return request(`${API_BASE}/dashboard/stats`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+  
+  
+};

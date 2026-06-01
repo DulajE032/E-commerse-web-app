@@ -1,15 +1,28 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
 import { useCart } from '../services/CartContext';
+import { useAuth } from '../services/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { cartCount } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
+
+  const userInitials = useMemo(() => {
+    if (!user) return 'U';
+    const base = user.full_name || user.email || 'User';
+    const parts = base.trim().split(' ').filter(Boolean);
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }, [user]);
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -90,13 +103,70 @@ const Navbar = () => {
                 </motion.div>
              </Link>
              
-             <div className="hidden md:flex gap-3 items-center ml-4">
-                <Link to="/login" className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors">Log in</Link>
-                <Link to="/signup" className="text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 px-6 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg">Sign up</Link>
-             </div>
-             
-             <Link to="/dashboard" className="md:hidden bg-gray-100 p-2 rounded-full text-gray-700 hover:bg-gray-200">
-                <FiUser className="w-5 h-5" />
+             {isAuthenticated ? (
+               <div className="relative hidden md:block">
+                 <button
+                   type="button"
+                   onClick={() => setIsProfileOpen((prev) => !prev)}
+                   className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-full text-gray-700 hover:bg-gray-200 transition-colors"
+                 >
+                   <span className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
+                     {userInitials}
+                   </span>
+                   <span className="text-sm font-semibold max-w-[120px] truncate">
+                     {user?.full_name || user?.email}
+                   </span>
+                   <FiChevronDown className="w-4 h-4" />
+                 </button>
+                 <AnimatePresence>
+                   {isProfileOpen && (
+                     <motion.div
+                       initial={{ opacity: 0, y: 8 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       exit={{ opacity: 0, y: 8 }}
+                       className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50"
+                     >
+                       <div className="px-4 py-3 border-b border-gray-100">
+                         <p className="text-sm font-semibold text-gray-900">
+                           {user?.full_name || 'User'}
+                         </p>
+                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                       </div>
+                       <div className="py-2">
+                         <Link
+                           to="/dashboard"
+                           onClick={() => setIsProfileOpen(false)}
+                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                         >
+                           My Dashboard
+                         </Link>
+                         <button
+                           type="button"
+                           onClick={() => {
+                             logout();
+                             setIsProfileOpen(false);
+                           }}
+                           className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50"
+                         >
+                           Log out
+                         </button>
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+             ) : (
+               <div className="hidden md:flex gap-3 items-center ml-4">
+                 <Link to="/login" className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors">Log in</Link>
+                 <Link to="/signup" className="text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 px-6 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg">Sign up</Link>
+               </div>
+             )}
+
+             <Link
+               to={isAuthenticated ? '/dashboard' : '/login'}
+               className="md:hidden bg-gray-100 p-2 rounded-full text-gray-700 hover:bg-gray-200"
+             >
+               <FiUser className="w-5 h-5" />
              </Link>
           </div>
         </div>
@@ -150,8 +220,43 @@ const Navbar = () => {
             </div>
             
             <div className="p-4 border-t border-gray-100 bg-gray-50">
-               <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl flex justify-center mb-3 hover:bg-gray-100 transition-colors">Log In</Link>
-               <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl flex justify-center hover:bg-orange-600 transition-colors shadow-sm">Sign Up</Link>
+               {isAuthenticated ? (
+                 <>
+                   <div className="flex items-center gap-3 mb-4">
+                     <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                       {userInitials}
+                     </div>
+                     <div>
+                       <p className="text-sm font-semibold text-gray-800 line-clamp-1">
+                         {user?.full_name || user?.email}
+                       </p>
+                       <p className="text-xs text-gray-500 line-clamp-1">{user?.email}</p>
+                     </div>
+                   </div>
+                   <Link
+                     to="/dashboard"
+                     onClick={() => setIsMobileMenuOpen(false)}
+                     className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl flex justify-center mb-3 hover:bg-gray-100 transition-colors"
+                   >
+                     My Dashboard
+                   </Link>
+                   <button
+                     type="button"
+                     onClick={() => {
+                       logout();
+                       setIsMobileMenuOpen(false);
+                     }}
+                     className="w-full bg-red-500 text-white font-bold py-3 rounded-xl flex justify-center hover:bg-red-600 transition-colors shadow-sm"
+                   >
+                     Log out
+                   </button>
+                 </>
+               ) : (
+                 <>
+                   <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl flex justify-center mb-3 hover:bg-gray-100 transition-colors">Log In</Link>
+                   <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl flex justify-center hover:bg-orange-600 transition-colors shadow-sm">Sign Up</Link>
+                 </>
+               )}
             </div>
          </div>
       </div>
