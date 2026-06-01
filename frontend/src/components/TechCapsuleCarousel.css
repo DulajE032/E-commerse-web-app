@@ -65,13 +65,15 @@
   z-index: 4;
 }
 
+/* FIXED: left-2/right-2 must have a DEEPER translateZ than left/right
+   left/right = -200px, so left-2/right-2 must be -350px or deeper */
 .tech-card.left-2 {
-  transform: rotateY(60deg) translateZ(-100px) translateX(-75%) scale(0.7);
+  transform: rotateY(60deg) translateZ(-350px) translateX(-120%) scale(0.7);
   z-index: 3;
 }
 
 .tech-card.right-2 {
-  transform: rotateY(-60deg) translateZ(-100px) translateX(75%) scale(0.7);
+  transform: rotateY(-60deg) translateZ(-350px) translateX(120%) scale(0.7);
   z-index: 3;
 }
 
@@ -190,4 +192,98 @@
   background: #6366f1;
   width: 24px;
   border-radius: 4px;
+}
+
+/* ===========================================
+   TABLET (768px and below) - Show 3 cards
+   =========================================== */
+@media (max-width: 768px) {
+  .tech-capsule-container {
+    padding: 2rem 0;
+  }
+
+  .tech-capsule-track {
+    min-height: 400px;
+    perspective: 1200px;
+  }
+
+  .tech-card {
+    width: 260px;
+    height: 380px;
+  }
+
+  .tech-card.active {
+    transform: rotateY(0deg) translateZ(30px) scale(1);
+  }
+
+  .tech-card.left {
+    transform: rotateY(40deg) translateZ(-150px) translateX(-45%) scale(0.8);
+  }
+
+  .tech-card.right {
+    transform: rotateY(-40deg) translateZ(-150px) translateX(45%) scale(0.8);
+  }
+
+  /* Hide the outer cards on tablet to prevent overlap */
+  .tech-card.left-2,
+  .tech-card.right-2 {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateZ(-400px) scale(0.5);
+  }
+
+  .carousel-wrapper {
+    gap: 8px;
+  }
+
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ===========================================
+   PHONE (480px and below) - Show 3 tight cards
+   =========================================== */
+@media (max-width: 480px) {
+  .tech-capsule-track {
+    min-height: 360px;
+    perspective: 1000px;
+  }
+
+  .tech-card {
+    width: 220px;
+    height: 340px;
+  }
+
+  .tech-card.left {
+    transform: rotateY(35deg) translateZ(-120px) translateX(-30%) scale(0.75);
+  }
+
+  .tech-card.right {
+    transform: rotateY(-35deg) translateZ(-120px) translateX(30%) scale(0.75);
+  }
+
+  .tech-card-content {
+    padding: 1rem;
+  }
+
+  .tech-card-title {
+    font-size: 0.95rem;
+  }
+
+  .tech-card-desc {
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tech-btn-add {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+
+  .nav-btn {
+    width: 32px;
+    height: 32px;
+  }
 }
