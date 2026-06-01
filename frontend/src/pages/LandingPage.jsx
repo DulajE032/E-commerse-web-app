@@ -6,7 +6,7 @@ import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
 import Loader from '../components/Loader';
 import heroImage from '../assets/hero.png';
-
+import TechCapsuleCarousel from '../components/TechCapsuleCarousel';
 const LandingPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -117,6 +117,17 @@ const LandingPage = () => {
             </motion.div>
           </div>
         </motion.div>
+      </section>
+
+      {/* Tech Capsule Carousel Section */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Our Premium Calculators</h2>
+          <p className="text-slate-500 mt-2">Easy online free tools for all your technical calculations.</p>
+        </div>
+        <div className="py-8">
+          <TechCapsuleCarousel />
+        </div>
       </section>
 
       {/* Trust Elements */}

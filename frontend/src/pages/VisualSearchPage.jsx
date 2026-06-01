@@ -14,6 +14,7 @@ const VisualSearchPage = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const normalizedTopK = useMemo(() => Math.max(1, Math.min(20, Number(topK) || 5)), [topK]);
 
@@ -59,6 +60,7 @@ const VisualSearchPage = () => {
 
     setLoading(true);
     setError('');
+    setHasSearched(false);
     try {
       const raw = await api.searchByText(trimmed, normalizedTopK);
       const hydrated = await hydrateResults(raw);
@@ -68,6 +70,7 @@ const VisualSearchPage = () => {
       setResults([]);
     } finally {
       setLoading(false);
+      setHasSearched(true);
     }
   };
 
@@ -80,6 +83,7 @@ const VisualSearchPage = () => {
 
     setLoading(true);
     setError('');
+    setHasSearched(false);
     try {
       const raw = await api.searchByImage(file, normalizedTopK);
       const hydrated = await hydrateResults(raw);
@@ -89,6 +93,7 @@ const VisualSearchPage = () => {
       setResults([]);
     } finally {
       setLoading(false);
+      setHasSearched(true);
     }
   };
 
@@ -177,7 +182,6 @@ const VisualSearchPage = () => {
                     const imageUrl = getImageUrl(product);
                     const name = product?.name || result.name || 'Unnamed product';
                     const price = product?.price ?? result.price ?? 0;
-                    const description = product?.description || product?.category || '';
                     const score = typeof result.similarity_score === 'number'
                       ? `${(result.similarity_score * 100).toFixed(1)}%`
                       : 'N/A';
@@ -208,6 +212,19 @@ const VisualSearchPage = () => {
                     );
                   })}
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* No Results Message */}
+          {hasSearched && results.length === 0 && !loading && !error && (
+            <div className="flex items-start gap-3 md:gap-4 mb-6 text-sm md:text-base mt-2">
+              <div className="w-10 h-10 rounded-full bg-blue-600 flex flex-shrink-0 items-center justify-center text-white font-bold shadow-md">
+                AI
+              </div>
+              <div className="bg-white rounded-2xl rounded-tl-none p-4 md:p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-gray-100 max-w-[85%] text-slate-700 leading-relaxed">
+                <p className="font-bold text-slate-900 mb-1">No matching products found</p>
+                Sorry, I couldn't find any products similar to your search. Try describing a product we carry, or upload a photo of something in our catalog.
               </div>
             </div>
           )}

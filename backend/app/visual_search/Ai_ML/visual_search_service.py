@@ -18,6 +18,12 @@ from app.services.crud_product import get_product
 class VisualSearchService:
     """Orchestrates visual search functionality"""
 
+    # Minimum cosine similarity to consider a result relevant.
+    # Results below this threshold are filtered out.
+    # Set to 0.0 for untrained models (filters only negative/anti-correlated results).
+    # Increase to 0.15-0.3 after training the model on your product data.
+    MIN_SIMILARITY_THRESHOLD = 0.0
+
     def __init__(self):
         self.model_manager = ModelManager()
         self.model_manager.load()  # Load existing model or create new
@@ -101,9 +107,11 @@ class VisualSearchService:
             # Find similar
             results = self.model_manager.search_similar(query_embedding, all_embeddings, top_k)
 
-            # Build response
+            # Build response — filter out low-confidence matches
             output = []
             for rank, (idx, score) in enumerate(results, 1):
+                if score < self.MIN_SIMILARITY_THRESHOLD:
+                    continue  # Skip irrelevant results
                 product_id = product_ids[idx]
                 product = get_product(db, product_id)
                 if product:
@@ -141,9 +149,11 @@ class VisualSearchService:
             # Find similar
             results = self.model_manager.search_similar(query_embedding, all_embeddings, top_k)
 
-            # Build response
+            # Build response — filter out low-confidence matches
             output = []
             for rank, (idx, score) in enumerate(results, 1):
+                if score < self.MIN_SIMILARITY_THRESHOLD:
+                    continue  # Skip irrelevant results
                 product_id = product_ids[idx]
                 product = get_product(db, product_id)
                 if product:

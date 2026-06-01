@@ -1,0 +1,289 @@
+.tech-capsule-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 0;
+  width: 100%;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+.carousel-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  gap: 20px;
+}
+
+.tech-capsule-track {
+  display: flex;
+  perspective: 2000px;
+  transform-style: preserve-3d;
+  position: relative;
+  min-height: 480px;
+  width: 100%;
+  max-width: 900px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Light theme for cards */
+.tech-card {
+  position: absolute;
+  width: 320px;
+  height: 440px;
+  background: #ffffff;
+  border-radius: 12px;
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  border: 2px solid transparent;
+}
+
+.tech-card.active {
+  transform: rotateY(0deg) translateZ(50px) scale(1);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  z-index: 5;
+  border-color: #6366f1;
+}
+
+.tech-card.left {
+  transform: rotateY(60deg) translateZ(-200px) translateX(-60%)  scale(0.85);
+  background: #fafafa;
+  z-index: 4;
+}
+
+.tech-card.right {
+  transform: rotateY(-60deg) translateZ(-200px) translateX(60%) scale(0.85);
+  background: #fafafa;
+  z-index: 4;
+}
+
+/* FIXED: left-2/right-2 must have a DEEPER translateZ than left/right
+   left/right = -200px, so left-2/right-2 must be -350px or deeper */
+.tech-card.left-2 {
+  transform: rotateY(60deg) translateZ(-350px) translateX(-120%) scale(0.7);
+  z-index: 3;
+}
+
+.tech-card.right-2 {
+  transform: rotateY(-60deg) translateZ(-350px) translateX(120%) scale(0.7);
+  z-index: 3;
+}
+
+.tech-card.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tech-card-image-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+
+.tech-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tech-card-content {
+  padding: 1.5rem;
+  color: #333;
+  text-align: center;
+  background: #ffffff;
+}
+
+.tech-card-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6366f1;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.tech-card-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #111827;
+}
+
+.tech-card-desc {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+  line-height: 1.4;
+}
+
+.tech-card-action {
+  opacity: 1;
+  transition: all 0.4s ease;
+}
+
+.tech-btn-add {
+  background: #6366f1;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.tech-btn-add:hover {
+  background: #4f46e5;
+}
+
+/* Navigation buttons */
+.nav-btn {
+  background: #6366f1;
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+  flex-shrink: 0;
+}
+
+.nav-btn:hover {
+  background: #4f46e5;
+}
+
+/* Pagination dots */
+.pagination {
+  display: flex;
+  gap: 8px;
+  margin-top: 2rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: #6366f1;
+  width: 24px;
+  border-radius: 4px;
+}
+
+/* ===========================================
+   TABLET (768px and below) - Show 3 cards
+   =========================================== */
+@media (max-width: 768px) {
+  .tech-capsule-container {
+    padding: 2rem 0;
+  }
+
+  .tech-capsule-track {
+    min-height: 400px;
+    perspective: 1200px;
+  }
+
+  .tech-card {
+    width: 260px;
+    height: 380px;
+  }
+
+  .tech-card.active {
+    transform: rotateY(0deg) translateZ(30px) scale(1);
+  }
+
+  .tech-card.left {
+    transform: rotateY(40deg) translateZ(-150px) translateX(-45%) scale(0.8);
+  }
+
+  .tech-card.right {
+    transform: rotateY(-40deg) translateZ(-150px) translateX(45%) scale(0.8);
+  }
+
+  /* Hide the outer cards on tablet to prevent overlap */
+  .tech-card.left-2,
+  .tech-card.right-2 {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateZ(-400px) scale(0.5);
+  }
+
+  .carousel-wrapper {
+    gap: 8px;
+  }
+
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* ===========================================
+   PHONE (480px and below) - Show 3 tight cards
+   =========================================== */
+@media (max-width: 480px) {
+  .tech-capsule-track {
+    min-height: 360px;
+    perspective: 1000px;
+  }
+
+  .tech-card {
+    width: 220px;
+    height: 340px;
+  }
+
+  .tech-card.left {
+    transform: rotateY(35deg) translateZ(-120px) translateX(-30%) scale(0.75);
+  }
+
+  .tech-card.right {
+    transform: rotateY(-35deg) translateZ(-120px) translateX(30%) scale(0.75);
+  }
+
+  .tech-card-content {
+    padding: 1rem;
+  }
+
+  .tech-card-title {
+    font-size: 0.95rem;
+  }
+
+  .tech-card-desc {
+    font-size: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .tech-btn-add {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+
+  .nav-btn {
+    width: 32px;
+    height: 32px;
+  }
+}

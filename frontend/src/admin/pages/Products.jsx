@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import Loader from '../../components/Loader';
 
@@ -6,13 +7,7 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [editingProductId, setEditingProductId] = useState(null);
-  const [editForm, setEditForm] = useState({
-    name: '',
-    price: '',
-    category: '',
-    stock: '',
-  });
+  const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
@@ -38,47 +33,7 @@ const Products = () => {
     };
   }, []);
 
-  const startEdit = (product) => {
-    setEditingProductId(product.id);
-    setEditForm({
-      name: product.name || '',
-      price: product.price ?? '',
-      category: product.category || '',
-      stock: product.stock ?? 0,
-    });
-  };
 
-  const cancelEdit = () => {
-    setEditingProductId(null);
-    setEditForm({
-      name: '',
-      price: '',
-      category: '',
-      stock: '',
-    });
-  };
-
-  const handleEditChange = (event) => {
-    const { name, value } = event.target;
-    setEditForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleUpdate = async (productId) => {
-    try {
-      const payload = {
-        name: editForm.name,
-        price: Number(editForm.price),
-        category: editForm.category || null,
-        stock: Number(editForm.stock),
-      };
-
-      const updated = await api.updateProduct(productId, payload);
-      setProducts((prev) => prev.map((item) => (item.id === productId ? updated : item)));
-      cancelEdit();
-    } catch (err) {
-      setError(err.message || 'Failed to update product');
-    }
-  };
 
   const handleDelete = async (productId) => {
     const shouldDelete = window.confirm('Are you sure you want to delete this product?');
@@ -127,88 +82,17 @@ const Products = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => {
-                const isEditing = editingProductId === product.id;
-                return (
+              {products.map((product) => (
                   <tr key={product.id} className="border-b border-gray-700 last:border-b-0">
+                    <td className="px-4 py-3">{product.name}</td>
+                    <td className="px-4 py-3">{`$${Number(product.price).toFixed(2)}`}</td>
+                    <td className="px-4 py-3">{product.category || '-'}</td>
+                    <td className="px-4 py-3">{product.stock}</td>
                     <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="name"
-                          value={editForm.name}
-                          onChange={handleEditChange}
-                          className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white"
-                        />
-                      ) : (
-                        product.name
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          name="price"
-                          value={editForm.price}
-                          onChange={handleEditChange}
-                          className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white"
-                        />
-                      ) : (
-                        `$${Number(product.price).toFixed(2)}`
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="category"
-                          value={editForm.category}
-                          onChange={handleEditChange}
-                          className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white"
-                        />
-                      ) : (
-                        product.category || '-'
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          min="0"
-                          name="stock"
-                          value={editForm.stock}
-                          onChange={handleEditChange}
-                          className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white"
-                        />
-                      ) : (
-                        product.stock
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {isEditing ? (
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => handleUpdate(product.id)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded"
-                          >
-                            Save
-                          </button>
-                          <button
-                            type="button"
-                            onClick={cancelEdit}
-                            className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(product)}
+                            onClick={() => navigate(`/admin/products/edit/${product.id}`)}
                             className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded"
                           >
                             Edit
@@ -221,11 +105,9 @@ const Products = () => {
                             Delete
                           </button>
                         </div>
-                      )}
                     </td>
                   </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
         </div>

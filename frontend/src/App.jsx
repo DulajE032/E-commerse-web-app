@@ -24,6 +24,7 @@ import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './admin/pages/AdminDashboard';
 import Products from './admin/pages/Products';
 import AddProduct from './admin/pages/AddProduct';
+import UpdateProduct from './admin/pages/UpdateProduct';
 
 // Auth Components
 import { AdminRoute, ProtectedRoute } from './components/ProtectedRoute';
@@ -79,6 +80,7 @@ function App() {
               <Route path="dashboard" element={<AdminDashboard />} />
               <Route path="products" element={<Products />} />
               <Route path="add-product" element={<AddProduct />} />
+              <Route path="products/edit/:id" element={<UpdateProduct />} />
             </Route>
             
           </Routes>
