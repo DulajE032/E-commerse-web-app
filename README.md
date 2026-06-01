@@ -1,56 +1,52 @@
-# E-Commerce Application Architecture & Study Guide
+# 🛍️ Pera store - Next-Gen E-Commerce Platform
 
-This document serves as a study guide for the recent updates to the e-commerce platform. It outlines the architectural design patterns, the key technologies in use, and an explanation of the newly implemented Admin and Product Detail features.
-
-## 1. Technology Stack
-
-### Frontend (User Interface)
-* **React + Vite:** The frontend is built using React for component-based UI and Vite as a blazing fast build tool.
-* **React Router DOM:** Used for client-side routing (e.g., navigating from `/products` to `/product/:id` or to the Admin Dashboard).
-* **Tailwind CSS:** A utility-first CSS framework used for styling. It allows for rapid prototyping and ensures a responsive, modern design without leaving the HTML.
-* **Framer Motion:** Used for smooth entry animations (e.g., the fade-in effect on product images).
-
-### Backend (API & Database)
-* **FastAPI:** A modern, fast Python web framework for building APIs. It provides automatic interactive API documentation (Swagger UI).
-* **SQLAlchemy:** The Python SQL toolkit and Object Relational Mapper (ORM) that gives application developers the full power and flexibility of SQL.
-* **Pydantic:** Used for data validation and settings management using Python type annotations.
-* **Alembic:** A lightweight database migration tool for usage with SQLAlchemy.
-* **PostgreSQL (Assumed/Supported):** The relational database used to persist product, user, and review data.
+A modern, high-performance e-commerce platform designed to provide a seamless and immersive shopping experience. This project goes beyond standard online shopping by integrating **AI-powered Visual Search** and **Dynamic Product Carousels** to maximize user engagement and conversion.
 
 ---
 
-## 2. Key Features Implemented
+## ✨ Key Features
 
-### 2.1 Dynamic Admin Categories
-Previously, categories in the "Add Product" form were hardcoded. 
-* **The Change:** The `<select>` dropdown was replaced with a combination `<input list="...">` and an HTML5 `<datalist>`.
-* **Why it matters:** This hybrid approach allows the admin to either select an existing category dynamically fetched from the database (e.g., "Mobile Accessories") OR freely type a completely new category name (e.g., "Smartwatches"). 
-* **How it works:** When the product is saved, the backend accepts this new string and it implicitly becomes a new filterable category on the frontend `ProductsPage`.
+### 🔍 Advanced Discovery
+* **Visual Search Engine:** Users can upload an image from their device (e.g., a photo of a jacket they like), and the platform will automatically return visually similar products from the catalog.
+* **3D/Dynamic Product Carousels:** Immersive, interactive product showcases that allow users to swipe through curated collections, lookbooks, or product bundles smoothly.
 
-### 2.2 Dedicated Update Product Page
-Previously, admins edited products via inline text fields in the Products table. This was limiting, especially for media uploads.
-* **The Change:** A dedicated `UpdateProduct.jsx` component was created at the route `/admin/products/edit/:id`.
-* **How it works:** 
-  1. On mount, it fetches the existing product data using `api.getProduct(id)`.
-  2. It pre-fills the form states and displays the current primary image or video.
-  3. The admin can upload a new media file (which sends a request to the backend `/upload` endpoint).
-  4. Finally, a `PUT` request is sent to `api.updateProduct()` containing the updated JSON payload (including new image/video URLs).
+### 🛒 Core E-Commerce Services
+* **Secure User Authentication:** JWT-based login, registration, and password recovery. Includes OAuth (Google/Apple) integration.
+* **Shopping Cart & Wishlist:** Persistent cart management allowing users to save items for later and checkout across multiple sessions.
+* **Streamlined Checkout:** Multi-step checkout process with integrated payment gateways (e.g., Stripe / PayPal) for secure transactions.
+* **Order Management:** Users can track order status, view purchase history, and download invoices.
 
-### 2.3 Product Detail Page Redesign
-The product page was shifted from a tabbed interface to a modern, vertically-flowing layout.
-* **Layout Structure:**
-  * **Top Block (Side-by-Side):** The main focus area. The left side handles the media gallery (supporting both `<img />` and HTML5 `<video />` tags), while the right side handles crucial conversion info (Price, Rating, Quantity, Add to Cart).
-  * **Middle Block (Vertical):** The detailed Description and Customer Reviews are stacked below.
-  * **Bottom Block (Related Products):** A new section that queries the backend for other products matching the same `category`.
-* **Data Fetching Strategy:** 
-  * We use `Promise.all()` to fetch the Product details and the Reviews simultaneously, reducing total load time.
-  * Once the product category is known, a subsequent fetch is fired to grab "Related Products".
+### ⚙️ Admin & Backend Control
+* **Inventory Management:** An intuitive admin dashboard to add, edit, or remove products, manage stock levels, and organize categories.
+* **Analytics Dashboard:** Track daily sales, visual search usage, and monitor conversion rates.
+* **Role-Based Access Control (RBAC):** Distinct permissions for customers, store managers, and system administrators.
 
 ---
 
-## 3. Study Notes: Best Practices applied
-* **Conditional Rendering:** You will notice a lot of ternary operators (`? :`) in the React code (e.g., `media.type === 'video' ? <video> : <img>`). This is crucial for rendering different UI based on data state.
-* **Component State Separation:** `ProductDetailPage` manages several distinct pieces of state (`product`, `reviews`, `relatedProducts`, `activeMedia`, `quantity`). Keeping these separate allows for targeted updates (e.g., changing `activeMedia` doesn't trigger a full product re-fetch).
-* **Controlled Forms:** Both `AddProduct` and `UpdateProduct` use "controlled components", where the form input values are strictly tied to React state (`formData`), ensuring React is the single source of truth.
+## 🛠️ Tech Stack
 
-Feel free to dive into `ProductDetailPage.jsx` and `UpdateProduct.jsx` to see these concepts in action!
+* **Frontend:** React.js , Tailwind CSS, Framer Motion (for carousel animations)
+* **Backend:** Fast api
+* **Database:** PostgreSQL (Relational data) / MongoDB (Product catalogs)
+* **Visual Search API:** Cloud Vision API / Custom Python ML Model
+* **Payments:** Stripe API
+* **Cloud Storage:** AWS S3 (for storing user uploads and product images)
+
+---
+
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+Make sure you have the following installed:
+* Node.js (v16.x or higher)
+* npm or yarn
+* PostgreSQL or MongoDB running locally
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/yourusername/your-project-name.git](https://github.com/yourusername/your-project-name.git)
+   cd your-project-name
