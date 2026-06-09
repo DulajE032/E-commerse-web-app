@@ -42,7 +42,7 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     if user.role == UserRole.ADMIN.value:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Use admin login endpoint for admin access",
+            detail="Forbidden",
         )
 
     token = create_access_token(subject=str(user.id), role=user.role)
