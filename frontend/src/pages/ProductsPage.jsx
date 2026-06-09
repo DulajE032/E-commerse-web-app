@@ -25,7 +25,13 @@ const ProductsPage = () => {
   const [brands, setBrands] = useState([]);
   const [inStockOnly, setInStockOnly] = useState(false);
   
-  const sortOptions = ['Recommended', 'Price: Low to High', 'Price: High to Low', 'Newest First', 'Popularity'];
+  const sortOptions = {
+    'Recommended': 'featured',
+    'Price: Low to High': 'price_low',
+    'Price: High to Low': 'price_high',
+    'Newest First': 'newest',
+    'Popularity': 'popular'
+  };
 
   const toggleBrand = (brand) => {
     setSelectedBrands(prev => prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]);
@@ -58,11 +64,12 @@ const ProductsPage = () => {
      minPrice: priceRange.min === '' ? null : Number(priceRange.min),
      maxPrice: priceRange.max === '' ? null : Number(priceRange.max),
      inStock: inStockOnly,
+     sortBy: sortOptions[sortBy],
    })
      .then(setProducts)
      .catch(console.error)
      .finally(() => setLoading(false));
- }, [selectedCategory, selectedBrands, priceRange, inStockOnly]);
+ }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy]);
 
 
   return (
@@ -98,7 +105,7 @@ const ProductsPage = () => {
                      exit={{ opacity: 0, y: 10 }}
                      className="absolute top-full right-0 mt-2 w-full bg-white rounded-xl shadow-xl border border-gray-100 z-20 py-2"
                    >
-                     {sortOptions.map(option => (
+                     {Object.keys(sortOptions).map(option => (
                        <button
                          key={option}
                          onClick={() => { setSortBy(option); setIsSortOpen(false); }}

@@ -25,9 +25,12 @@ const LandingPage = () => {
 
   useEffect(() => {
     setLoading(true);
-    // User will integrate exact backend logic for filtering Top Selling
-    api.getProducts(selectedCategory)
-      .then(res => setProducts(res.slice(0, 8))) 
+    api.getProducts({
+      category: selectedCategory,
+      sortBy: 'top_selling',
+      limit: 8
+    })
+      .then(res => setProducts(res)) 
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [selectedCategory]);

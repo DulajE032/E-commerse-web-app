@@ -15,7 +15,9 @@
   justify-content: center;
   width: 100%;
   max-width: 1200px;
-  gap: 20px;
+  gap: 30px;
+  padding: 0 1rem;
+  box-sizing: border-box;
 }
 
 .tech-capsule-track {
@@ -24,8 +26,8 @@
   transform-style: preserve-3d;
   position: relative;
   min-height: 480px;
-  width: 100%;
-  max-width: 900px;
+  width: 900px;
+  max-width: 100%;
   justify-content: center;
   align-items: center;
 }
@@ -169,10 +171,12 @@
   z-index: 10;
   box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
   flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 
 .nav-btn:hover {
   background: #4f46e5;
+  transform: scale(1.05);
 }
 
 /* Pagination dots */
@@ -200,14 +204,33 @@
 }
 
 /* ===========================================
+   MEDIUM DESKTOP (1024px and below) - Hide outer cards
+   =========================================== */
+@media (max-width: 1024px) {
+  .tech-card.left-2,
+  .tech-card.right-2 {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tech-capsule-track {
+    width: 600px;
+  }
+}
+
+/* ===========================================
    TABLET (768px and below) - Show only center card
    =========================================== */
 @media (max-width: 768px) {
   .tech-capsule-container {
-    padding: 2rem 0;
+    padding: 2rem 1rem;
+  }
+
+  .carousel-wrapper {
+    gap: 20px;
   }
 
   .tech-capsule-track {
+    width: 280px;
     min-height: 400px;
     perspective: none; /* Disable 3D on mobile */
     transform-style: flat; /* Flatten — no 3D movement visible */
@@ -235,10 +258,6 @@
     transform: none; /* No 3D movement — just invisible */
   }
 
-  .carousel-wrapper {
-    gap: 12px;
-  }
-
   .nav-btn {
     width: 40px;
     height: 40px;
@@ -249,6 +268,14 @@
    PHONE (480px and below) - Smaller center card
    =========================================== */
 @media (max-width: 480px) {
+  .carousel-wrapper {
+    gap: 12px;
+  }
+
+  .tech-capsule-track {
+    width: 250px;
+  }
+
   .tech-card {
     width: 250px;
     height: 360px;

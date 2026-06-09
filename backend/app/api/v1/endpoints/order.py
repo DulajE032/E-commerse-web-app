@@ -6,6 +6,7 @@ from app.core.security import get_current_user, require_role
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.order import Order
+from app.models.product import Product
 from app.schemas.order import CreateOrderRequest, OrderResponse
 
 router = APIRouter()
@@ -44,6 +45,13 @@ async def create_order(
     db.add(new_order)
     db.flush()
 
+    # Update Product sales count and stock
+    for item in order_data.items:
+        product = db.query(Product).filter(Product.id == item.product_id).first()
+        if product:
+            product.sales_count += item.quantity
+            product.stock -= item.quantity
+    
     client_secret = None
 
     # 3. If paying by card, create Stripe PaymentIntent

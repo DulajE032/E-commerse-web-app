@@ -13,6 +13,9 @@ def get_products(
     skip: int = 0,
     limit: int = 20,
     category: Optional[str] = None,
+    search :Optional[str]=None,
+    sort_by:Optional[str]=None,
+    
     brands:Optional[list[str]]=None,
     min_price:Optional[float]=None,
     max_price:Optional[float]=None,
@@ -35,7 +38,13 @@ def get_products(
      
     if min_price is not None:
         query=query.filter(Product.price>= min_price)
-    
+        
+    if search:
+        query=query.filter(
+            Product.name.ilike(f"%{search}%") |
+            Product.description.ilike(f"%{search}%")
+
+    )
     
     if max_price is not None:
         query=query.filter(Product.price<=max_price)
@@ -45,6 +54,20 @@ def get_products(
              query = query.filter(Product.stock > 0)
         else:
              query = query.filter(Product.stock <= 0)   
+
+    # Sorting Logic
+    if sort_by=="price_low":
+        query=query.order_by(Product.price.asc())
+    elif sort_by=="price_high":
+        query=query.order_by(Product.price.desc())
+    elif sort_by=="newest":
+        query=query.order_by(Product.createdAt.desc())
+    elif sort_by=="top_selling":
+        query=query.order_by(Product.sales_count.desc())
+    else:
+        # Default: Show Featured products first, then newest
+        query = query.order_by(Product.featured.desc(), Product.createdAt.desc())
+
     return query.offset(skip).limit(limit).all()
 
 
