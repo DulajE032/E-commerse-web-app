@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiFilter, FiChevronDown, FiStar, FiShoppingCart, FiCheck } from 'react-icons/fi';
+import { FiFilter, FiChevronDown, FiStar, FiShoppingCart, FiCheck, FiHeart } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
+import { useWishlist } from '../services/WishlistContext';
 import Loader from '../components/Loader';
 import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
 
@@ -12,6 +13,7 @@ const ProductsPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   const navigate = useNavigate();
   
   const showLoader = useMinLoadingTime(loading, 600);
@@ -262,6 +264,18 @@ const ProductsPage = () => {
                       ) : (
                         <div className="text-slate-300 text-sm font-medium">No Image</div>
                       )}
+
+                      {/* Wishlist Heart Button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
+                        className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 z-10 ${
+                          isInWishlist(product.id)
+                            ? 'bg-red-500 text-white scale-110'
+                            : 'bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500'
+                        }`}
+                      >
+                        <FiHeart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                      </button>
                       
                       {/* Action buttons on hover */}
                       <div className="absolute inset-x-4 bottom-4 translate-y-[150%] group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">

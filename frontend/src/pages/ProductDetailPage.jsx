@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
 import { useAuth } from '../services/AuthContext';
+import { useWishlist } from '../services/WishlistContext';
 import Loader from '../components/Loader';
 import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
 
@@ -25,6 +26,7 @@ const ProductDetailPage = () => {
   
   const { addToCart } = useCart();
   const { user, token, isAuthenticated } = useAuth();
+  const { isInWishlist, toggleWishlist } = useWishlist();
   
   const showLoader = useMinLoadingTime(loading, 600);
 
@@ -150,8 +152,15 @@ const ProductDetailPage = () => {
                   ) : (
                     <img src={activeMedia.url} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
                   )}
-                  <button className="absolute top-6 right-6 bg-white p-3 rounded-full shadow-md text-gray-400 hover:text-red-500 transition-colors">
-                    <FiHeart className="w-6 h-6" />
+                  <button
+                    onClick={() => toggleWishlist(product.id)}
+                    className={`absolute top-6 right-6 p-3 rounded-full shadow-md transition-all duration-200 z-10 ${
+                      isInWishlist(product.id)
+                        ? 'bg-red-500 text-white scale-110'
+                        : 'bg-white text-gray-400 hover:text-red-500'
+                    }`}
+                  >
+                    <FiHeart className={`w-6 h-6 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
                   </button>
                </motion.div>
                {allMedia.length > 1 && (

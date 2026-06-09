@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Navigate, Routes, Route } from 'react-router-dom';
 import { CartProvider } from './services/CartContext';
 import { AuthProvider } from './services/AuthContext';
+import { WishlistProvider } from './services/WishlistContext';
 
 // Pages
 import LandingPage from './pages/LandingPage';
@@ -14,6 +15,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import VisualSearchPage from './pages/VisualSearchPage';
+import WishlistPage from './pages/WishlistPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Layouts
@@ -26,6 +28,7 @@ import Products from './admin/pages/Products';
 import AddProduct from './admin/pages/AddProduct';
 import UpdateProduct from './admin/pages/UpdateProduct';
 import Orders from './admin/pages/Orders';
+import WishlistAdmin from './admin/pages/WishlistAdmin';
 
 // Auth Components
 import { AdminRoute, ProtectedRoute } from './components/ProtectedRoute';
@@ -36,6 +39,7 @@ function App() {
   return (
     <CartProvider>
       <AuthProvider>
+        <WishlistProvider>
         <Router>
           <Routes>
             
@@ -46,6 +50,7 @@ function App() {
               <Route path="/visual-search" element={<VisualSearchPage />} />
               <Route path="/product/:id" element={<ProductDetailPage />} />
               <Route path="/cart" element={<CartPage />} />
+              <Route path="/wishlist" element={<WishlistPage />} />
               <Route
                 path="/checkout"
                 element={(
@@ -90,10 +95,12 @@ function App() {
               <Route path="products" element={<Products />} />
               <Route path="add-product" element={<AddProduct />} />
               <Route path="products/edit/:id" element={<UpdateProduct />} />
+              <Route path="wishlist" element={<WishlistAdmin />} />
             </Route>
             
           </Routes>
         </Router>
+        </WishlistProvider>
       </AuthProvider>
     </CartProvider>
   );

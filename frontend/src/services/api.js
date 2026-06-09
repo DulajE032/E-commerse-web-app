@@ -200,6 +200,76 @@ export const api = {
       headers: withAuthHeaders({}, token),
     });
   },
+
+  // Wishlist — User-facing
+  getWishlist: async (token) => {
+    return request(`${API_BASE}/wishlist`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getWishlistIds: async (token) => {
+    return request(`${API_BASE}/wishlist/ids`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  addToWishlist: async (productId, token) => {
+    return request(`${API_BASE}/wishlist`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ product_id: productId }),
+    });
+  },
+
+  removeFromWishlist: async (productId, token) => {
+    return request(`${API_BASE}/wishlist/${productId}`, {
+      method: 'DELETE',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  toggleWishlist: async (productId, token) => {
+    return request(`${API_BASE}/wishlist/toggle`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ product_id: productId }),
+    });
+  },
+
+  syncWishlist: async (productIds, token) => {
+    return request(`${API_BASE}/wishlist/sync`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ product_ids: productIds }),
+    });
+  },
+
+  // Wishlist — Admin
+  getWishlistTrending: async (token) => {
+    return request(`${API_BASE}/wishlist/admin/trending`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getWishlistUsers: async (token) => {
+    return request(`${API_BASE}/wishlist/admin/users`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getWishlistByUser: async (userId, token) => {
+    return request(`${API_BASE}/wishlist/admin/users/${userId}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  sendWishlistCampaign: async (productId, token) => {
+    return request(`${API_BASE}/wishlist/admin/campaign/${productId}`, {
+      method: 'POST',
+      headers: withAuthHeaders({}, token),
+    });
+  },
   
   
 };
