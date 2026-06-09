@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag } from 'react-icons/fi';
+import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag, FiHeart } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 
 const AdminLayout = () => {
@@ -30,6 +30,9 @@ const AdminLayout = () => {
           </Link>
           <Link to="/admin/add-product" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiPlusCircle /> Add Product
+          </Link>
+          <Link to="/admin/wishlist" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+            <FiHeart /> Wishlists
           </Link>
         </nav>
         <div className="p-4 border-t border-gray-700">

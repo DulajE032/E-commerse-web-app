@@ -15,7 +15,6 @@ def get_products(
     category: Optional[str] = None,
     search :Optional[str]=None,
     sort_by:Optional[str]=None,
-    
     brands:Optional[list[str]]=None,
     min_price:Optional[float]=None,
     max_price:Optional[float]=None,

@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
+import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiMenu, FiX, FiHeart } from 'react-icons/fi';
 import { useCart } from '../services/CartContext';
+import { useWishlist } from '../services/WishlistContext';
 import { useAuth } from '../services/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -10,6 +11,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -85,6 +87,24 @@ const Navbar = () => {
                 </div>
              </div>
              
+             <Link to="/wishlist" className="relative cursor-pointer text-gray-700 hover:text-pink-500 transition-colors group">
+                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                  <FiHeart className="w-6 h-6" />
+                  <AnimatePresence>
+                    {wishlistCount > 0 && (
+                      <motion.span 
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute -top-2 -right-2 bg-pink-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
+                      >
+                        {wishlistCount}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+             </Link>
+
              <Link to="/cart" className="relative cursor-pointer text-gray-700 hover:text-blue-600 transition-colors group">
                 <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
                   <FiShoppingCart className="w-6 h-6" />
