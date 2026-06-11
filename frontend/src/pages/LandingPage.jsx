@@ -7,6 +7,7 @@ import { useCart } from '../services/CartContext';
 import Loader from '../components/Loader';
 import heroImage from '../assets/hero.png';
 import TechCapsuleCarousel from '../components/TechCapsuleCarousel';
+import Categories from '../components/Categories';
 const LandingPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -204,6 +205,9 @@ const LandingPage = () => {
           <TechCapsuleCarousel />
         </div>
       </section>
+
+      {/* Categories Section */}
+      <Categories />
 
       {/* Trust Elements */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16 mb-24">
