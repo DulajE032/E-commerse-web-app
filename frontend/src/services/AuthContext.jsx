@@ -1,3 +1,4 @@
+"use client";
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api } from './api';
@@ -5,9 +6,9 @@ import { api } from './api';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [token, setToken] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('token') : null);
   const [user, setUser] = useState(null);
-  const [isInitializing, setIsInitializing] = useState(Boolean(localStorage.getItem('token')));
+  const [isInitializing, setIsInitializing] = useState(typeof window !== 'undefined' ? Boolean(localStorage.getItem('token')) : false);
 
   useEffect(() => {
     let isMounted = true;

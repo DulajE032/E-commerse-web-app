@@ -1,3 +1,4 @@
+"use client";
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './api';
@@ -10,6 +11,7 @@ const WishlistContext = createContext(null);
  * Reads the guest wishlist from localStorage.
  */
 const readGuestWishlist = () => {
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(GUEST_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];

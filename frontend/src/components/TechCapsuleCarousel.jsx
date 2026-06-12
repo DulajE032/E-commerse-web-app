@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from 'react';
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import './TechCapsuleCarousel.css';

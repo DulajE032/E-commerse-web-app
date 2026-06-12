@@ -1,14 +1,16 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+"use client";
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag, FiHeart } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 
-const AdminLayout = () => {
-  const navigate = useNavigate();
+const AdminLayout = ({ children }) => {
+  const router = useRouter();
   const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    router.push('/login');
   };
 
   return (
@@ -19,19 +21,19 @@ const AdminLayout = () => {
           Admin Panel
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <Link to="/admin/dashboard" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+          <Link href="/admin/dashboard" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiHome /> Dashboard
           </Link>
-          <Link to="/admin/orders" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+          <Link href="/admin/orders" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiShoppingBag /> Orders
           </Link>
-          <Link to="/admin/products" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+          <Link href="/admin/products" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiBox /> Products
           </Link>
-          <Link to="/admin/add-product" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+          <Link href="/admin/add-product" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiPlusCircle /> Add Product
           </Link>
-          <Link to="/admin/wishlist" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+          <Link href="/admin/wishlist" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiHeart /> Wishlists
           </Link>
         </nav>
@@ -59,7 +61,7 @@ const AdminLayout = () => {
 
         {/* Page Content */}
         <div className="flex-1 overflow-auto p-6 bg-gray-900">
-          <Outlet />
+          {children}
         </div>
       </main>
     </div>

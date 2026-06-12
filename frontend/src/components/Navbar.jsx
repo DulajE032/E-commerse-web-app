@@ -1,5 +1,7 @@
+"use client";
 import React, { useMemo, useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   FiSearch, FiShoppingCart, FiUser, FiChevronDown, 
   FiMenu, FiX, FiHeart, FiLogOut, FiLayout
@@ -19,7 +21,7 @@ const Navbar = () => {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
-  const location = useLocation();
+  const location = usePathname();
   const currentPath = location.pathname;
 
   // Handle scroll effect for navbar
@@ -97,7 +99,7 @@ const Navbar = () => {
                >
                   <FiMenu className="w-6 h-6" />
                </button>
-               <Link to="/" className="flex items-center gap-2.5 group">
+               <Link href="/" className="flex items-center gap-2.5 group">
                   <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
                     <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain invert brightness-0" />
                   </div>
@@ -110,9 +112,8 @@ const Navbar = () => {
             {/* Center: Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-8 text-[15px] font-semibold text-slate-600">
               {navLinks.map((link) => (
-                <Link 
-                  key={link.name} 
-                  to={link.path} 
+                <Link key={link.name} 
+                  href={link.path} 
                   className={`relative py-2 group transition-colors hover:text-slate-900 ${currentPath === link.path ? 'text-slate-900' : ''}`}
                 >
                   {link.name}
@@ -146,7 +147,7 @@ const Navbar = () => {
 
                {/* Action Icons */}
                <div className="flex items-center gap-1 sm:gap-2">
-                 <Link to="/wishlist" className="relative p-2 text-slate-700 hover:bg-pink-50 hover:text-pink-600 rounded-full transition-colors group">
+                 <Link href="/wishlist" className="relative p-2 text-slate-700 hover:bg-pink-50 hover:text-pink-600 rounded-full transition-colors group">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <FiHeart className="w-5 h-5 sm:w-6 sm:h-6" />
                       <AnimatePresence>
@@ -162,7 +163,7 @@ const Navbar = () => {
                     </motion.div>
                  </Link>
 
-                 <Link to="/cart" className="relative p-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-full transition-colors group">
+                 <Link href="/cart" className="relative p-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-full transition-colors group">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <FiShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
                       <AnimatePresence>
@@ -214,8 +215,7 @@ const Navbar = () => {
                              <p className="text-xs text-slate-500 truncate mt-0.5">{user?.email}</p>
                            </div>
                            <div className="py-2 px-3">
-                             <Link
-                               to="/dashboard"
+                             <Link href="/dashboard"
                                onClick={() => setIsProfileOpen(false)}
                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
                              >
@@ -235,14 +235,14 @@ const Navbar = () => {
                  </div>
                ) : (
                  <div className="hidden sm:flex items-center gap-3 ml-2">
-                   <Link to="/login" className="text-sm font-bold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">Log In</Link>
-                   <Link to="/signup" className="text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">Sign Up</Link>
+                   <Link href="/login" className="text-sm font-bold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">Log In</Link>
+                   <Link href="/signup" className="text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">Sign Up</Link>
                  </div>
                )}
 
                {/* Mobile User Icon Fallback (when not authenticated and on very small screens where Auth buttons hide) */}
                {!isAuthenticated && (
-                 <Link to="/login" className="sm:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-full">
+                 <Link href="/login" className="sm:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-full">
                    <FiUser className="w-5 h-5 sm:w-6 sm:h-6" />
                  </Link>
                )}
@@ -266,7 +266,7 @@ const Navbar = () => {
             >
               {/* Drawer Header */}
               <div className="p-5 flex items-center justify-between border-b border-gray-100 bg-slate-50/50">
-                 <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3">
+                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
                       <img src="/logo.png" alt="Logo" className="w-4 h-4 object-contain invert brightness-0" />
                     </div>
@@ -294,9 +294,8 @@ const Navbar = () => {
               {/* Drawer Navigation */}
               <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
                  {navLinks.map((link) => (
-                    <Link
-                       key={link.name}
-                       to={link.path}
+                    <Link key={link.name}
+                       href={link.path}
                        onClick={() => setIsMobileMenuOpen(false)}
                        className={`block px-4 py-3 rounded-xl text-[15px] font-bold transition-colors ${currentPath === link.path ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
                     >
@@ -321,8 +320,7 @@ const Navbar = () => {
                        </div>
                      </div>
                      <div className="space-y-2">
-                       <Link
-                         to="/dashboard"
+                       <Link href="/dashboard"
                          onClick={() => setIsMobileMenuOpen(false)}
                          className="w-full bg-white border border-gray-200 text-slate-800 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
                        >
@@ -338,10 +336,10 @@ const Navbar = () => {
                    </div>
                  ) : (
                    <div className="space-y-3">
-                     <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-slate-800 font-bold py-3.5 rounded-xl flex justify-center hover:bg-slate-50 transition-colors shadow-sm">
+                     <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-slate-800 font-bold py-3.5 rounded-xl flex justify-center hover:bg-slate-50 transition-colors shadow-sm">
                        Log In
                      </Link>
-                     <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl flex justify-center hover:bg-slate-800 transition-colors shadow-md">
+                     <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl flex justify-center hover:bg-slate-800 transition-colors shadow-md">
                        Create Account
                      </Link>
                    </div>
