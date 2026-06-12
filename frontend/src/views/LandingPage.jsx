@@ -57,19 +57,26 @@ const LandingPage = () => {
         
         {/* 4. The Button Group */}
         <div className="flex gap-4 mb-16">
-          <button className="bg-gray-900 text-white px-8 py-2.5 rounded-full font-semibold hover:bg-gray-800 transition">
-            Contact us
-          </button>
-          <button className="border border-gray-300 text-gray-900 px-8 py-2.5 rounded-full font-semibold hover:bg-gray-50 transition">
-            Buy
-          </button>
+            <Link
+              href="/products"
+              className="bg-gray-900 text-white px-8 py-2.5 rounded-full font-semibold hover:bg-gray-800 transition">
+            Explore shop
+           </Link> 
+            <Link
+              href="/visual-search"
+           className="border border-gray-300 text-gray-900 px-8 py-2.5 rounded-full font-semibold hover:bg-gray-50 transition">
+              
+                Visual Search
+              
+              
+              </Link>
         </div>
         
         {/* 5. The Image */}
         <div className="w-full max-w-2xl flex justify-center">
-          <img 
-            src="/robot-image.png" 
-            alt="3D Robot Parts" 
+          <img
+            src={heroImage.src || heroImage}
+            alt="Premium Tech" 
             className="w-full object-contain"
           />
         </div>
