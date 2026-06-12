@@ -1,5 +1,6 @@
+"use client";
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 /**
@@ -47,8 +48,7 @@ const Categories = () => {
         <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
           Categories
         </h2>
-        <Link
-          to="/products"
+        <Link href="/products"
           className="text-sm font-semibold text-amber-700 hover:text-amber-900 hover:underline mt-2 inline-block transition-colors"
         >
           See more ›
@@ -65,8 +65,7 @@ const Categories = () => {
       >
         {CATEGORY_DATA.map((cat, index) => (
           <motion.div key={index} variants={cardVariants}>
-            <Link
-              to={`/products?category=${encodeURIComponent(cat.name)}`}
+            <Link href={`/products?category=${encodeURIComponent(cat.name)}`}
               id={`category-card-${cat.name.toLowerCase().replace(/\s+/g, '-')}`}
               className="
                 block bg-[#e5e5e5] rounded-2xl p-5 

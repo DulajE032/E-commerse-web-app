@@ -1,5 +1,6 @@
+"use client";
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { FiShoppingCart, FiMapPin, FiMail, FiSend, FiCreditCard } from 'react-icons/fi';
 
 const Footer = () => {
@@ -41,7 +42,7 @@ const Footer = () => {
               <ul className="space-y-4">
                 {section.links.map((link, linkIdx) => (
                   <li key={linkIdx}>
-                    <Link to="/" className="text-sm hover:text-cyan-400 transition-colors">
+                    <Link href="/" className="text-sm hover:text-cyan-400 transition-colors">
                       {link}
                     </Link>
                   </li>

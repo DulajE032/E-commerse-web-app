@@ -1,3 +1,4 @@
+"use client";
 import React from 'react';
 import { useCart } from '../services/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';

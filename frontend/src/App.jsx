@@ -5,30 +5,30 @@ import { AuthProvider } from './services/AuthContext';
 import { WishlistProvider } from './services/WishlistContext';
 
 // Pages
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import AdminLoginPage from './pages/AdminLoginPage';
-import Dashboard from './pages/Dashboard';
-import ProductsPage from './pages/ProductsPage';
-import ProductDetailPage from './pages/ProductDetailPage';
-import CartPage from './pages/CartPage';
-import CheckoutPage from './pages/CheckoutPage';
-import VisualSearchPage from './pages/VisualSearchPage';
-import WishlistPage from './pages/WishlistPage';
-import NotFoundPage from './pages/NotFoundPage';
+import LandingPage from './views/LandingPage';
+import LoginPage from './views/LoginPage';
+import SignupPage from './views/SignupPage';
+import AdminLoginPage from './views/AdminLoginPage';
+import Dashboard from './views/Dashboard';
+import ProductsPage from './views/ProductsPage';
+import ProductDetailPage from './views/ProductDetailPage';
+import CartPage from './views/CartPage';
+import CheckoutPage from './views/CheckoutPage';
+import VisualSearchPage from './views/VisualSearchPage';
+import WishlistPage from './views/WishlistPage';
+import NotFoundPage from './views/NotFoundPage';
 
 // Layouts
 import PublicLayout from './layouts/PublicLayout';
 import AdminLayout from './layouts/AdminLayout';
 
 // Admin Pages
-import AdminDashboard from './admin/pages/AdminDashboard';
-import Products from './admin/pages/Products';
-import AddProduct from './admin/pages/AddProduct';
-import UpdateProduct from './admin/pages/UpdateProduct';
-import Orders from './admin/pages/Orders';
-import WishlistAdmin from './admin/pages/WishlistAdmin';
+import AdminDashboard from './admin/views/AdminDashboard';
+import Products from './admin/views/Products';
+import AddProduct from './admin/views/AddProduct';
+import UpdateProduct from './admin/views/UpdateProduct';
+import Orders from './admin/views/Orders';
+import WishlistAdmin from './admin/views/WishlistAdmin';
 
 // Auth Components
 import { AdminRoute, ProtectedRoute } from './components/ProtectedRoute';
