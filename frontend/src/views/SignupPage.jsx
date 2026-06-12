@@ -59,9 +59,9 @@ const SignupPage = () => {
         password: formData.password,
       });
       if (user.role === 'admin') {
-        navigate('/admin/dashboard');
+        navigate.push('/admin/dashboard');
       } else {
-        navigate('/dashboard');
+        navigate.push('/dashboard');
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');

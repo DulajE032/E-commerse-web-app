@@ -253,7 +253,7 @@ const ProductsPage = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: idx * 0.05 }}
                     className="bg-white rounded-[1.5rem] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer flex flex-col h-full"
-                    onClick={() => navigate(`/product/${product.id}`)}
+                    onClick={() => navigate.push(`/product/${product.id}`)}
                   >
                     <div className="relative w-full aspect-[4/5] rounded-xl bg-slate-50 mb-4 overflow-hidden flex items-center justify-center p-4">
                       {product.images && product.images.length > 0 ? (
