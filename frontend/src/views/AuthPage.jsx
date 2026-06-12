@@ -77,7 +77,7 @@ const AuthPage = () => {
       
       // Simulate fake token & redirect
       localStorage.setItem('token', 'dummy_jwt_token_123');
-      navigate('/dashboard');
+      navigate.push('/dashboard');
 
     } catch (err) {
       // Handle Axios error (e.g., 401 Unauthorized)

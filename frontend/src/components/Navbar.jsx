@@ -56,8 +56,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Products', path: '/products' },
-    { name: 'Categories', path: '/categories' },
-    { name: 'Contact', path: '/contact' }
+   
   ];
 
   return (
@@ -127,7 +126,7 @@ const Navbar = () => {
             <div className="flex items-center gap-3 md:gap-5 justify-end lg:flex-1">
                
                {/* Desktop Search */}
-               <div className="hidden xl:block relative w-[500px] group">
+               <div className="hidden xl:block relative w-[300px] group">
                   <input 
                     type="text" 
                     placeholder="Search..."

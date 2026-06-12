@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { FiSearch, FiShoppingCart, FiArrowRight, FiShield, FiTruck, FiRefreshCw, FiStar, FiCamera, FiFilter, FiTag, FiCpu } from 'react-icons/fi';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { api } from '../services/api';
 import { useCart } from '../services/CartContext';
 import Loader from '../components/Loader';
-import heroImage from '../assets/hero.png';
+import heroImage from '../assets/hero.jpg';
 import TechCapsuleCarousel from '../components/TechCapsuleCarousel';
 import Categories from '../components/Categories';
 const LandingPage = () => {
@@ -17,44 +18,6 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(true);
   const { addToCart } = useCart();
   const navigate = useRouter();
-
-  // --- Parallax Setup ---
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const springConfig = { damping: 25, stiffness: 150 };
-  const mouseXSpring = useSpring(mouseX, springConfig);
-  const mouseYSpring = useSpring(mouseY, springConfig);
-
-  // Rotation (Main Image tilts)
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [12, -12]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-12, 12]);
-
-  // Translations (Floating Badges move at different speeds)
-  const translateX1 = useTransform(mouseXSpring, [-0.5, 0.5], [-40, 40]);
-  const translateY1 = useTransform(mouseYSpring, [-0.5, 0.5], [-40, 40]);
-  
-  const translateX2 = useTransform(mouseXSpring, [-0.5, 0.5], [60, -60]);
-  const translateY2 = useTransform(mouseYSpring, [-0.5, 0.5], [60, -60]);
-
-  const translateX3 = useTransform(mouseXSpring, [-0.5, 0.5], [-20, 20]);
-  const translateY3 = useTransform(mouseYSpring, [-0.5, 0.5], [20, -20]);
-
-  const handleMouseMove = (e) => {
-    // Calculate mouse position relative to center of screen (normalized between -0.5 and 0.5)
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-  
-  const handleMouseLeave = () => {
-    // Animate back to center
-    mouseX.set(0);
-    mouseY.set(0);
-  };
-  // ----------------------
 
   useEffect(() => {
     // Fetch categories or mock them for the UI
@@ -79,123 +42,48 @@ const LandingPage = () => {
   return (
     <div className="pb-20 bg-gray-50">
       
-      {/* Premium 3D Parallax Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-6">
-        <motion.div 
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-          initial={{ opacity: 0, y: 30 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.8, ease: "easeOut" }} 
-          className="rounded-[2.5rem] overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] flex flex-col md:flex-row relative min-h-[500px] md:min-h-[580px] bg-slate-900"
-          style={{ perspective: 2000 }} // CSS Perspective for 3D
-        >
-          {/* Left Content Area (Static) */}
-          <div className="text-white p-10 md:p-16 lg:p-20 flex-1 flex flex-col justify-center items-start relative z-20 md:w-[45%] pointer-events-auto text-left">
-            <motion.span 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.3 }}
-              className="text-cyan-400 font-bold tracking-widest text-sm uppercase mb-4 block"
-            >
-              Next Generation E-Commerce
-            </motion.span>
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 leading-tight tracking-tight text-white drop-shadow-lg"
-            >
-              Shop Smarter <br/> Not Harder
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="text-slate-300 text-sm md:text-base max-w-md mb-10 leading-relaxed"
-            >
-              Discover top-tier products with our intelligent visual search AI. Just snap a picture and find exactly what you're looking for.
-            </motion.p>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 }}
-              className="flex gap-4 flex-wrap relative z-30"
-            >
-              <Link href="/products" className="bg-blue-600 text-white font-bold px-8 py-4 rounded-full hover:bg-blue-500 transition-all hover:scale-105 hover:shadow-xl hover:shadow-blue-600/30 flex items-center gap-2">
-                Explore Shop <FiArrowRight className="w-5 h-5" />
-              </Link>
+      <section className="min-h-screen bg-slate-50 p-4 md:p-10 flex justify-center">
+      
+      {/* 2. The White Card Container */}
+      <div className="bg-white w-full max-w-5xl rounded-[2rem] pt-16 pb-10 px-6 flex flex-col items-center text-center shadow-sm">
+        
+        {/* 3. The Typography */}
+        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-2">
+          Robot Parts
+        </h1>
+        <p className="text-gray-500 text-lg mb-8 max-w-md">
+          Premium components. Best Prices for Builders.
+        </p>
+        
+        {/* 4. The Button Group */}
+        <div className="flex gap-4 mb-16">
+            <Link
+              href="/products"
+              className="bg-gray-900 text-white px-8 py-2.5 rounded-full font-semibold hover:bg-gray-800 transition">
+            Explore shop
+           </Link> 
+            <Link
+              href="/visual-search"
+           className="border border-gray-300 text-gray-900 px-8 py-2.5 rounded-full font-semibold hover:bg-gray-50 transition">
               
-              <Link href="/visual-search" className="bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold px-8 py-4 rounded-full hover:bg-white/20 transition-all shadow-sm flex items-center gap-2">
-                 <FiCamera className="w-5 h-5 text-cyan-400" /> Visual Search
+                Visual Search
+              
+              
               </Link>
-            </motion.div>
-          </div>
-          
-          {/* Right Image Area (3D Parallax Container) */}
-          <div className="flex-1 relative hidden md:flex items-center justify-center p-10 pointer-events-none md:w-[55%]" style={{ transformStyle: 'preserve-3d' }}>
-            
-            {/* Dynamic Background Glows */}
-            <motion.div 
-              style={{ x: translateX3, y: translateY3 }}
-              className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[80px]"
-            />
-            <motion.div 
-              style={{ x: translateY1, y: translateX1 }}
-              className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-cyan-400/20 rounded-full blur-[80px]"
-            />
-
-            {/* Main 3D Image */}
-            <motion.div
-              style={{ rotateX, rotateY, z: 50 }}
-              className="relative w-full h-full max-w-[450px] max-h-[450px] flex items-center justify-center"
-            >
-              {/* Product Image Drop Shadow */}
-              <div className="absolute inset-0 bg-black/40 blur-2xl rounded-full translate-y-10 scale-90" />
-              <img 
-                src={heroImage}
-                alt="Premium Tech" 
-                className="relative w-full h-full object-contain pointer-events-auto hover:scale-105 transition-transform duration-500 ease-out z-10"
-              />
-            </motion.div>
-
-            {/* Floating Badge 1: Top Rated (Glassmorphism) */}
-            <motion.div 
-              style={{ x: translateX1, y: translateY1, z: 80, rotateX, rotateY }}
-              className="absolute top-[10%] right-[5%] lg:right-[10%] bg-white/10 backdrop-blur-xl border border-white/20 p-3.5 rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] flex items-center gap-3 pointer-events-auto"
-            >
-              <div className="bg-amber-400/20 p-2.5 rounded-xl text-amber-400 shadow-[inset_0_0_10px_rgba(251,191,36,0.2)]">
-                <FiStar className="w-5 h-5 fill-current" />
-              </div>
-              <div className="text-left">
-                <p className="text-white text-sm font-extrabold leading-tight tracking-wide">Top Rated</p>
-                <p className="text-slate-300 text-[11px] font-medium mt-0.5">4.9/5 Average</p>
-              </div>
-            </motion.div>
-
-            {/* Floating Badge 2: Price Tag (Dark Theme) */}
-            <motion.div 
-              style={{ x: translateX2, y: translateY2, z: 120, rotateX, rotateY }}
-              className="absolute bottom-[15%] left-[0%] lg:left-[5%] bg-slate-800/80 backdrop-blur-xl border border-slate-600/50 p-5 rounded-3xl shadow-[0_25px_50px_rgba(0,0,0,0.5)] pointer-events-auto hover:bg-slate-800 transition-colors cursor-pointer group text-left flex flex-col items-start"
-            >
-              <div className="flex items-center justify-start gap-2 mb-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-                <FiTag className="text-cyan-400 w-4 h-4" />
-                <span className="text-cyan-400 text-xs font-bold uppercase tracking-widest">Starting At</span>
-              </div>
-              <p className="text-white text-4xl font-black tracking-tight drop-shadow-md">$199<span className="text-lg text-slate-400 font-bold ml-1">.99</span></p>
-            </motion.div>
-
-            {/* Floating Badge 3: Tech Specs (Blue Pill) */}
-            <motion.div 
-              style={{ x: translateX3, y: translateY3, z: 60, rotateX, rotateY }}
-              className="absolute bottom-[10%] right-[10%] lg:right-[15%] bg-blue-600/90 backdrop-blur-md border border-blue-400/30 px-5 py-3 rounded-full shadow-[0_15px_30px_rgba(37,99,235,0.4)] flex items-center justify-center gap-2.5 pointer-events-auto"
-            >
-              <FiCpu className="text-white w-5 h-5" />
-              <span className="text-white text-sm font-extrabold tracking-wide whitespace-nowrap">AI Powered</span>
-            </motion.div>
-          </div>
-        </motion.div>
-      </section>
+        </div>
+        
+        {/* 5. The Image */}
+        <div className="w-full max-w-2xl flex justify-center">
+          <img
+            src={heroImage.src || heroImage}
+            alt="Premium Tech" 
+            className="w-full object-contain"
+          />
+        </div>
+        
+      </div>
+      
+    </section>
 
       {/* Tech Capsule Carousel Section */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16">
@@ -304,7 +192,7 @@ const LandingPage = () => {
                    viewport={{ once: true }}
                    transition={{ duration: 0.5, delay: idx * 0.1 }}
                    className="bg-white rounded-2xl p-4 md:p-5 border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer flex flex-col h-full relative"
-                   onClick={() => navigate(`/product/${product.id}`)}
+                   onClick={() => navigate.push(`/product/${product.id}`)}
                  >
                    {/* Image Box */}
                    <div className="relative w-full aspect-[4/5] rounded-xl bg-slate-50 mb-5 overflow-hidden flex items-center justify-center p-6 group-hover:bg-slate-100 transition-colors">

@@ -224,7 +224,7 @@ const ProductDetailPage = () => {
                       <button onClick={handleAddToCart} disabled={product.stock <= 0} className="flex-1 bg-white border-2 border-[#114B43] text-[#114B43] py-4 rounded-xl font-bold text-lg hover:bg-[#114B43] hover:text-white transition-all duration-300 flex items-center justify-center gap-2 shadow-sm disabled:opacity-50">
                         <FiShoppingCart className="w-5 h-5" /> Add to Cart
                       </button>
-                      <button onClick={() => { handleAddToCart(); navigate('/checkout'); }} disabled={product.stock <= 0} className="flex-1 bg-orange-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-50">
+                      <button onClick={() => { handleAddToCart(); navigate.push('/checkout'); }} disabled={product.stock <= 0} className="flex-1 bg-orange-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-50">
                         <FiCreditCard className="w-5 h-5" /> Buy Now
                       </button>
                     </div>
