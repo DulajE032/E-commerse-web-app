@@ -3302,40 +3302,30 @@
 body {
   font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
-.loader {
-  width: var(--loader-size, 48px);
-  height: var(--loader-size, 48px);
-  border-radius: 50%;
+.loading {
   display: inline-block;
-  position: relative;
-  border: var(--loader-border, 3px) solid;
-  border-color: #fff #fff transparent transparent;
-  box-sizing: border-box;
-  animation: rotation 1s linear infinite;
+  aspect-ratio: 1 / 1;
+  width: 1.5rem;
+  background-color: currentColor;
+  mask-size: 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z' opacity='.25'/%3E%3Cpath d='M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.75s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
 }
-.loader::after,
-.loader::before {
-  content: '';
-  box-sizing: border-box;
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  margin: auto;
-  border: var(--loader-border, 3px) solid;
-  border-color: transparent transparent #ff3d00 #ff3d00;
-  width: calc(var(--loader-size, 48px) - var(--loader-gap, 8px));
-  height: calc(var(--loader-size, 48px) - var(--loader-gap, 8px));
-  border-radius: 50%;
-  animation: rotationBack 0.5s linear infinite;
-  transform-origin: center center;
+.loading-xl {
+  width: 4rem;
 }
-.loader::before {
-  width: calc(var(--loader-size, 48px) - var(--loader-gap-2, 16px));
-  height: calc(var(--loader-size, 48px) - var(--loader-gap-2, 16px));
-  border-color: #fff #fff transparent transparent;
-  animation: rotation 1.5s linear infinite;
+.loading-lg {
+  width: 3rem;
+}
+.loading-md {
+  width: 2rem;
+}
+.loading-sm {
+  width: 1.25rem;
+}
+.loading-xs {
+  width: 1rem;
 }
 @keyframes rotation {
   0% {
@@ -3343,14 +3333,6 @@ body {
   }
   100% {
     transform: rotate(360deg);
-  }
-}
-@keyframes rotationBack {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(-360deg);
   }
 }
 @property --tw-translate-x {
