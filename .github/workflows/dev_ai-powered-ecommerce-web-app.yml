@@ -65,4 +65,3 @@ jobs:
           app-name: 'ai-powered-ecommerce-web-app'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_AED49BBD2DF34DE485822E2D56CCA351 }}
-          package: ./backend
