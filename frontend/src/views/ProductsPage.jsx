@@ -34,8 +34,8 @@ const ProductsPage = () => {
   
   const sortOptions = {
     'Recommended': 'featured',
-    'Price: Low to High': 'price_low',
-    'Price: High to Low': 'price_high',
+    'Low price: Low to High': 'price_low',
+    'Max price: High to Low': 'price_high',
     'Newest First': 'newest',
     'Popularity': 'popular'
   };

@@ -15,10 +15,14 @@ const Dashboard = () => {
         navigate('/');
     }
 
+    const WishlistIcon = ({ className }) => (
+      <img src="/assets/wishlistimag/wishlist.png" alt="" className={`${className} object-contain`} />
+    );
+
     const tabs = [
       { id: 'profile', name: 'Profile', icon: FiUser },
       { id: 'orders', name: 'Order History', icon: FiPackage },
-      { id: 'wishlist', name: 'Wishlist', icon: FiHeart },
+      { id: 'wishlist', name: 'Wishlist', icon: WishlistIcon },
       { id: 'settings', name: 'Settings', icon: FiSettings },
     ];
 
@@ -108,7 +112,7 @@ const Dashboard = () => {
                              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                                 <h2 className="text-2xl font-bold text-gray-900 mb-6">My Wishlist</h2>
                                 <div className="border border-gray-100 rounded-2xl p-8 text-center text-gray-500">
-                                   <FiHeart className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                                   <WishlistIcon className="w-12 h-12 mx-auto mb-4" />
                                    <p className="font-semibold text-gray-900 mb-1">Your wishlist is empty</p>
                                    <p className="text-sm">Save items you like here to buy them later.</p>
                                 </div>

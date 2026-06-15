@@ -90,7 +90,7 @@ const WishlistPage = () => {
             className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-gray-300"
           >
             <div className="bg-pink-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FiHeart className="w-10 h-10 text-pink-400" />
+              <img src="/assets/wishlistimag/wishlist.png" alt="Wishlist" className="w-10 h-10 object-contain" />
             </div>
             <h3 className="text-xl font-extrabold text-slate-900 mb-2">Your wishlist is empty</h3>
             <p className="text-slate-500 font-medium mb-6">Start adding items you love by clicking the ♥ icon on any product.</p>

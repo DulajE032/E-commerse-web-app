@@ -22,11 +22,11 @@ const AdminLoginPage = () => {
     }
 
     if (user.role === 'admin') {
-      navigate('/admin/dashboard', { replace: true });
+      navigate.push('/admin/dashboard', { replace: true });
       return;
     }
 
-    navigate('/dashboard', { replace: true });
+    navigate.push('/dashboard', { replace: true });
   }, [isAuthenticated, isInitializing, navigate, user]);
 
   const handleInputChange = (event) => {
