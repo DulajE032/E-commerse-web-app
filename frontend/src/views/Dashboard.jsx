@@ -1,14 +1,23 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../services/AuthContext';
 import { FiUser, FiPackage, FiHeart, FiSettings, FiLogOut } from 'react-icons/fi';
 import { motion } from 'framer-motion';
+import { useWishlist } from '../services/WishlistContext';
+import ProductCard from '../components/ProductCard';
 
 const Dashboard = () => {
     const navigate = useRouter();
-    const { user, logout } = useAuth();
-    const [activeTab, setActiveTab] = useState('profile');
+    const { user, logout, isAuthenticated } = useAuth();
+   const [activeTab, setActiveTab] = useState('profile');
+   const { wishlistItems, fetchWishlistItems, loading } = useWishlist();
+
+    useEffect(() => {
+      if (isAuthenticated && activeTab === 'wishlist') {
+        fetchWishlistItems();
+      }
+    }, [isAuthenticated, activeTab, fetchWishlistItems]);
 
     const handleLogout = () => {
         logout();
@@ -109,15 +118,35 @@ const Dashboard = () => {
                           )}
 
                           {activeTab === 'wishlist' && (
-                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                                <h2 className="text-2xl font-bold text-gray-900 mb-6">My Wishlist</h2>
-                                <div className="border border-gray-100 rounded-2xl p-8 text-center text-gray-500">
-                                   <WishlistIcon className="w-12 h-12 mx-auto mb-4" />
-                                   <p className="font-semibold text-gray-900 mb-1">Your wishlist is empty</p>
-                                   <p className="text-sm">Save items you like here to buy them later.</p>
-                                </div>
-                             </motion.div>
-                          )}
+                              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                                 <h2 className="text-2xl font-bold text-gray-900 mb-6">My Wishlist</h2>
+                                 
+                                 {/* Ask: Are there items in the wishlist array? */}
+                                 {wishlistItems && wishlistItems.length > 0 ? (
+                                    
+                                    // IF YES: Show the grid of products
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                    {wishlistItems.map((item) => (
+                                       <ProductCard key={item.id} product={item.product} />
+                                    ))}
+                                    </div>
+
+                                 ) : (
+                                    
+                                    // IF NO: Show the empty state design
+                                    <div className="border border-gray-100 rounded-2xl p-12 text-center text-gray-500 bg-gray-50">
+                                    <WishlistIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                                    <p className="font-bold text-gray-900 text-lg mb-2">Your wishlist is empty</p>
+                                    <p className="text-sm mb-6">Save items you like here to buy them later.</p>
+                                    <button onClick={() => navigate.push('/products')} className="bg-[#114B43] text-white px-6 py-2 rounded-lg font-semibold hover:bg-opacity-90">
+                                       Start Shopping
+                                    </button>
+                                    </div>
+
+                                 )}
+                              </motion.div>
+                                                   )}
+                      
 
                           {activeTab === 'settings' && (
                              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

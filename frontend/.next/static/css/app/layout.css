@@ -339,6 +339,9 @@
   .top-3 {
     top: calc(var(--spacing) * 3);
   }
+  .top-4 {
+    top: calc(var(--spacing) * 4);
+  }
   .top-6 {
     top: calc(var(--spacing) * 6);
   }
@@ -624,6 +627,9 @@
   .h-24 {
     height: calc(var(--spacing) * 24);
   }
+  .h-32 {
+    height: calc(var(--spacing) * 32);
+  }
   .h-48 {
     height: calc(var(--spacing) * 48);
   }
@@ -908,6 +914,9 @@
   .resize-none {
     resize: none;
   }
+  .appearance-none {
+    appearance: none;
+  }
   .grid-cols-1 {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
@@ -1140,6 +1149,9 @@
   }
   .border-blue-100 {
     border-color: var(--color-blue-100);
+  }
+  .border-blue-500 {
+    border-color: var(--color-blue-500);
   }
   .border-blue-500\/20 {
     border-color: color-mix(in srgb, oklch(62.3% 0.214 259.815) 20%, transparent);
@@ -1375,6 +1387,12 @@
   .bg-gray-900 {
     background-color: var(--color-gray-900);
   }
+  .bg-gray-900\/50 {
+    background-color: color-mix(in srgb, oklch(21% 0.034 264.665) 50%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-gray-900) 50%, transparent);
+    }
+  }
   .bg-gray-950 {
     background-color: var(--color-gray-950);
   }
@@ -1485,6 +1503,12 @@
   }
   .bg-slate-800 {
     background-color: var(--color-slate-800);
+  }
+  .bg-slate-800\/50 {
+    background-color: color-mix(in srgb, oklch(27.9% 0.041 260.031) 50%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-slate-800) 50%, transparent);
+    }
   }
   .bg-slate-900 {
     background-color: var(--color-slate-900);
@@ -2037,6 +2061,9 @@
   .opacity-20 {
     opacity: 20%;
   }
+  .opacity-50 {
+    opacity: 50%;
+  }
   .mix-blend-luminosity {
     mix-blend-mode: luminosity;
   }
@@ -2387,6 +2414,13 @@
     &:hover {
       @media (hover: hover) {
         border-color: var(--color-slate-200);
+      }
+    }
+  }
+  .hover\:border-slate-500 {
+    &:hover {
+      @media (hover: hover) {
+        border-color: var(--color-slate-500);
       }
     }
   }
@@ -2834,6 +2868,11 @@
   .disabled\:opacity-70 {
     &:disabled {
       opacity: 70%;
+    }
+  }
+  .contrast-more\:text-white {
+    @media (prefers-contrast: more) {
+      color: var(--color-white);
     }
   }
   .sm\:mt-auto {
