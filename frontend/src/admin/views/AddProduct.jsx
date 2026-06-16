@@ -14,7 +14,7 @@ const AddProduct = () => {
   const [message, setMessage] = useState('');
   
   const [status, setStatus] = useState('Draft'); 
-  const [categories, setCategories] = useState([]);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -25,10 +25,32 @@ const AddProduct = () => {
   });
 
   // Fetch initial categories on load
+  // 1. Define your static categories here! You can add as many as you want.
+  const staticCategories = [
+    { name: 'Electronics' },
+    { name: 'Clothing & Apparel' },
+    { name: 'Home & Garden' },
+    { name: 'Sports & Outdoors' },
+    { name: 'Health & Beauty' }
+  ];
+
+  // 2. Initialize the state with the static categories immediately
+  const [categories, setCategories] = useState(staticCategories);
+
   useEffect(() => {
     api.getCategories()
       .then(data => {
-        setCategories(Array.isArray(data) ? data : (data.categories || []));
+        const dbCategories = Array.isArray(data) ? data : (data.categories || []);
+        
+        // 3. Combine the static list with the database list
+        const combinedCategories = [...staticCategories, ...dbCategories];
+        
+        // 4. Filter out duplicates (so "Electronics" doesn't show up twice)
+        const uniqueCategories = combinedCategories.filter((val, index, self) =>
+          index === self.findIndex((t) => t.name.toLowerCase() === val.name.toLowerCase())
+        );
+        
+        setCategories(uniqueCategories);
       })
       .catch(console.error);
   }, []);
