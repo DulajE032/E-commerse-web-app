@@ -10,6 +10,10 @@ import { useAuth } from '../services/AuthContext';
 import { useWishlist } from '../services/WishlistContext';
 import Loader from '../components/Loader';
 import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
+import ProductCard from '../components/ProductCard';
+import ProductSkeleton from '../components/ProductSkeleton';
+import ImageMagnifier from '../components/imagemagnifier';
+import wishlistIcon from '../assets/wishlist/wishlist.png';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -100,11 +104,7 @@ const ProductDetailPage = () => {
   };
 
   if (showLoader) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader size={64} dotSize={16} border={8} />
-      </div>
-    );
+    return <ProductSkeleton />;
   }
 
   if (!product) {
@@ -139,7 +139,7 @@ const ProductDetailPage = () => {
 
         {/* Top Section: Media & Info */}
         <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-12">
-          <div className="p-6 md:p-10 flex flex-col lg:flex-row gap-12">
+          <div className="p-6 m d:p-10 flex flex-col lg:flex-row gap-12">
             
             {/* Left: Product Media Gallery */}
             <div className="w-full lg:w-1/2 flex flex-col gap-4">
@@ -152,7 +152,7 @@ const ProductDetailPage = () => {
                   {activeMedia.type === 'video' ? (
                     <video src={activeMedia.url} controls className="w-full h-full object-contain rounded-2xl" />
                   ) : (
-                    <img src={activeMedia.url} alt={product.name} className="w-full h-full object-contain mix-blend-multiply" />
+                    <ImageMagnifier src={activeMedia.url} alt={product.name} />
                   )}
                   <button
                     onClick={() => toggleWishlist(product.id)}
@@ -162,7 +162,11 @@ const ProductDetailPage = () => {
                         : 'bg-white text-gray-400 hover:text-red-500'
                     }`}
                   >
-                    <FiHeart className={`w-6 h-6 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                  <img 
+                    src={wishlistIcon.src || wishlistIcon}
+                    alt="Wishlist Icon"
+                    className="w-5 h-5 object-contain"
+                  />
                   </button>
                </motion.div>
                {allMedia.length > 1 && (
@@ -324,26 +328,8 @@ const ProductDetailPage = () => {
             <div className="mb-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Related Products</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                {relatedProducts.map(rel => (
-                  <Link href={`/product/${rel.id}`} key={rel.id} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow group flex flex-col">
-                    <div className="aspect-square bg-gray-50 rounded-xl mb-4 overflow-hidden flex items-center justify-center p-2 relative">
-                      {rel.images && rel.images.length > 0 ? (
-                        <img src={`http://127.0.0.1:8000${rel.images[0]}`} alt={rel.name} className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300" />
-                      ) : (
-                        <span className="text-gray-400">No Image</span>
-                      )}
-                    </div>
-                    <div className="flex flex-col flex-1">
-                      <span className="text-xs font-bold text-orange-500 uppercase tracking-wider mb-1">{rel.category}</span>
-                      <h3 className="text-gray-900 font-bold mb-1 truncate">{rel.name}</h3>
-                      <div className="flex text-orange-400 mb-2">
-                        {[1,2,3,4,5].map(i => (
-                          <FiStar key={i} className={`w-3 h-3 ${i <= Math.round(rel.rating || 0) ? 'fill-current' : 'text-gray-300'}`} />
-                        ))}
-                      </div>
-                      <span className="text-[#114B43] font-bold text-lg mt-auto">${Number(rel.price).toFixed(2)}</span>
-                    </div>
-                  </Link>
+                {relatedProducts.map(relProduct => (
+                  <ProductCard key={relProduct.id} product={relProduct} />
                 ))}
               </div>
             </div>
