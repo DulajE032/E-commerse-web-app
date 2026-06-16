@@ -1,7 +1,7 @@
 {
-  "/(public)/product/[id]/page": "app/(public)/product/[id]/page.js",
-  "/(public)/page": "app/(public)/page.js",
-  "/(public)/dashboard/page": "app/(public)/dashboard/page.js",
-  "/(public)/products/page": "app/(public)/products/page.js",
-  "/(public)/wishlist/page": "app/(public)/wishlist/page.js"
+  "/(admin)/admin/dashboard/page": "app/(admin)/admin/dashboard/page.js",
+  "/(admin)/admin/products/page": "app/(admin)/admin/products/page.js",
+  "/(admin)/admin/wishlist/page": "app/(admin)/admin/wishlist/page.js",
+  "/(public)/login/page": "app/(public)/login/page.js",
+  "/(admin)/admin/add-product/page": "app/(admin)/admin/add-product/page.js"
 }

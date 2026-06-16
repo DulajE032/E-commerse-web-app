@@ -270,6 +270,19 @@ export const api = {
       headers: withAuthHeaders({}, token),
     });
   },
+  createCategory: async (categoryName, token) => {
+    const response = await fetch(`${API_BASE}/categories`, { // Adjust URL to match your backend
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ name: categoryName }) 
+    });
+
+    if (!response.ok) throw new Error('Failed to create category');
+    return await response.json();
+  },
   
   
 };

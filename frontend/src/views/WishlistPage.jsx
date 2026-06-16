@@ -157,7 +157,7 @@ const WishlistPage = () => {
                       </p>
                       <h3
                         className="text-slate-900 font-bold text-sm leading-snug mb-2 line-clamp-2 hover:text-blue-600 transition-colors cursor-pointer"
-                        onClick={() => navigate(`/product/${product.id}`)}
+                        onClick={() => navigate.push(`/product/${product.id}`)}
                       >
                         {product.name}
                       </h3>

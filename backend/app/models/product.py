@@ -1,6 +1,7 @@
 from sqlalchemy import Float, Integer, String, Boolean, JSON, DateTime, ARRAY
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
+
 
 from app.db.base import Base
 
@@ -22,3 +23,10 @@ class Product(Base):
     featured: Mapped[bool] = mapped_column(Boolean, default=False)
     specifications: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     createdAt: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationship to ProductEmbedding
+    embeddings: Mapped[list["ProductEmbedding"]] = relationship("ProductEmbedding", back_populates="product", cascade="all, delete-orphan")
+    reviews: Mapped[list["Review"]] = relationship(
+        back_populates="product", 
+        cascade="all, delete-orphan" # <--- Add this exact same rule here!
+    )
