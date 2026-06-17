@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { FiFilter, FiChevronDown, FiStar, FiShoppingCart, FiCheck, FiHeart } from 'react-icons/fi';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { FiFilter, FiChevronDown, FiStar, FiShoppingCart, FiCheck, FiHeart, FiX } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { api } from '../services/api';
+import { api, IMAGE_BASE_URL } from '../services/api';
 import { useCart } from '../services/CartContext';
 import { useWishlist } from '../services/WishlistContext';
 import Loader from '../components/Loader';
@@ -17,6 +17,8 @@ const ProductsPage = () => {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const navigate = useRouter();
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
   
   const showLoader = useMinLoadingTime(loading, 600);
 
@@ -68,11 +70,12 @@ const ProductsPage = () => {
       maxPrice: priceRange.max === '' ? null : Number(priceRange.max),
       inStock: inStockOnly,
       sortBy: sortOptions[sortBy],
+      search: searchQuery || null,
     })
       .then(setProducts)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy]);
+  }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy, searchQuery]);
 
 
   // 3. THE UPGRADED UI LAYOUT
@@ -83,17 +86,29 @@ const ProductsPage = () => {
         {/* Header / Breadcrumb */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">All Products</h1>
+            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
+              {searchQuery ? `Search results for "${searchQuery}"` : 'All Products'}
+            </h1>
             <p className="text-slate-500 mt-2 font-medium">{products.length} products found</p>
           </div>
           
-          {/* Mobile Filter Button - Triggers Drawer */}
-          <button 
-            onClick={() => setIsMobileFilterOpen(true)}
-            className="lg:hidden flex items-center justify-center gap-2 bg-white border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 w-full md:w-auto shadow-sm"
-          >
-            <FiFilter className="w-4 h-4" /> Filters
-          </button>
+          <div className="flex gap-2">
+            {searchQuery && (
+              <button 
+                onClick={() => navigate.push('/products')}
+                className="flex items-center justify-center gap-2 bg-white border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 w-full md:w-auto shadow-sm"
+              >
+                <FiX className="w-4 h-4" /> Clear Search
+              </button>
+            )}
+            {/* Mobile Filter Button - Triggers Drawer */}
+            <button 
+              onClick={() => setIsMobileFilterOpen(true)}
+              className="lg:hidden flex items-center justify-center gap-2 bg-white border border-gray-300 px-4 py-2.5 rounded-xl text-sm font-bold text-slate-700 w-full md:w-auto shadow-sm"
+            >
+              <FiFilter className="w-4 h-4" /> Filters
+            </button>
+          </div>
         </div>
 
         {/* --- MACRO GRID START --- */}
@@ -274,7 +289,7 @@ const ProductsPage = () => {
                     <div className="relative w-full aspect-[4/5] rounded-xl bg-slate-50 mb-4 overflow-hidden flex items-center justify-center p-4">
                       {product.images && product.images.length > 0 ? (
                         <img 
-                          src={`http://127.0.0.1:8000${product.images[0]}`}
+                          src={product.images[0].startsWith('http') ? product.images[0] : `${IMAGE_BASE_URL}${product.images[0]}`}
                           alt={product.name} 
                           className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                         />

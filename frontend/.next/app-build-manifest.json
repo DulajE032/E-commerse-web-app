@@ -17,35 +17,10 @@
       "static/css/app/(public)/page.css",
       "static/chunks/app/(public)/page.js"
     ],
-    "/(public)/product/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/product/[id]/page.js"
-    ],
     "/(public)/products/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/products/page.js"
-    ],
-    "/(public)/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/login/page.js"
-    ],
-    "/(public)/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/dashboard/page.js"
-    ],
-    "/(public)/wishlist/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/wishlist/page.js"
-    ],
-    "/(public)/visual-search/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/visual-search/page.js"
     ],
     "/admin/login/page": [
       "static/chunks/webpack.js",
@@ -62,15 +37,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(admin)/admin/dashboard/page.js"
     ],
-    "/(admin)/admin/products/page": [
+    "/(admin)/admin/categories/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(admin)/admin/products/page.js"
-    ],
-    "/(admin)/admin/wishlist/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(admin)/admin/wishlist/page.js"
+      "static/chunks/app/(admin)/admin/categories/page.js"
     ],
     "/(admin)/admin/add-product/page": [
       "static/chunks/webpack.js",
@@ -81,6 +51,26 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(admin)/admin/orders/page.js"
+    ],
+    "/(public)/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/login/page.js"
+    ],
+    "/(public)/visual-search/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/visual-search/page.js"
+    ],
+    "/(admin)/admin/products/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(admin)/admin/products/page.js"
+    ],
+    "/(public)/product/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/product/[id]/page.js"
     ],
     "/_not-found/page": [
       "static/chunks/webpack.js",

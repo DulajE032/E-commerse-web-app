@@ -1,4 +1,13 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+export const IMAGE_BASE_URL = API_BASE.replace('/api/v1', '');
+
+export const getImageUrl = (path) => {
+  if (!path) return "/logo.png";
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('/uploads')) return `${IMAGE_BASE_URL}${path}`;
+  if (path.startsWith('uploads')) return `${IMAGE_BASE_URL}/${path}`;
+  return path; // For public folder assets like /categories/phones.png
+};
 
 const getStoredToken = () => typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
@@ -270,18 +279,25 @@ export const api = {
       headers: withAuthHeaders({}, token),
     });
   },
-  createCategory: async (categoryName, token) => {
-    const response = await fetch(`${API_BASE}/categories`, { // Adjust URL to match your backend
+  createCategory: async (categoryData, token) => {
+    const response = await fetch(`${API_BASE}/categories`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ name: categoryName }) 
+      body: JSON.stringify(categoryData) 
     });
 
     if (!response.ok) throw new Error('Failed to create category');
     return await response.json();
+  },
+
+  deleteCategory: async (id, token) => {
+    return request(`${API_BASE}/categories/${id}`, {
+      method: 'DELETE',
+      headers: withAuthHeaders({}, token),
+    });
   },
   
   

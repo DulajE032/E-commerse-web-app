@@ -1,7 +1,7 @@
 "use client";
 import React, { useMemo, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { 
   FiSearch, FiShoppingCart, FiUser, FiChevronDown, 
   FiMenu, FiX, FiHeart, FiLogOut, FiLayout
@@ -9,10 +9,13 @@ import {
 import { useCart } from '../services/CartContext';
 import { useWishlist } from '../services/WishlistContext';
 import { useAuth } from '../services/AuthContext';
+import { api, IMAGE_BASE_URL } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(true);
@@ -22,6 +25,7 @@ const Navbar = () => {
   const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
   const location = usePathname();
+  const router = useRouter();
   const currentPath = location.pathname;
 
   // Handle scroll effect for navbar
@@ -42,6 +46,34 @@ const Navbar = () => {
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [isMobileMenuOpen]);
+
+  // Handle Search Suggestions
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const results = await api.getProducts({ search: searchQuery, limit: 5 });
+        setSuggestions(results);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSuggestions(false);
+      setIsMobileMenuOpen(false);
+    }
+  };
 
   const userInitials = useMemo(() => {
     if (!user) return 'U';
@@ -127,18 +159,70 @@ const Navbar = () => {
                
                {/* Desktop Search */}
                <div className="hidden xl:block relative w-[300px] group">
-                  <input 
-                    type="text" 
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-full text-sm text-slate-800 bg-slate-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all placeholder-slate-400"
-                  />
-                  <FiSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                  <form onSubmit={handleSearchSubmit}>
+                    <input 
+                      type="text" 
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-full text-sm text-slate-800 bg-slate-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all placeholder-slate-400"
+                    />
+                    <FiSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                  </form>
+
+                  {/* Suggestions Dropdown */}
+                  <AnimatePresence>
+                    {showSuggestions && suggestions.length > 0 && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowSuggestions(false)}></div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50 py-2"
+                        >
+                          <p className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Suggestions</p>
+                          {suggestions.map((product) => (
+                            <Link
+                              key={product.id}
+                              href={`/product/${product.id}`}
+                              onClick={() => setShowSuggestions(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors group"
+                            >
+                              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center p-1 overflow-hidden shrink-0">
+                                {product.images && product.images[0] ? (
+                                  <img src={product.images[0].startsWith('http') ? product.images[0] : `${IMAGE_BASE_URL}${product.images[0]}`} alt={product.name} className="w-full h-full object-contain" />
+                                ) : (
+                                  <FiSearch className="w-4 h-4 text-slate-300" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{product.name}</p>
+                                <p className="text-xs text-slate-500 truncate">${product.price.toFixed(2)}</p>
+                              </div>
+                            </Link>
+                          ))}
+                          <button 
+                            onClick={handleSearchSubmit}
+                            className="w-full text-center py-2 text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-t border-gray-50 mt-1"
+                          >
+                            View all results for "{searchQuery}"
+                          </button>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
                </div>
 
-               {/* Mobile Search Icon (triggers expansion or modal in a full implementation, for now just an icon) */}
-               <button className="xl:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors">
+               {/* Mobile Search Icon */}
+               <button 
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="xl:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+               >
                  <FiSearch className="w-5 h-5" />
                </button>
 
@@ -277,17 +361,54 @@ const Navbar = () => {
               </div>
               
               {/* Mobile Search */}
-              <div className="p-5 border-b border-gray-100">
-                <div className="relative w-full">
+              <div className="p-5 border-b border-gray-100 relative">
+                <form onSubmit={handleSearchSubmit} className="relative w-full">
                   <input 
                      type="text" 
                      placeholder="Search..."
                      value={searchQuery}
-                     onChange={(e) => setSearchQuery(e.target.value)}
+                     onChange={(e) => {
+                       setSearchQuery(e.target.value);
+                       setShowSuggestions(true);
+                     }}
+                     onFocus={() => setShowSuggestions(true)}
                      className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-slate-800 bg-slate-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
                   />
                   <FiSearch className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                </div>
+                </form>
+
+                {/* Mobile Suggestions */}
+                <AnimatePresence>
+                  {showSuggestions && suggestions.length > 0 && isMobileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-2 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm"
+                    >
+                      {suggestions.map((product) => (
+                        <Link
+                          key={product.id}
+                          href={`/product/${product.id}`}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
+                        >
+                          <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center p-1 shrink-0">
+                            {product.images && product.images[0] ? (
+                              <img src={product.images[0].startsWith('http') ? product.images[0] : `${IMAGE_BASE_URL}${product.images[0]}`} alt={product.name} className="w-full h-full object-contain" />
+                            ) : (
+                              <FiSearch className="w-3 h-3 text-slate-300" />
+                            )}
+                          </div>
+                          <span className="text-sm font-medium text-slate-700 truncate">{product.name}</span>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Drawer Navigation */}
