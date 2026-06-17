@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag, FiHeart } from 'react-icons/fi';
+import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag, FiHeart, FiGrid } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 
 const AdminLayout = ({ children }) => {
@@ -32,6 +32,9 @@ const AdminLayout = ({ children }) => {
           </Link>
           <Link href="/admin/add-product" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiPlusCircle /> Add Product
+          </Link>
+          <Link href="/admin/categories" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+            <FiGrid /> Categories
           </Link>
           <Link href="/admin/wishlist" className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiHeart /> Wishlists
