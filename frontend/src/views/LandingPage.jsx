@@ -96,6 +96,8 @@ const LandingPageContent = () => {
       .finally(() => setLoading(false));
   }, [selectedCategory]);
 
+  if (!mounted) return null;
+
   return (
     <div className="pb-20 bg-gray-50">
       <section className="min-h-screen bg-slate-50 p-4 md:p-10 flex justify-center">
