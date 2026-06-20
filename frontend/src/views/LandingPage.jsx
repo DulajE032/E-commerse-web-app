@@ -1,7 +1,7 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   FiSearch,
@@ -23,16 +23,40 @@ import Loader from "../components/Loader";
 import heroImage from "../assets/hero.jpg";
 import TechCapsuleCarousel from "../components/TechCapsuleCarousel";
 import Categories from "../components/Categories";
-const LandingPage = () => {
+
+// 1. We rename your main component to "LandingPageContent"
+const LandingPageContent = () => {
+  const navigate = useRouter();
+  const searchParams = useSearchParams(); // Read the URL
+  const { addToCart } = useCart();
+
+  // Look for ?category= in the URL
+  const categoryFromUrl = searchParams.get("category");
+
   const [products, setProducts] = useState([]);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  // Set default state to the URL value (Fixes the Refresh Amnesia bug)
+  const [selectedCategory, setSelectedCategory] = useState(
+    categoryFromUrl || null,
+  );
+
   const [loading, setLoading] = useState(true);
   const [recLoading, setRecLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const { addToCart } = useCart();
-  const navigate = useRouter();
+
+  // New Helper Function to handle clicks and update the URL silently
+  const handleCategoryClick = (categoryName) => {
+    setSelectedCategory(categoryName);
+    if (categoryName) {
+      navigate.push(`/?category=${encodeURIComponent(categoryName)}`, {
+        scroll: false,
+      });
+    } else {
+      navigate.push(`/`, { scroll: false });
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -187,10 +211,10 @@ const LandingPage = () => {
 
             {/* Filter & Category UI */}
             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              {/* Category Pills */}
               <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 md:flex-none">
+                {/* Updated to use handleCategoryClick */}
                 <button
-                  onClick={() => setSelectedCategory(null)}
+                  onClick={() => handleCategoryClick(null)}
                   className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm border ${
                     selectedCategory === null
                       ? "bg-slate-900 text-white border-slate-900"
@@ -202,7 +226,7 @@ const LandingPage = () => {
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
-                    onClick={() => setSelectedCategory(cat.name)}
+                    onClick={() => handleCategoryClick(cat.name)}
                     className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm border ${
                       selectedCategory === cat.name
                         ? "bg-blue-600 text-white border-blue-600"
@@ -214,7 +238,6 @@ const LandingPage = () => {
                 ))}
               </div>
 
-              {/* Advanced Filter Button */}
               <button className="bg-white border border-gray-200 text-slate-700 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
                 <FiFilter className="w-4 h-4" /> Filters
               </button>
@@ -380,7 +403,6 @@ const LandingPage = () => {
           viewport={{ once: true }}
           className="rounded-[2.5rem] bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 p-10 md:p-16 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-2xl shadow-blue-900/20"
         >
-          {/* Decor */}
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
           <div className="absolute -left-20 -top-20 w-64 h-64 bg-cyan-500/30 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -416,4 +438,18 @@ const LandingPage = () => {
   );
 };
 
-export default LandingPage;
+// 2. We export a wrapper that includes <Suspense>.
+// This is required by Next.js 13+ when reading URL parameters!
+export default function LandingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
+      <LandingPageContent />
+    </Suspense>
+  );
+}
