@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FiFilter, FiChevronDown, FiStar, FiShoppingCart, FiCheck, FiHeart, FiX } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { api, IMAGE_BASE_URL } from '../services/api';
+import { api, getImageUrl } from '../services/api';
 import { useCart } from '../services/CartContext';
 import { useWishlist } from '../services/WishlistContext';
 import Loader from '../components/Loader';
@@ -14,6 +14,7 @@ const ProductsPage = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const navigate = useRouter();
@@ -48,6 +49,7 @@ const ProductsPage = () => {
 
   // 2. ALL ORIGINAL API LOGIC (Unchanged)
   useEffect(() => {
+    setMounted(true);
     api.getProductFilters()
       .then((data) => {
         setCategories(data.categories || []);
@@ -62,6 +64,7 @@ const ProductsPage = () => {
   }, []);
   
   useEffect(() => {
+    if (!mounted) return;
     setLoading(true);
     api.getProducts({
       category: selectedCategory === 'All' ? null : selectedCategory,
@@ -75,10 +78,12 @@ const ProductsPage = () => {
       .then(setProducts)
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy, searchQuery]);
+  }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy, searchQuery, mounted]);
 
 
   // 3. THE UPGRADED UI LAYOUT
+  if (!mounted) return null;
+
   return (
     <div className="bg-slate-50 min-h-screen py-10">
       <div className="max-w-[1400px] mx-auto px-4 md:px-8">
@@ -289,7 +294,7 @@ const ProductsPage = () => {
                     <div className="relative w-full aspect-[4/5] rounded-xl bg-slate-50 mb-4 overflow-hidden flex items-center justify-center p-4">
                       {product.images && product.images.length > 0 ? (
                         <img 
-                          src={product.images[0].startsWith('http') ? product.images[0] : `${IMAGE_BASE_URL}${product.images[0]}`}
+                          src={getImageUrl(product.images[0])}
                           alt={product.name} 
                           className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                         />
