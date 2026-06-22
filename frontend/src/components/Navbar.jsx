@@ -56,8 +56,8 @@ const Navbar = () => {
 
     const timer = setTimeout(async () => {
       try {
-        const results = await api.getProducts({ search: searchQuery, limit: 5 });
-        setSuggestions(results);
+        const data = await api.getProducts({ search: searchQuery, limit: 5 });
+        setSuggestions(data.products);
       } catch (error) {
         console.error('Error fetching suggestions:', error);
       }

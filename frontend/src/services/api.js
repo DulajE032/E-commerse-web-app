@@ -149,6 +149,8 @@ export const api = {
   getProducts: async (filters = {}) => {
    const params = new URLSearchParams();
  
+   if (filters.page) params.append('page', filters.page);
+   if (filters.limit) params.append('limit', filters.limit);
    if (filters.category) params.append('category', filters.category);
    if (filters.search) params.append('search', filters.search);
    if (filters.sortBy) params.append('sort_by', filters.sortBy);

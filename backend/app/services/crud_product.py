@@ -20,7 +20,7 @@ def get_products(
     max_price:Optional[float]=None,
     in_stock:Optional[bool]=None 
     
-)-> list[Product]: 
+)-> tuple[list[Product], int]: 
     
     query = db.query(Product)
     if category:
@@ -67,7 +67,11 @@ def get_products(
         # Default: Show Featured products first, then newest
         query = query.order_by(Product.featured.desc(), Product.createdAt.desc())
 
-    return query.offset(skip).limit(limit).all()
+    # Get total count BEFORE applying offset/limit
+    total = query.count()
+
+    products = query.offset(skip).limit(limit).all()
+    return products, total
 
 
 #-------------------------get brands

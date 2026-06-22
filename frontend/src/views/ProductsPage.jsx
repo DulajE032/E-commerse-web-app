@@ -9,6 +9,8 @@ import { useWishlist } from '../services/WishlistContext';
 import Loader from '../components/Loader';
 import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
 
+const PRODUCTS_PER_PAGE = 12;
+
 const ProductsPage = () => {
   // 1. ALL ORIGINAL STATE LOGIC (Unchanged)
   const [products, setProducts] = useState([]);
@@ -31,6 +33,11 @@ const ProductsPage = () => {
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [brands, setBrands] = useState([]);
   const [inStockOnly, setInStockOnly] = useState(false);
+
+  // Pagination States
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
   
   // NEW: Mobile UI State (Only controls the sliding menu)
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -63,10 +70,17 @@ const ProductsPage = () => {
       }).catch(console.error);
   }, []);
   
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy, searchQuery]);
+
   useEffect(() => {
     if (!mounted) return;
     setLoading(true);
     api.getProducts({
+      page: currentPage,
+      limit: PRODUCTS_PER_PAGE,
       category: selectedCategory === 'All' ? null : selectedCategory,
       brands: selectedBrands,
       minPrice: priceRange.min === '' ? null : Number(priceRange.min),
@@ -75,10 +89,14 @@ const ProductsPage = () => {
       sortBy: sortOptions[sortBy],
       search: searchQuery || null,
     })
-      .then(setProducts)
+      .then((data) => {
+        setProducts(data.products);
+        setTotalProducts(data.total);
+        setTotalPages(data.pages);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy, searchQuery, mounted]);
+  }, [selectedCategory, selectedBrands, priceRange, inStockOnly, sortBy, searchQuery, mounted, currentPage]);
 
 
   // 3. THE UPGRADED UI LAYOUT
@@ -94,7 +112,7 @@ const ProductsPage = () => {
             <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
               {searchQuery ? `Search results for "${searchQuery}"` : 'All Products'}
             </h1>
-            <p className="text-slate-500 mt-2 font-medium">{products.length} products found</p>
+            <p className="text-slate-500 mt-2 font-medium">{totalProducts} products found{totalPages > 1 ? ` — Page ${currentPage} of ${totalPages}` : ''}</p>
           </div>
           
           <div className="flex gap-2">
@@ -337,6 +355,71 @@ const ProductsPage = () => {
                 ))
               )}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && !showLoader && (
+              <div className="flex items-center justify-center gap-2 mt-8 flex-wrap">
+                <button
+                  onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-white border border-gray-200 text-slate-700 hover:bg-slate-100 shadow-sm"
+                >
+                  ← Prev
+                </button>
+
+                {(() => {
+                  const pages = [];
+                  const maxVisible = 5;
+                  let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                  let end = Math.min(totalPages, start + maxVisible - 1);
+                  if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+
+                  if (start > 1) {
+                    pages.push(
+                      <button key={1} onClick={() => { setCurrentPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        className="w-10 h-10 rounded-xl text-sm font-bold bg-white border border-gray-200 text-slate-700 hover:bg-slate-100 shadow-sm"
+                      >1</button>
+                    );
+                    if (start > 2) pages.push(<span key="start-dots" className="px-1 text-slate-400">…</span>);
+                  }
+
+                  for (let i = start; i <= end; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => { setCurrentPage(i); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        className={`w-10 h-10 rounded-xl text-sm font-bold transition-all shadow-sm ${
+                          currentPage === i
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'bg-white border border-gray-200 text-slate-700 hover:bg-slate-100'
+                        }`}
+                      >
+                        {i}
+                      </button>
+                    );
+                  }
+
+                  if (end < totalPages) {
+                    if (end < totalPages - 1) pages.push(<span key="end-dots" className="px-1 text-slate-400">…</span>);
+                    pages.push(
+                      <button key={totalPages} onClick={() => { setCurrentPage(totalPages); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        className="w-10 h-10 rounded-xl text-sm font-bold bg-white border border-gray-200 text-slate-700 hover:bg-slate-100 shadow-sm"
+                      >{totalPages}</button>
+                    );
+                  }
+
+                  return pages;
+                })()}
+
+                <button
+                  onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2.5 rounded-xl text-sm font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-white border border-gray-200 text-slate-700 hover:bg-slate-100 shadow-sm"
+                >
+                  Next →
+                </button>
+              </div>
+            )}
           </main>
         </div>
       </div>

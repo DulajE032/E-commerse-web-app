@@ -78,7 +78,7 @@ const LandingPageContent = () => {
     setRecLoading(true);
     api
       .getProducts({ limit: 4, sortBy: "newest" })
-      .then(setRecommendedProducts)
+      .then((data) => setRecommendedProducts(data.products))
       .catch(console.error)
       .finally(() => setRecLoading(false));
   }, []);
@@ -91,7 +91,7 @@ const LandingPageContent = () => {
         sortBy: "top_selling",
         limit: 8,
       })
-      .then((res) => setProducts(res))
+      .then((data) => setProducts(data.products))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [selectedCategory]);

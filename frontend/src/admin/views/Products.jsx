@@ -14,10 +14,10 @@ const Products = () => {
     let isMounted = true;
 
     api
-      .getProducts()
+      .getProducts({ limit: 100 })
       .then((data) => {
         if (!isMounted) return;
-        setProducts(data);
+        setProducts(data.products);
         setError('');
       })
       .catch((err) => {
