@@ -1,7 +1,1 @@
-{
-  "/(admin)/admin/add-product/page": "app/(admin)/admin/add-product/page.js",
-  "/(public)/page": "app/(public)/page.js",
-  "/(admin)/admin/products/page": "app/(admin)/admin/products/page.js",
-  "/(public)/product/[id]/page": "app/(public)/product/[id]/page.js",
-  "/(public)/products/page": "app/(public)/products/page.js"
-}
+{}

@@ -45,6 +45,13 @@ class PriceRange(BaseModel):
     min:Optional[float]=None,
     max:Optional[float]=None
     
+class PaginatedProductResponse(BaseModel):
+    products: list[ProductRead]
+    total: int
+    page: int
+    limit: int
+    pages: int
+
 class ProductFiltersResponse(BaseModel):
      categories: list[CategoryRead]
      brands: list[str]

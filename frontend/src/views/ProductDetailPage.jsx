@@ -66,8 +66,8 @@ const ProductDetailPage = () => {
       // Fetch related products
       if (productData.category) {
         api.getProducts({ category: productData.category })
-          .then(related => {
-            setRelatedProducts(related.filter(p => p.id !== parseInt(id)).slice(0, 4));
+          .then(data => {
+            setRelatedProducts(data.products.filter(p => p.id !== parseInt(id)).slice(0, 4));
           })
           .catch(console.error);
       }
