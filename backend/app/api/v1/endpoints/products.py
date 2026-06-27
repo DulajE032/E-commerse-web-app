@@ -57,7 +57,7 @@ def get_product_filters(db: Session = Depends(get_db)):
      return ProductFiltersResponse(
         categories=categories,
         brands=brands,
-        priceRange=PriceRange(min=min_price, max=max_price),
+        price_range=PriceRange(min=min_price, max=max_price),
      )
 
 @router.get("/{product_id}", response_model=ProductRead)
