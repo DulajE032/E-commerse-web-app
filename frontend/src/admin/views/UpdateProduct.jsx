@@ -20,6 +20,7 @@ const UpdateProduct = () => {
    name: '',
    description: '',
    price: '',
+   discountPrice: '',
    category: '',
    brand: '',
    stock: '',
@@ -40,6 +41,7 @@ const UpdateProduct = () => {
         name: productData.name || '',
         description: productData.description || '',
         price: productData.price || '',
+        discountPrice: productData.discountPrice ?? '',
         category: productData.category || '',
         brand: productData.brand || '',
         stock: productData.stock || 0,
@@ -102,6 +104,7 @@ const UpdateProduct = () => {
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price) || 0,
+          discountPrice: formData.discountPrice !== '' ? parseFloat(formData.discountPrice) : null,
           category: formData.category,
           brand: formData.brand,
           stock: parseInt(formData.stock, 10) || 0,
@@ -178,6 +181,21 @@ const UpdateProduct = () => {
                 <label className="block text-sm text-gray-400 mb-1">Price ($)</label>
                 <input required type="number" step="0.01" name="price" value={formData.price} onChange={handleInputChange} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500" placeholder="0.00" />
               </div>
+              <div>
+                <label className="block text-sm text-gray-400 mb-1">Discount Price ($) <span className="text-gray-500">— optional</span></label>
+                <input type="number" step="0.01" name="discountPrice" value={formData.discountPrice} onChange={handleInputChange} className="w-full bg-gray-900 border border-gray-600 rounded p-2 text-white focus:outline-none focus:border-blue-500" placeholder="Empty = no discount" />
+                {formData.discountPrice !== '' && formData.price && parseFloat(formData.discountPrice) < parseFloat(formData.price) && (
+                  <p className="text-green-400 text-xs mt-1">
+                    💰 {Math.round(((parseFloat(formData.price) - parseFloat(formData.discountPrice)) / parseFloat(formData.price)) * 100)}% off
+                  </p>
+                )}
+                {formData.discountPrice !== '' && formData.price && parseFloat(formData.discountPrice) >= parseFloat(formData.price) && (
+                  <p className="text-red-400 text-xs mt-1">⚠️ Must be lower than price</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Category</label>
                 <input 
