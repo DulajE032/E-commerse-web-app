@@ -19,6 +19,7 @@ const AddProduct = () => {
     name: '',
     description: '',
     price: '',
+    discountPrice: '',
     category: '',
     brand: '',
     stock: '',
@@ -135,6 +136,7 @@ const AddProduct = () => {
           name: formData.name,
           description: formData.description,
           price: parseFloat(formData.price) || 0,
+          discountPrice: formData.discountPrice ? parseFloat(formData.discountPrice) : null,
           category: formData.category,
           brand: formData.brand,
           stock: parseInt(formData.stock, 10) || 0,
@@ -147,7 +149,7 @@ const AddProduct = () => {
 
       setMessage('Product created successfully!');
       // Reset form
-      setFormData({ name: '', description: '', price: '', category: '', brand: '', stock: '' });
+      setFormData({ name: '', description: '', price: '', discountPrice: '', category: '', brand: '', stock: '' });
       setImageFile(null);
       setImagePreview(null);
       setFileType(null);
@@ -267,6 +269,20 @@ const AddProduct = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Price ($)</label>
                 <input required type="number" step="0.01" name="price" value={formData.price} onChange={handleInputChange} className="w-full bg-gray-900 border border-gray-600 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500" placeholder="0.00" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Discount Price ($) <span className="text-gray-500 font-normal">— optional</span></label>
+                <input type="number" step="0.01" name="discountPrice" value={formData.discountPrice} onChange={handleInputChange} className="w-full bg-gray-900 border border-gray-600 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500" placeholder="Leave empty for no discount" />
+                {formData.discountPrice && formData.price && parseFloat(formData.discountPrice) < parseFloat(formData.price) && (
+                  <p className="text-green-400 text-xs mt-2 font-medium">
+                    💰 {Math.round(((parseFloat(formData.price) - parseFloat(formData.discountPrice)) / parseFloat(formData.price)) * 100)}% discount will be shown to customers
+                  </p>
+                )}
+                {formData.discountPrice && formData.price && parseFloat(formData.discountPrice) >= parseFloat(formData.price) && (
+                  <p className="text-red-400 text-xs mt-2 font-medium">
+                    ⚠️ Discount price must be lower than the regular price
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Stock Quantity</label>

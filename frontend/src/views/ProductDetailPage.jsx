@@ -203,9 +203,24 @@ const ProductDetailPage = () => {
                     <span className="text-gray-500 text-sm font-medium">({reviews.length} Reviews)</span>
                 </div>
 
-                <div className="text-4xl font-extrabold text-[#114B43] mb-8">
-                  ${Number(product.price).toFixed(2)}
-                </div>
+                {/* Price Display with Discount Support */}
+                {product.discountPrice && product.discountPrice < product.price ? (
+                  <div className="flex items-center gap-4 mb-8">
+                    <span className="text-4xl font-extrabold text-red-600">
+                      ${Number(product.discountPrice).toFixed(2)}
+                    </span>
+                    <span className="text-2xl text-gray-400 line-through">
+                      ${Number(product.price).toFixed(2)}
+                    </span>
+                    <span className="bg-red-100 text-red-700 text-sm font-bold px-3 py-1 rounded-full">
+                      {Math.round(((product.price - product.discountPrice) / product.price) * 100)}% OFF
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-4xl font-extrabold text-[#114B43] mb-8">
+                    ${Number(product.price).toFixed(2)}
+                  </div>
+                )}
 
                 <hr className="border-gray-100 mb-8" />
 
