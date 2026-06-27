@@ -1,19 +1,24 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+# ✅ Added Request to the import list
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
-
 from app.core.security import create_access_token, get_current_user, verify_password
 from app.services import crud_user
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.user import TokenResponse, UserCreate, UserLogin, UserRead, UserRole, UserSignup
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter()
 
+# We still create the limiter here so we can use it on the routes below
+limiter = Limiter(key_func=get_remote_address)
+# ❌ Removed: router.state.limiter = limiter (This goes in main.py now)
 
 def normalize_email(email: str) -> str:
     return email.strip().lower()
 
-
+# (Signup endpoint remains exactly the same, no limiter needed here unless you want one!)
 @router.post("/signup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def signup(user_in: UserSignup, db: Session = Depends(get_db)):
     email = normalize_email(user_in.email)
@@ -29,7 +34,9 @@ def signup(user_in: UserSignup, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(credentials: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+# ✅ Added request: Request
+def login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
     email = normalize_email(credentials.email)
     user = crud_user.get_user_by_email(db, email)
     if not user or not verify_password(credentials.password, user.password_hash):
@@ -50,7 +57,9 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
 
 
 @router.post("/admin-login", response_model=TokenResponse)
-def admin_login(credentials: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("2/minute")
+# ✅ Added request: Request
+def admin_login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
     email = normalize_email(credentials.email)
     user = crud_user.get_user_by_email(db, email)
     if (

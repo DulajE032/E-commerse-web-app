@@ -60,12 +60,12 @@ def get_products(
     elif sort_by=="price_high":
         query=query.order_by(Product.price.desc())
     elif sort_by=="newest":
-        query=query.order_by(Product.createdAt.desc())
+        query=query.order_by(Product.created_at.desc())
     elif sort_by=="top_selling":
         query=query.order_by(Product.sales_count.desc())
     else:
         # Default: Show Featured products first, then newest
-        query = query.order_by(Product.featured.desc(), Product.createdAt.desc())
+        query = query.order_by(Product.featured.desc(), Product.created_at.desc())
 
     # Get total count BEFORE applying offset/limit
     total = query.count()
