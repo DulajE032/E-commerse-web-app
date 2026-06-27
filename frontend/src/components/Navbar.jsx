@@ -134,8 +134,8 @@ const Navbar = () => {
                   <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
                     <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain invert brightness-0" />
                   </div>
-                  <span className="text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block group-hover:text-blue-600 transition-colors">
-                    peraStore
+                  <span className="text-2xl font-black-ops text-slate-900 tracking-tight hidden sm:block group-hover:text-blue-600 transition-colors">
+                    PERA STORE
                   </span>
                </Link>
             </div>
