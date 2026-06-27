@@ -45,13 +45,25 @@ async def create_order(
     db.add(new_order)
     db.flush()
 
-    # Update Product sales count and stock
+    # Validate stock availability and update counts
     for item in order_data.items:
         product = db.query(Product).filter(Product.id == item.product_id).first()
-        if product:
-            product.sales_count += item.quantity
-            product.stock -= item.quantity
-    
+        if not product:
+            db.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail=f"Product with ID {item.product_id} not found.",
+            )
+        if product.stock < item.quantity:
+            db.rollback()
+            raise HTTPException(
+                status_code=400,
+                detail=f"Insufficient stock for '{product.name}'. "
+                       f"Requested {item.quantity}, but only {product.stock} available.",
+            )
+        product.sales_count += item.quantity
+        product.stock -= item.quantity
+
     client_secret = None
 
     # 3. If paying by card, create Stripe PaymentIntent
