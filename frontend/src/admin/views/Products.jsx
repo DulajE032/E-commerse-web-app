@@ -93,7 +93,7 @@ const Products = () => {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            onClick={() => navigate(`/admin/products/edit/${product.id}`)}
+                            onClick={() => navigate.push(`/admin/products/edit/${product.id}`)}
                             className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-1 rounded"
                           >
                             Edit

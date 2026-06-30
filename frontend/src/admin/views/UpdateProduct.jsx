@@ -115,7 +115,7 @@ const UpdateProduct = () => {
       await api.updateProduct(id, productPayload, token);
 
       setMessage('Product updated successfully!');
-      setTimeout(() => navigate('/admin/products'), 1500);
+      setTimeout(() => navigate.push('/admin/products'), 1500);
     } catch (err) {
       setMessage(`Error: ${err.message}`);
     } finally {
@@ -131,7 +131,7 @@ const UpdateProduct = () => {
     <form onSubmit={handleSubmit}>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">Update Product</h2>
-        <button type="button" onClick={() => navigate('/admin/products')} className="text-gray-400 hover:text-white transition">Cancel</button>
+        <button type="button" onClick={() => navigate.push('/admin/products')} className="text-gray-400 hover:text-white transition">Cancel</button>
       </div>
       
       {message && (
