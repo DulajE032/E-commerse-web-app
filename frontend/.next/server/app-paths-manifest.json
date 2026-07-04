@@ -1,10 +1,4 @@
 {
-  "/(admin)/admin/products/page": "app/(admin)/admin/products/page.js",
-  "/(admin)/admin/products/edit/[id]/page": "app/(admin)/admin/products/edit/[id]/page.js",
-  "/(admin)/admin/add-product/page": "app/(admin)/admin/add-product/page.js",
-  "/(admin)/admin/categories/page": "app/(admin)/admin/categories/page.js",
-  "/(public)/login/page": "app/(public)/login/page.js",
-  "/(admin)/admin/wishlist/page": "app/(admin)/admin/wishlist/page.js",
-  "/(public)/product/[id]/page": "app/(public)/product/[id]/page.js",
-  "/(public)/page": "app/(public)/page.js"
+  "/(public)/page": "app/(public)/page.js",
+  "/(public)/products/page": "app/(public)/products/page.js"
 }
