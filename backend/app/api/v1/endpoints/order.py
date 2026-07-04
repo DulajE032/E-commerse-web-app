@@ -22,30 +22,10 @@ async def create_order(
     current_user=Depends(get_current_user),
 ):
     """Create a new order and (if card payment) create a Stripe PaymentIntent."""
-    
-    # 1. Calculate total
-    subtotal = sum(item.price * item.quantity for item in order_data.items)
-    total = subtotal + order_data.shipping_cost + order_data.tax_amount
-    
-    # 2. Create the order in database
-    new_order = Order(
-        user_id=current_user.id,
-        email=order_data.email,
-        phone=order_data.phone,
-        payment_method=order_data.payment_method,
-        payment_status="pending",
-        status="pending",
-        total_amount=total,
-        shipping_cost=order_data.shipping_cost,
-        tax_amount=order_data.tax_amount,
-        shipping_address=order_data.shipping_address.model_dump(),
-        items=[item.model_dump() for item in order_data.items],
-    )
-    
-    db.add(new_order)
-    db.flush()
+    # 1. Validate stock and build authoritative order lines from DB prices.
+    normalized_items = []
+    subtotal = 0.0
 
-    # Validate stock availability and update counts
     for item in order_data.items:
         product = db.query(Product).filter(Product.id == item.product_id).first()
         if not product:
@@ -59,10 +39,50 @@ async def create_order(
             raise HTTPException(
                 status_code=400,
                 detail=f"Insufficient stock for '{product.name}'. "
-                       f"Requested {item.quantity}, but only {product.stock} available.",
+                f"Requested {item.quantity}, but only {product.stock} available.",
             )
+
+        unit_price = (
+            product.discount_price
+            if product.discount_price is not None
+            and product.discount_price > 0
+            and product.discount_price < product.price
+            else product.price
+        )
+
+        subtotal += unit_price * item.quantity
         product.sales_count += item.quantity
         product.stock -= item.quantity
+
+        normalized_items.append(
+            {
+                "product_id": product.id,
+                "name": product.name,
+                "price": unit_price,
+                "quantity": item.quantity,
+                "image": product.images[0] if product.images else None,
+            }
+        )
+
+    total = subtotal + order_data.shipping_cost + order_data.tax_amount
+
+    # 2. Create the order in database with server-authoritative item data.
+    new_order = Order(
+        user_id=current_user.id,
+        email=order_data.email,
+        phone=order_data.phone,
+        payment_method=order_data.payment_method,
+        payment_status="pending",
+        status="pending",
+        total_amount=total,
+        shipping_cost=order_data.shipping_cost,
+        tax_amount=order_data.tax_amount,
+        shipping_address=order_data.shipping_address.model_dump(),
+        items=normalized_items,
+    )
+
+    db.add(new_order)
+    db.flush()
 
     client_secret = None
 

@@ -1,0 +1,27 @@
+What to improve first (highest impact)
+
+1. Fix stock filter default bug
+ api.js  always sends  in_stock=false  when checkbox is off, and backend interprets that as “show only out-of-stock” ( api.js:159 ,  crud_product.py:51-55 ,  ProductsPage.jsx:109 ).
+2. Fix sort mismatch
+Frontend sends  "popular"  but backend expects  "top_selling"  ( ProductsPage.jsx:59 ,  crud_product.py:64 ).
+3. Secure order totals (critical)
+Backend calculates subtotal from client-sent  item.price  ( order.py:27 , frontend sends it in  CheckoutPage.jsx:89 ).
+Use DB product price/discount price on server only.
+4. Fix payment + stock consistency (critical)
+Stock is reduced before card payment is confirmed ( order.py:64-65 ), and failed webhook only marks payment failed without stock restore ( webhook.py:46-53 ).
+5. Prevent overselling in concurrent orders
+Add DB transaction + row locking when checking/updating stock.
+
+Product display improvements
+
+• Use  product.rating  instead of  product.ratingSmall  ( ProductsPage.jsx:441-442 ).
+• Disable “Add” buttons when stock is 0 on listing cards too ( ProductsPage.jsx:418 ).
+• Limit quantity by stock in detail/cart ( ProductDetailPage.jsx:234 ,  CartContext.jsx:50-56 ).
+• Show low-stock/out-of-stock badges in list/grid and admin tables.
+
+Data model/admin improvements
+
+• You send  status: Draft/Active  from admin ( AddProduct.jsx:145, 259-260 ), but backend product schema/model has no  status  field ( backend/app/schemas/product.py ,  backend/app/models/product.py ).
+Add status to backend and hide drafts from public listing.
+• Add validation constraints ( stock >= 0 ,  price >= 0 ,  discount < price ).
+• Add tests for: filter combinations, price tamper rejection, stock decrement/restore, webhook state transitions

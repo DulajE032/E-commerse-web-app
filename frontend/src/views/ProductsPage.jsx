@@ -56,7 +56,7 @@ const ProductsPage = () => {
     "Low price: Low to High": "price_low",
     "Max price: High to Low": "price_high",
     "Newest First": "newest",
-    Popularity: "popular",
+    Popularity: "top_selling",
   };
 
   const toggleBrand = (brand) => {
@@ -106,7 +106,7 @@ const ProductsPage = () => {
         brands: selectedBrands,
         minPrice: priceRange.min === "" ? null : Number(priceRange.min),
         maxPrice: priceRange.max === "" ? null : Number(priceRange.max),
-        inStock: inStockOnly,
+        inStock: inStockOnly ? true : null,
         sortBy: sortOptions[sortBy],
         search: searchQuery || null,
       })

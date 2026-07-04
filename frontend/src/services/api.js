@@ -156,7 +156,7 @@ export const api = {
    if (filters.sortBy) params.append('sort_by', filters.sortBy);
    if (filters.minPrice != null) params.append('min_price', filters.minPrice);
    if (filters.maxPrice != null) params.append('max_price', filters.maxPrice);
-   if (filters.inStock != null) params.append('in_stock', filters.inStock);
+   if (filters.inStock === true) params.append('in_stock', 'true');
  
    if (Array.isArray(filters.brands)) {
      filters.brands.forEach((b) => params.append('brands', b));
