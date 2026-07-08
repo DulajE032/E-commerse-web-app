@@ -1,6 +1,15 @@
-const API_BASE = 'http://127.0.0.1:8000/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+export const IMAGE_BASE_URL = API_BASE.replace('/api/v1', '');
 
-const getStoredToken = () => localStorage.getItem('token');
+export const getImageUrl = (path) => {
+  if (!path) return "/logo.png";
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('/uploads')) return `${IMAGE_BASE_URL}${path}`;
+  if (path.startsWith('uploads')) return `${IMAGE_BASE_URL}/${path}`;
+  return path; // For public folder assets like /categories/phones.png
+};
+
+const getStoredToken = () => typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
 const withAuthHeaders = (headers = {}, token = getStoredToken()) => {
   if (!token) {
@@ -140,12 +149,14 @@ export const api = {
   getProducts: async (filters = {}) => {
    const params = new URLSearchParams();
  
+   if (filters.page) params.append('page', filters.page);
+   if (filters.limit) params.append('limit', filters.limit);
    if (filters.category) params.append('category', filters.category);
    if (filters.search) params.append('search', filters.search);
    if (filters.sortBy) params.append('sort_by', filters.sortBy);
    if (filters.minPrice != null) params.append('min_price', filters.minPrice);
    if (filters.maxPrice != null) params.append('max_price', filters.maxPrice);
-   if (filters.inStock != null) params.append('in_stock', filters.inStock);
+   if (filters.inStock === true) params.append('in_stock', 'true');
  
    if (Array.isArray(filters.brands)) {
      filters.brands.forEach((b) => params.append('brands', b));
@@ -197,6 +208,96 @@ export const api = {
 
   getDashboardStats: async (token) => {
     return request(`${API_BASE}/dashboard/stats`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  // Wishlist — User-facing
+  getWishlist: async (token) => {
+    return request(`${API_BASE}/wishlist`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getWishlistIds: async (token) => {
+    return request(`${API_BASE}/wishlist/ids`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  addToWishlist: async (productId, token) => {
+    return request(`${API_BASE}/wishlist`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ product_id: productId }),
+    });
+  },
+
+  removeFromWishlist: async (productId, token) => {
+    return request(`${API_BASE}/wishlist/${productId}`, {
+      method: 'DELETE',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  toggleWishlist: async (productId, token) => {
+    return request(`${API_BASE}/wishlist/toggle`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ product_id: productId }),
+    });
+  },
+
+  syncWishlist: async (productIds, token) => {
+    return request(`${API_BASE}/wishlist/sync`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ product_ids: productIds }),
+    });
+  },
+
+  // Wishlist — Admin
+  getWishlistTrending: async (token) => {
+    return request(`${API_BASE}/wishlist/admin/trending`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getWishlistUsers: async (token) => {
+    return request(`${API_BASE}/wishlist/admin/users`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getWishlistByUser: async (userId, token) => {
+    return request(`${API_BASE}/wishlist/admin/users/${userId}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  sendWishlistCampaign: async (productId, token) => {
+    return request(`${API_BASE}/wishlist/admin/campaign/${productId}`, {
+      method: 'POST',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+  createCategory: async (categoryData, token) => {
+    const response = await fetch(`${API_BASE}/categories`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(categoryData) 
+    });
+
+    if (!response.ok) throw new Error('Failed to create category');
+    return await response.json();
+  },
+
+  deleteCategory: async (id, token) => {
+    return request(`${API_BASE}/categories/${id}`, {
+      method: 'DELETE',
       headers: withAuthHeaders({}, token),
     });
   },

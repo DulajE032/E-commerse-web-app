@@ -15,13 +15,12 @@ def get_products(
     category: Optional[str] = None,
     search :Optional[str]=None,
     sort_by:Optional[str]=None,
-    
     brands:Optional[list[str]]=None,
     min_price:Optional[float]=None,
     max_price:Optional[float]=None,
     in_stock:Optional[bool]=None 
     
-)-> list[Product]: 
+)-> tuple[list[Product], int]: 
     
     query = db.query(Product)
     if category:
@@ -61,14 +60,18 @@ def get_products(
     elif sort_by=="price_high":
         query=query.order_by(Product.price.desc())
     elif sort_by=="newest":
-        query=query.order_by(Product.createdAt.desc())
+        query=query.order_by(Product.created_at.desc())
     elif sort_by=="top_selling":
         query=query.order_by(Product.sales_count.desc())
     else:
         # Default: Show Featured products first, then newest
-        query = query.order_by(Product.featured.desc(), Product.createdAt.desc())
+        query = query.order_by(Product.featured.desc(), Product.created_at.desc())
 
-    return query.offset(skip).limit(limit).all()
+    # Get total count BEFORE applying offset/limit
+    total = query.count()
+
+    products = query.offset(skip).limit(limit).all()
+    return products, total
 
 
 #-------------------------get brands

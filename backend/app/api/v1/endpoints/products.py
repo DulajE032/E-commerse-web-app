@@ -7,16 +7,18 @@ from app.core.security import require_role
 from app.services import crud_product
 from app.db.session import get_db
 from app.models.user import User
-from app.schemas.product import ProductCreate, ProductRead, ProductUpdate ,ProductFiltersResponse,PriceRange 
+from app.schemas.product import ProductCreate, ProductRead, ProductUpdate ,ProductFiltersResponse,PriceRange, PaginatedProductResponse 
 from app.schemas.review import ReviewCreate, ReviewRead
 from app.services import crud_category
+import math
+
 router = APIRouter()
 
 
-@router.get("/", response_model=list[ProductRead])
+@router.get("/", response_model=PaginatedProductResponse)
 def list_products(
-     skip: int = 0,
-     limit: int = 20,
+     page: int = Query(1, ge=1),
+     limit: int = Query(20, ge=1, le=100),
      category: str | None = None,
      search: str | None = None,
      sort_by: str | None = None,
@@ -26,7 +28,8 @@ def list_products(
      in_stock: bool | None = None,
      db: Session = Depends(get_db),
  ):
-     return crud_product.get_products(
+     skip = (page - 1) * limit
+     products, total = crud_product.get_products(
          db=db,
          skip=skip,
          limit=limit,
@@ -38,6 +41,13 @@ def list_products(
          max_price=max_price,
          in_stock=in_stock,
      )
+     return PaginatedProductResponse(
+         products=products,
+         total=total,
+         page=page,
+         limit=limit,
+         pages=math.ceil(total / limit) if limit > 0 else 0,
+     )
 
 @router.get("/filters", response_model=ProductFiltersResponse)
 def get_product_filters(db: Session = Depends(get_db)):
@@ -47,7 +57,7 @@ def get_product_filters(db: Session = Depends(get_db)):
      return ProductFiltersResponse(
         categories=categories,
         brands=brands,
-        priceRange=PriceRange(min=min_price, max=max_price),
+        price_range=PriceRange(min=min_price, max=max_price),
      )
 
 @router.get("/{product_id}", response_model=ProductRead)

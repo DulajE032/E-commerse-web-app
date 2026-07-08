@@ -1,10 +1,7 @@
-import os
 import shutil
 from pathlib import Path
 from uuid import uuid4
-
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-
 from app.core.security import require_role
 from app.models.user import User
 
@@ -13,6 +10,7 @@ router = APIRouter()
 # Setup local storage directory
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+MAX_SIZE = 10 * 1024 * 1024
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def upload_media(
@@ -24,6 +22,12 @@ async def upload_media(
     Returns the URL path to access the media.
     """
     allowed_types = ["image/", "video/"]
+
+    if file.size > MAX_SIZE:    
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size exceeds the maximum allowed size."
+        )
     if not any(file.content_type.startswith(t) for t in allowed_types):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

@@ -1,12 +1,30 @@
-import React, { createContext, useContext, useState } from 'react';
+"use client";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
+const CART_STORAGE_KEY = 'cart';
+
+const readCartFromStorage = () => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(CART_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
 
 const CartContext = createContext();
 
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => readCartFromStorage());
   const [toastMessage, setToastMessage] = useState(null);
+
+  // Persist cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const addToCart = (product) => {
     setCartItems((prev) => {

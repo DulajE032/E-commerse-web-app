@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import List, Optional, Dict, Any
 from app.schemas.category import CategoryRead
@@ -10,7 +10,7 @@ class ProductBase(BaseModel):
     category: Optional[str] = None
     brand: Optional[str] = None
     price: float
-    discountPrice: Optional[float] = None
+    discount_price: Optional[float] = Field(None, alias="discountPrice")
     stock: int = 0
     images: Optional[List[str]] = None
     videos: Optional[List[str]] = None
@@ -18,14 +18,16 @@ class ProductBase(BaseModel):
     featured: bool = False
     specifications: Optional[Dict[str, Any]] = None
 
+    model_config = ConfigDict(populate_by_name=True)
+
 class ProductCreate(ProductBase):
     pass
 
 class ProductRead(ProductBase):
     id: int
-    createdAt: datetime
+    created_at: datetime = Field(alias="createdAt")
 
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
@@ -33,19 +35,30 @@ class ProductUpdate(BaseModel):
     category: Optional[str] = None
     brand: Optional[str] = None
     price: Optional[float] = None
-    discountPrice: Optional[float] = None
+    discount_price: Optional[float] = Field(None, alias="discountPrice")
     stock: Optional[int] = None
     images: Optional[List[str]] = None
     videos: Optional[List[str]] = None
     rating: Optional[float] = None
     featured: Optional[bool] = None
     specifications: Optional[Dict[str, Any]] = None
-    
+
+    model_config = ConfigDict(populate_by_name=True)
+
 class PriceRange(BaseModel):
-    min:Optional[float]=None,
-    max:Optional[float]=None
+    min: Optional[float] = None
+    max: Optional[float] = None
     
+class PaginatedProductResponse(BaseModel):
+    products: list[ProductRead]
+    total: int
+    page: int
+    limit: int
+    pages: int
+
 class ProductFiltersResponse(BaseModel):
-     categories: list[CategoryRead]
-     brands: list[str]
-     priceRange: PriceRange
+    categories: list[CategoryRead]
+    brands: list[str]
+    price_range: PriceRange = Field(alias="priceRange")
+
+    model_config = ConfigDict(populate_by_name=True)

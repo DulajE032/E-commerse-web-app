@@ -1,5 +1,6 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+"use client";
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../services/AuthContext';
 
 const RouteLoader = () => (
@@ -7,6 +8,14 @@ const RouteLoader = () => (
     Checking your session...
   </div>
 );
+
+const Redirect = ({ to }) => {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace(to);
+  }, [router, to]);
+  return null;
+};
 
 export const ProtectedRoute = ({ children, loginPath = '/login' }) => {
   const { isAuthenticated, isInitializing } = useAuth();
@@ -16,7 +25,7 @@ export const ProtectedRoute = ({ children, loginPath = '/login' }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={loginPath} replace />;
+    return <Redirect to={loginPath} />;
   }
 
   return children;
@@ -30,11 +39,11 @@ export const AdminRoute = ({ children, loginPath = '/admin/login' }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to={loginPath} replace />;
+    return <Redirect to={loginPath} />;
   }
 
   if (user.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
+    return <Redirect to="/dashboard" />;
   }
 
   return children;

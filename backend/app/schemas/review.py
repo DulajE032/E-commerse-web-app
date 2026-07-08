@@ -1,18 +1,18 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from typing import Optional
-
+    
 class ReviewBase(BaseModel):
-    rating: float
+    rating: float = Field(ge=1.0, le=5.0)
     comment: Optional[str] = None
 
 class ReviewCreate(ReviewBase):
     pass
 
 class ReviewRead(ReviewBase):
-    id: int
-    product_id: int
-    user_id: int
+    id: int           # ✅ Changed from UUID
+    product_id: int   # ✅ Changed from UUID
+    user_id: int      # ✅ Changed from UUID
     created_at: datetime
     
     # Optionally include user details if needed by frontend

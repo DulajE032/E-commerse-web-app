@@ -1,18 +1,79 @@
-import React, { useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { FiSearch, FiShoppingCart, FiUser, FiChevronDown, FiMenu, FiX } from 'react-icons/fi';
+"use client";
+import React, { useMemo, useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { 
+  FiSearch, FiShoppingCart, FiUser, FiChevronDown, 
+  FiMenu, FiX, FiHeart, FiLogOut, FiLayout
+} from 'react-icons/fi';
 import { useCart } from '../services/CartContext';
+import { useWishlist } from '../services/WishlistContext';
 import { useAuth } from '../services/AuthContext';
+import { api, IMAGE_BASE_URL } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(true);
+  const [scrolled, setScrolled] = useState(false);
+  
   const { cartCount } = useCart();
+  const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
-  const location = useLocation();
+  const location = usePathname();
+  const router = useRouter();
   const currentPath = location.pathname;
+
+  // Handle scroll effect for navbar
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMobileMenuOpen]);
+
+  // Handle Search Suggestions
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const data = await api.getProducts({ search: searchQuery, limit: 5 });
+        setSuggestions(data.products);
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setShowSuggestions(false);
+      setIsMobileMenuOpen(false);
+    }
+  };
 
   const userInitials = useMemo(() => {
     if (!user) return 'U';
@@ -27,239 +88,387 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Products', path: '/products' },
-    { name: 'Categories', path: '/categories' },
-    { name: 'Contact Us', path: '/contact' }
+   
   ];
 
   return (
     <>
-      <div className="bg-white/100 backdrop-blur-md px-6 pt-4 pb-3 md:px-8 shadow-sm border-b border-gray-100 relative z-50 sticky top-0 transition-all">
-        <div className="flex items-center gap-4 md:gap-6 max-w-7xl mx-auto">
-          {/* Menu, Logo & Nav Links */}
-          <div className="flex items-center gap-6 shrink-0">
-             <button 
-                className="md:hidden p-1 text-gray-700 hover:text-orange-500 transition-colors"
-                onClick={() => setIsMobileMenuOpen(true)}
-             >
-                <FiMenu className="w-7 h-7" />
-             </button>
-             <Link to="/" className="flex items-center gap-2 group">
-                <img src="/logo.png" alt="peraStore" className="w-9 h-9 object-contain" />
-                <span className="text-2xl font-extrabold text-slate-900 tracking-tight hidden sm:block">peraStore</span>
-             </Link>
-             <div className="hidden md:flex items-center gap-6 text-base font-bold text-gray-700">
-               {navLinks.map((link) => (
-                  <Link 
-                     key={link.name} 
-                     to={link.path} 
-                     className={`relative py-1 transition-colors ${currentPath === link.path ? 'text-blue-600' : 'hover:text-blue-500'}`}
-                  >
-                     {link.name}
-                     {currentPath === link.path && (
-                       <motion.div layoutId="underline" className="absolute left-0 right-0 bottom-[-4px] h-[3px] bg-blue-600 rounded-t-md" />
-                     )}
-                  </Link>
-               ))}
-             </div>
-          </div>
+      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)]' : ''}`}>
+        {/* Top Announcement Bar */}
+        <AnimatePresence>
+          {isAnnouncementVisible && (
+            <motion.div 
+              initial={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-slate-900 text-white text-xs py-2 px-4 flex justify-center items-center relative overflow-hidden"
+            >
+              <p className="font-medium tracking-wide">
+                <span className="font-bold text-orange-400 mr-2">FREE SHIPPING</span> 
+                on all orders over $150. Shop the Summer Collection now!
+              </p>
+              <button 
+                onClick={() => setIsAnnouncementVisible(false)}
+                className="absolute right-4 text-gray-400 hover:text-white transition-colors"
+                aria-label="Close announcement"
+              >
+                <FiX className="w-3.5 h-3.5" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-          {/* Search Bar - Small (Desktop) */}
-          <div className="hidden md:flex flex-1 justify-center">
-             <div className="w-full max-w-xs relative group">
-                <input 
-                  type="text" 
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl text-gray-800 bg-gray-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner group-hover:bg-white group-hover:border-gray-200"
-                />
-                <FiSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-             </div>
-          </div>
+        {/* Main Navbar */}
+        <div className={`bg-white/95 backdrop-blur-md transition-all duration-300 ${scrolled ? 'py-3' : 'py-5'} border-b border-gray-100 px-4 md:px-8`}>
+          <div className="flex items-center justify-between max-w-7xl mx-auto gap-4 md:gap-8">
+            
+            {/* Left: Mobile Menu Toggle & Logo */}
+            <div className="flex items-center gap-4 lg:w-[250px] shrink-0">
+               <button 
+                  className="lg:hidden p-2 -ml-2 text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  aria-label="Open Menu"
+               >
+                  <FiMenu className="w-6 h-6" />
+               </button>
+               <Link href="/" className="flex items-center gap-2.5 group">
+                  <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
+                    <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain invert brightness-0" />
+                  </div>
+                  <span className="text-2xl font-black-ops text-slate-900 tracking-tight hidden sm:block group-hover:text-blue-600 transition-colors">
+                    PERA STORE
+                  </span>
+               </Link>
+            </div>
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-4 md:gap-6 shrink-0">
-             <div className="hidden lg:flex items-center gap-4 text-sm font-medium text-gray-600 border-r border-gray-200 pr-6">
-                <div className="flex items-center gap-1.5 cursor-pointer hover:text-blue-600 transition-colors">
-                   <span>USD</span> <FiChevronDown className="w-4 h-4" />
-                </div>
-             </div>
-             
-             <Link to="/cart" className="relative cursor-pointer text-gray-700 hover:text-blue-600 transition-colors group">
-                <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-                  <FiShoppingCart className="w-6 h-6" />
+            {/* Center: Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-8 text-[15px] font-semibold text-slate-600">
+              {navLinks.map((link) => (
+                <Link key={link.name} 
+                  href={link.path} 
+                  className={`relative py-2 group transition-colors hover:text-slate-900 ${currentPath === link.path ? 'text-slate-900' : ''}`}
+                >
+                  {link.name}
+                  {/* Hover Underline */}
+                  <span className={`absolute left-0 bottom-0 w-full h-[2px] bg-slate-900 origin-left transition-transform duration-300 ease-out ${currentPath === link.path ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+                </Link>
+              ))}
+            </nav>
+
+            {/* Right: Search, Actions, Profile */}
+            <div className="flex items-center gap-3 md:gap-5 justify-end lg:flex-1">
+               
+               {/* Desktop Search */}
+               <div className="hidden xl:block relative w-[300px] group">
+                  <form onSubmit={handleSearchSubmit}>
+                    <input 
+                      type="text" 
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-full text-sm text-slate-800 bg-slate-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all placeholder-slate-400"
+                    />
+                    <FiSearch className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+                  </form>
+
+                  {/* Suggestions Dropdown */}
                   <AnimatePresence>
-                    {cartCount > 0 && (
-                      <motion.span 
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0 }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full"
-                      >
-                        {cartCount}
-                      </motion.span>
+                    {showSuggestions && suggestions.length > 0 && (
+                      <>
+                        <div className="fixed inset-0 z-40" onClick={() => setShowSuggestions(false)}></div>
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="absolute left-0 right-0 mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50 py-2"
+                        >
+                          <p className="px-4 py-2 text-xs font-bold text-slate-400 uppercase tracking-widest">Suggestions</p>
+                          {suggestions.map((product) => (
+                            <Link
+                              key={product.id}
+                              href={`/product/${product.id}`}
+                              onClick={() => setShowSuggestions(false)}
+                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-colors group"
+                            >
+                              <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center p-1 overflow-hidden shrink-0">
+                                {product.images && product.images[0] ? (
+                                  <img src={product.images[0].startsWith('http') ? product.images[0] : `${IMAGE_BASE_URL}${product.images[0]}`} alt={product.name} className="w-full h-full object-contain" />
+                                ) : (
+                                  <FiSearch className="w-4 h-4 text-slate-300" />
+                                )}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors">{product.name}</p>
+                                <p className="text-xs text-slate-500 truncate">${product.price.toFixed(2)}</p>
+                              </div>
+                            </Link>
+                          ))}
+                          <button 
+                            onClick={handleSearchSubmit}
+                            className="w-full text-center py-2 text-sm font-bold text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-t border-gray-50 mt-1"
+                          >
+                            View all results for "{searchQuery}"
+                          </button>
+                        </motion.div>
+                      </>
                     )}
                   </AnimatePresence>
-                </motion.div>
-             </Link>
-             
-             {isAuthenticated ? (
-               <div className="relative hidden md:block">
-                 <button
-                   type="button"
-                   onClick={() => setIsProfileOpen((prev) => !prev)}
-                   className="flex items-center gap-2 bg-gray-100 px-3 py-2 rounded-full text-gray-700 hover:bg-gray-200 transition-colors"
-                 >
-                   <span className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold">
-                     {userInitials}
-                   </span>
-                   <span className="text-sm font-semibold max-w-[120px] truncate">
-                     {user?.full_name || user?.email}
-                   </span>
-                   <FiChevronDown className="w-4 h-4" />
-                 </button>
-                 <AnimatePresence>
-                   {isProfileOpen && (
-                     <motion.div
-                       initial={{ opacity: 0, y: 8 }}
-                       animate={{ opacity: 1, y: 0 }}
-                       exit={{ opacity: 0, y: 8 }}
-                       className="absolute right-0 mt-2 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50"
-                     >
-                       <div className="px-4 py-3 border-b border-gray-100">
-                         <p className="text-sm font-semibold text-gray-900">
-                           {user?.full_name || 'User'}
-                         </p>
-                         <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                       </div>
-                       <div className="py-2">
-                         <Link
-                           to="/dashboard"
-                           onClick={() => setIsProfileOpen(false)}
-                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                         >
-                           My Dashboard
-                         </Link>
-                         <button
-                           type="button"
-                           onClick={() => {
-                             logout();
-                             setIsProfileOpen(false);
-                           }}
-                           className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50"
-                         >
-                           Log out
-                         </button>
-                       </div>
-                     </motion.div>
-                   )}
-                 </AnimatePresence>
                </div>
-             ) : (
-               <div className="hidden md:flex gap-3 items-center ml-4">
-                 <Link to="/login" className="text-sm font-bold text-gray-700 hover:text-blue-600 transition-colors">Log in</Link>
-                 <Link to="/signup" className="text-sm font-bold bg-blue-600 text-white hover:bg-blue-700 px-6 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg">Sign up</Link>
-               </div>
-             )}
 
-             <Link
-               to={isAuthenticated ? '/dashboard' : '/login'}
-               className="md:hidden bg-gray-100 p-2 rounded-full text-gray-700 hover:bg-gray-200"
-             >
-               <FiUser className="w-5 h-5" />
-             </Link>
-          </div>
-        </div>
-
-        {/* Bottom Row: Mobile Search */}
-        <div className="mt-4 md:hidden max-w-7xl mx-auto">
-           <div className="relative w-full">
-              <input 
-                 type="text" 
-                 placeholder="Search products..."
-                 value={searchQuery}
-                 onChange={(e) => setSearchQuery(e.target.value)}
-                 className="w-full pl-4 pr-10 py-2.5 rounded-full text-gray-800 bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-orange-400"
-              />
-              <FiSearch className="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
-           </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu Overlay */}
-      <div 
-         className={`fixed inset-0 bg-black/50 z-[60] transition-opacity duration-300 md:hidden ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-         onClick={() => setIsMobileMenuOpen(false)}
-      >
-         <div 
-            className={`fixed top-0 left-0 bottom-0 w-[80%] max-w-sm bg-white shadow-xl z-[70] flex flex-col transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-            onClick={(e) => e.stopPropagation()}
-         >
-            <div className="p-4 flex items-center justify-between border-b border-gray-100">
-               <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2">
-                  <img src="/logo.png" alt="peraStore" className="w-8 h-8 object-contain" />
-                  <span className="text-xl font-extrabold text-[#114B43]">peraStore</span>
-               </Link>
-               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-gray-500 hover:text-red-500 bg-gray-50 rounded-full transition-colors">
-                  <FiX className="w-5 h-5" />
+               {/* Mobile Search Icon */}
+               <button 
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="xl:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-full transition-colors"
+               >
+                 <FiSearch className="w-5 h-5" />
                </button>
-            </div>
-            
-            <div className="flex flex-col p-4 gap-2 flex-1 overflow-y-auto">
-               <div className="text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">Navigation</div>
-               {navLinks.map((link) => (
-                  <Link
-                     key={link.name}
-                     to={link.path}
-                     onClick={() => setIsMobileMenuOpen(false)}
-                     className={`flex items-center gap-3 px-4 py-3 rounded-xl font-semibold transition-colors ${currentPath === link.path ? 'bg-orange-50 text-orange-500' : 'text-gray-700 hover:bg-gray-50'}`}
-                  >
-                     {link.name}
-                  </Link>
-               ))}
-            </div>
-            
-            <div className="p-4 border-t border-gray-100 bg-gray-50">
+
+               <div className="h-6 w-px bg-gray-200 hidden md:block mx-1"></div>
+
+               {/* Action Icons */}
+               <div className="flex items-center gap-1 sm:gap-2">
+                 <Link href="/wishlist" className="relative p-2 text-slate-700 hover:bg-pink-50 hover:text-pink-600 rounded-full transition-colors group">
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <img src="/assets/wishlistimag/wishlist.png" alt="Wishlist" className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
+                      <AnimatePresence>
+                        {wishlistCount > 0 && (
+                          <motion.span 
+                            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                            className="absolute top-1 right-1 translate-x-1/4 -translate-y-1/4 bg-pink-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
+                          >
+                            {wishlistCount}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                 </Link>
+
+                 <Link href="/cart" className="relative p-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-full transition-colors group">
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <FiShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+                      <AnimatePresence>
+                        {cartCount > 0 && (
+                          <motion.span 
+                            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                            className="absolute top-1 right-1 translate-x-1/4 -translate-y-1/4 bg-blue-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
+                          >
+                            {cartCount}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                 </Link>
+               </div>
+
+               {/* User Profile / Auth */}
                {isAuthenticated ? (
-                 <>
-                   <div className="flex items-center gap-3 mb-4">
-                     <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">
+                 <div className="relative hidden sm:block ml-2">
+                   <button
+                     onClick={() => setIsProfileOpen((prev) => !prev)}
+                     className="flex items-center gap-2 p-1.5 pr-3 rounded-full hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all focus:outline-none focus:ring-2 focus:ring-slate-900"
+                   >
+                     <div className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shadow-sm">
                        {userInitials}
                      </div>
-                     <div>
-                       <p className="text-sm font-semibold text-gray-800 line-clamp-1">
-                         {user?.full_name || user?.email}
-                       </p>
-                       <p className="text-xs text-gray-500 line-clamp-1">{user?.email}</p>
-                     </div>
-                   </div>
-                   <Link
-                     to="/dashboard"
-                     onClick={() => setIsMobileMenuOpen(false)}
-                     className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl flex justify-center mb-3 hover:bg-gray-100 transition-colors"
-                   >
-                     My Dashboard
-                   </Link>
-                   <button
-                     type="button"
-                     onClick={() => {
-                       logout();
-                       setIsMobileMenuOpen(false);
-                     }}
-                     className="w-full bg-red-500 text-white font-bold py-3 rounded-xl flex justify-center hover:bg-red-600 transition-colors shadow-sm"
-                   >
-                     Log out
+                     <span className="text-sm font-semibold text-slate-700 max-w-[100px] truncate hidden md:block">
+                       {user?.full_name?.split(' ')[0] || 'User'}
+                     </span>
+                     <FiChevronDown className="w-4 h-4 text-slate-500" />
                    </button>
-                 </>
+                   
+                   {/* Dropdown Menu */}
+                   <AnimatePresence>
+                     {isProfileOpen && (
+                       <>
+                         <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)}></div>
+                         <motion.div
+                           initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                           animate={{ opacity: 1, y: 0, scale: 1 }}
+                           exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                           transition={{ duration: 0.2 }}
+                           className="absolute right-0 mt-3 w-64 bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.15)] overflow-hidden z-50 py-2 origin-top-right"
+                         >
+                           <div className="px-5 py-4 border-b border-gray-100 bg-slate-50/50">
+                             <p className="text-sm font-bold text-slate-900 truncate">
+                               {user?.full_name || 'My Account'}
+                             </p>
+                             <p className="text-xs text-slate-500 truncate mt-0.5">{user?.email}</p>
+                           </div>
+                           <div className="py-2 px-3">
+                             <Link href="/dashboard"
+                               onClick={() => setIsProfileOpen(false)}
+                               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
+                             >
+                               <FiLayout className="w-4 h-4 text-slate-400" /> Dashboard
+                             </Link>
+                             <button
+                               onClick={() => { logout(); setIsProfileOpen(false); }}
+                               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors mt-1"
+                             >
+                               <FiLogOut className="w-4 h-4" /> Log out
+                             </button>
+                           </div>
+                         </motion.div>
+                       </>
+                     )}
+                   </AnimatePresence>
+                 </div>
                ) : (
-                 <>
-                   <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-gray-700 font-bold py-3 rounded-xl flex justify-center mb-3 hover:bg-gray-100 transition-colors">Log In</Link>
-                   <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl flex justify-center hover:bg-orange-600 transition-colors shadow-sm">Sign Up</Link>
-                 </>
+                 <div className="hidden sm:flex items-center gap-3 ml-2">
+                   <Link href="/login" className="text-sm font-bold text-slate-700 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">Log In</Link>
+                   <Link href="/signup" className="text-sm font-bold bg-slate-900 text-white hover:bg-slate-800 px-5 py-2.5 rounded-full transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5">Sign Up</Link>
+                 </div>
+               )}
+
+               {/* Mobile User Icon Fallback (when not authenticated and on very small screens where Auth buttons hide) */}
+               {!isAuthenticated && (
+                 <Link href="/login" className="sm:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-full">
+                   <FiUser className="w-5 h-5 sm:w-6 sm:h-6" />
+                 </Link>
                )}
             </div>
-         </div>
-      </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Modern Mobile Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <motion.div 
+              initial={{ x: '-100%' }} animate={{ x: 0 }} exit={{ x: '-100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 left-0 bottom-0 w-[85%] max-w-[320px] bg-white shadow-2xl z-[70] flex flex-col"
+            >
+              {/* Drawer Header */}
+              <div className="p-5 flex items-center justify-between border-b border-gray-100 bg-slate-50/50">
+                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
+                      <img src="/logo.png" alt="Logo" className="w-4 h-4 object-contain invert brightness-0" />
+                    </div>
+                    <span className="text-xl font-extrabold text-slate-900">peraStore</span>
+                 </Link>
+                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors">
+                    <FiX className="w-5 h-5" />
+                 </button>
+              </div>
+              
+              {/* Mobile Search */}
+              <div className="p-5 border-b border-gray-100 relative">
+                <form onSubmit={handleSearchSubmit} className="relative w-full">
+                  <input 
+                     type="text" 
+                     placeholder="Search..."
+                     value={searchQuery}
+                     onChange={(e) => {
+                       setSearchQuery(e.target.value);
+                       setShowSuggestions(true);
+                     }}
+                     onFocus={() => setShowSuggestions(true)}
+                     className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-slate-800 bg-slate-100 border border-transparent focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all"
+                  />
+                  <FiSearch className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                </form>
+
+                {/* Mobile Suggestions */}
+                <AnimatePresence>
+                  {showSuggestions && suggestions.length > 0 && isMobileMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-2 bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm"
+                    >
+                      {suggestions.map((product) => (
+                        <Link
+                          key={product.id}
+                          href={`/product/${product.id}`}
+                          onClick={() => {
+                            setShowSuggestions(false);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0"
+                        >
+                          <div className="w-8 h-8 bg-slate-100 rounded flex items-center justify-center p-1 shrink-0">
+                            {product.images && product.images[0] ? (
+                              <img src={product.images[0].startsWith('http') ? product.images[0] : `${IMAGE_BASE_URL}${product.images[0]}`} alt={product.name} className="w-full h-full object-contain" />
+                            ) : (
+                              <FiSearch className="w-3 h-3 text-slate-300" />
+                            )}
+                          </div>
+                          <span className="text-sm font-medium text-slate-700 truncate">{product.name}</span>
+                        </Link>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Drawer Navigation */}
+              <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                 {navLinks.map((link) => (
+                    <Link key={link.name}
+                       href={link.path}
+                       onClick={() => setIsMobileMenuOpen(false)}
+                       className={`block px-4 py-3 rounded-xl text-[15px] font-bold transition-colors ${currentPath === link.path ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                    >
+                       {link.name}
+                    </Link>
+                 ))}
+              </nav>
+              
+              {/* Drawer Footer / Auth */}
+              <div className="p-5 border-t border-gray-100 bg-slate-50">
+                 {isAuthenticated ? (
+                   <div>
+                     <div className="flex items-center gap-3 mb-5 px-2">
+                       <div className="w-12 h-12 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                         {userInitials}
+                       </div>
+                       <div className="flex-1 min-w-0">
+                         <p className="text-base font-bold text-slate-900 truncate">
+                           {user?.full_name || 'My Account'}
+                         </p>
+                         <p className="text-sm text-slate-500 truncate">{user?.email}</p>
+                       </div>
+                     </div>
+                     <div className="space-y-2">
+                       <Link href="/dashboard"
+                         onClick={() => setIsMobileMenuOpen(false)}
+                         className="w-full bg-white border border-gray-200 text-slate-800 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                       >
+                         <FiLayout className="w-4 h-4" /> Dashboard
+                       </Link>
+                       <button
+                         onClick={() => { logout(); setIsMobileMenuOpen(false); }}
+                         className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-red-50 hover:text-red-600 transition-colors"
+                       >
+                         <FiLogOut className="w-4 h-4" /> Log out
+                       </button>
+                     </div>
+                   </div>
+                 ) : (
+                   <div className="space-y-3">
+                     <Link href="/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-gray-200 text-slate-800 font-bold py-3.5 rounded-xl flex justify-center hover:bg-slate-50 transition-colors shadow-sm">
+                       Log In
+                     </Link>
+                     <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl flex justify-center hover:bg-slate-800 transition-colors shadow-md">
+                       Create Account
+                     </Link>
+                   </div>
+                 )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 };

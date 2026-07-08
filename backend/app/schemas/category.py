@@ -4,7 +4,7 @@ from typing import Optional
 class CategoryBase(BaseModel):
     name: str
     image: Optional[str] = None
-    slug: str
+    slug: Optional[str] = None
 
 class CategoryCreate(CategoryBase):
     pass

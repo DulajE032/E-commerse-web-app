@@ -1,26 +1,21 @@
+"use client";
 import React from 'react';
 
 const Loader = ({
-  size = 48,
-  dotSize = 8,
-  border = 3,
+  size = 'xl',
   className = '',
   label = 'Loading',
 }) => {
-  const gap = Number.isFinite(dotSize) ? dotSize : 8;
-  const gap2 = gap * 2;
+  // Map numeric sizes to closest DaisyUI-style classes if passed
+  const sizeClass = typeof size === 'number' 
+    ? (size <= 16 ? 'loading-xs' : size <= 24 ? 'loading-sm' : size <= 32 ? 'loading-md' : size <= 48 ? 'loading-lg' : 'loading-xl')
+    : `loading-${size}`;
 
   return (
     <span
       role="status"
       aria-label={label}
-      className={`loader ${className}`.trim()}
-      style={{
-        '--loader-size': `${size}px`,
-        '--loader-border': `${border}px`,
-        '--loader-gap': `${gap}px`,
-        '--loader-gap-2': `${gap2}px`,
-      }}
+      className={`loading loading-ring ${sizeClass} ${className}`.trim()}
     />
   );
 };
