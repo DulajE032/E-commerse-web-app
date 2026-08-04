@@ -41,6 +41,7 @@ class OrderResponse(BaseModel):
     items: list
     shipping_address: dict
     email: str
+    bank_slip_url: Optional[str] = None
     created_at: datetime
     client_secret: Optional[str] = None  # Only for card payments
 

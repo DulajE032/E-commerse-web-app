@@ -36,6 +36,7 @@ const LandingPageContent = () => {
   const [products, setProducts] = useState([]);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [stats, setStats] = useState({ products_count: 0, customers_count: 0, successful_orders: 0 });
 
   // Set default state to the URL value (Fixes the Refresh Amnesia bug)
   const [selectedCategory, setSelectedCategory] = useState(
@@ -81,6 +82,14 @@ const LandingPageContent = () => {
       .then((data) => setRecommendedProducts(data.products))
       .catch(console.error)
       .finally(() => setRecLoading(false));
+
+    // Fetch public stats
+    api
+      .getPublicStats()
+      .then((data) => {
+        if (data) setStats(data);
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -155,6 +164,56 @@ const LandingPageContent = () => {
 
       {/* Categories Section */}
       <Categories />
+
+      {/* Public Statistics Section */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-24 mb-16">
+        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-[2.5rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-indigo-950/30">
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
+          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-indigo-800/40">
+            {[
+              {
+                label: "Premium Products",
+                value: stats.products_count ?? 0,
+                suffix: "+",
+                desc: "High quality curated robot parts & items",
+              },
+              {
+                label: "Happy Customers",
+                value: stats.customers_count ?? 0,
+                suffix: "+",
+                desc: "Registered builders worldwide",
+              },
+              {
+                label: "Successful Orders",
+                value: stats.successful_orders ?? 0,
+                suffix: "+",
+                desc: "Safely delivered and verified",
+              },
+            ].map((stat, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: idx * 0.15 }}
+                className="pt-8 md:pt-0 md:px-6 flex flex-col items-center"
+              >
+                <span className="text-sm font-semibold tracking-wider text-indigo-300 uppercase mb-2">
+                  {stat.label}
+                </span>
+                <span className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-cyan-200 tracking-tight">
+                  {stat.value}{stat.suffix}
+                </span>
+                <p className="text-indigo-200/70 text-xs mt-3 max-w-[200px] leading-relaxed">
+                  {stat.desc}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* Trust Elements */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16 mb-24">
