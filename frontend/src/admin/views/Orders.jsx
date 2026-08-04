@@ -1,7 +1,8 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
-import { api } from '../../services/api';
+import { api, getImageUrl } from '../../services/api';
 import { useAuth } from '../../services/AuthContext';
+import { FiCheck, FiX, FiExternalLink } from 'react-icons/fi';
 
 const statusStyles = {
   pending: 'bg-yellow-500/10 text-yellow-300 border-yellow-500/20',
@@ -12,6 +13,9 @@ const statusStyles = {
   paid: 'bg-green-500/10 text-green-300 border-green-500/20',
   failed: 'bg-red-500/10 text-red-300 border-red-500/20',
   refunded: 'bg-purple-500/10 text-purple-300 border-purple-500/20',
+  slip_uploaded: 'bg-teal-500/10 text-teal-300 border-teal-500/20',
+  payment_rejected: 'bg-rose-500/10 text-rose-300 border-rose-500/20',
+  pending_verification: 'bg-orange-500/10 text-orange-300 border-orange-500/20',
 };
 
 const Orders = () => {
@@ -75,6 +79,21 @@ const Orders = () => {
     }
   };
 
+  const handleVerifyPayment = async (orderId, isApproved) => {
+    try {
+      const updatedOrder = await api.verifyPayment(orderId, isApproved, token);
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId
+            ? { ...order, status: updatedOrder.status, payment_status: updatedOrder.payment_status }
+            : order
+        )
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to verify payment.');
+    }
+  };
+
   if (!token) {
     return <div className="text-gray-300">Please log in as an admin to view orders.</div>;
   }
@@ -106,6 +125,8 @@ const Orders = () => {
           >
             <option value="all">All status</option>
             <option value="pending">Pending</option>
+            <option value="pending_verification">Pending Verification</option>
+            <option value="slip_uploaded">Slip Uploaded</option>
             <option value="confirmed">Confirmed</option>
             <option value="shipped">Shipped</option>
             <option value="delivered">Delivered</option>
@@ -124,8 +145,9 @@ const Orders = () => {
                 <th className="text-left px-6 py-4 font-medium">Total</th>
                 <th className="text-left px-6 py-4 font-medium">Status</th>
                 <th className="text-left px-6 py-4 font-medium">Payment</th>
+                <th className="text-left px-6 py-4 font-medium">Bank Slip</th>
                 <th className="text-left px-6 py-4 font-medium">Date</th>
-                <th className="text-left px-6 py-4 font-medium">Update</th>
+                <th className="text-left px-6 py-4 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -153,22 +175,60 @@ const Orders = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4">
+                    {order.bank_slip_url ? (
+                      <a
+                        href={getImageUrl(order.bank_slip_url)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-indigo-400 hover:text-indigo-300 font-semibold"
+                      >
+                        View Slip <FiExternalLink className="text-xs" />
+                      </a>
+                    ) : (
+                      <span className="text-gray-500 font-medium">—</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4">
-                    <select
-                      value={order.status}
-                      onChange={(event) =>
-                        handleStatusUpdate(order.id, event.target.value)
-                      }
-                      className="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="shipped">Shipped</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
+                    <div className="flex items-center gap-3">
+                      {order.payment_method === 'bank_transfer' &&
+                      (order.status === 'slip_uploaded' || order.status === 'pending_verification') ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleVerifyPayment(order.id, true)}
+                            title="Approve Payment"
+                            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded transition flex items-center justify-center"
+                          >
+                            <FiCheck className="text-sm" />
+                          </button>
+                          <button
+                            onClick={() => handleVerifyPayment(order.id, false)}
+                            title="Reject Payment"
+                            className="bg-red-600 hover:bg-red-700 text-white p-2 rounded transition flex items-center justify-center"
+                          >
+                            <FiX className="text-sm" />
+                          </button>
+                        </div>
+                      ) : null}
+
+                      <select
+                        value={order.status}
+                        onChange={(event) =>
+                          handleStatusUpdate(order.id, event.target.value)
+                        }
+                        className="bg-gray-900 border border-gray-700 text-gray-200 rounded-md px-3 py-2 text-xs"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="pending_verification">Pending Verification</option>
+                        <option value="slip_uploaded">Slip Uploaded</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
                   </td>
                 </tr>
               ))}

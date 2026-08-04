@@ -13,8 +13,9 @@ class Order(Base):
     
     # Payment info
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
-    payment_method: Mapped[str] = mapped_column(String(50), nullable=False)  # "card", "paypal", "cod"
+    payment_method: Mapped[str] = mapped_column(String(50), nullable=False)  # "card", "paypal", "cod", "bank_transfer"
     payment_status: Mapped[str] = mapped_column(String(50), default="pending")  # "pending", "paid", "failed", "refunded"
+    bank_slip_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     
     # Order info
     status: Mapped[str] = mapped_column(String(50), default="pending")  # "pending", "confirmed", "shipped", "delivered", "cancelled"

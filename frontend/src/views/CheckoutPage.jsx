@@ -1,15 +1,29 @@
 "use client";
-import React, { useMemo, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { FiArrowLeft, FiCheckCircle, FiCreditCard, FiLock, FiTruck } from 'react-icons/fi';
-import { CardElement, Elements, useElements, useStripe } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { api } from '../services/api';
-import { useAuth } from '../services/AuthContext';
-import { useCart } from '../services/CartContext';
+import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  FiArrowLeft,
+  FiCheckCircle,
+  FiCreditCard,
+  FiHome,
+  FiLock,
+  FiTruck,
+} from "react-icons/fi";
+import {
+  CardElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import { api } from "../services/api";
+import { useAuth } from "../services/AuthContext";
+import { useCart } from "../services/CartContext";
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
+);
 
 const CheckoutForm = () => {
   const navigate = useRouter();
@@ -19,18 +33,19 @@ const CheckoutForm = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
 
   const [formData, setFormData] = useState({
-    email: '',
-    phone: '',
-    firstName: '',
-    lastName: '',
-    street: '',
-    city: '',
-    state: '',
-    zipCode: '',
+    email: "",
+    phone: "",
+    firstName: "",
+    lastName: "",
+    street: "",
+    city: "",
+    state: "",
+    zipCode: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState('card');
+  const [paymentMethod, setPaymentMethod] = useState("card");
+  const [bankSlipFile, setBankSlipFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
 
   const shipping = useMemo(() => (cartTotal > 0 ? 15 : 0), [cartTotal]);
@@ -49,27 +64,24 @@ const CheckoutForm = () => {
     event.preventDefault();
 
     if (!token) {
-      setError('Please log in to place an order.');
+      setError("Please log in to place an order.");
       return;
     }
 
     if (!cartItems.length) {
-      setError('Your cart is empty.');
+      setError("Your cart is empty.");
       return;
     }
 
-    if (paymentMethod === 'paypal') {
-      setError('PayPal payments are not available yet.');
-      return;
-    }
-
-    if (paymentMethod === 'card' && (!stripe || !elements)) {
-      setError('Stripe is still loading. Please try again.');
-      return;
+    if (paymentMethod === "bank_transfer") {
+      if (!bankSlipFile) {
+        setError("Please select a payment slip to upload.");
+        return;
+      }
     }
 
     setIsProcessing(true);
-    setError('');
+    setError("");
 
     const orderData = {
       email: formData.email,
@@ -96,23 +108,34 @@ const CheckoutForm = () => {
     try {
       const response = await api.createOrder(orderData, token);
 
-      if (paymentMethod === 'card') {
+      if (paymentMethod === "bank_transfer") {
+        await api.uploadBankSlip(response.id, bankSlipFile, token);
+        setIsSuccess(true);
+        clearCart();
+        setIsProcessing(false);
+        return;
+      }
+
+      if (paymentMethod === "card") {
         const cardElement = elements.getElement(CardElement);
         if (!cardElement) {
-          throw new Error('Card details are missing.');
+          throw new Error("Card details are missing.");
         }
 
-        const paymentResult = await stripe.confirmCardPayment(response.client_secret, {
-          payment_method: {
-            card: cardElement,
-            billing_details: {
-              email: formData.email,
+        const paymentResult = await stripe.confirmCardPayment(
+          response.client_secret,
+          {
+            payment_method: {
+              card: cardElement,
+              billing_details: {
+                email: formData.email,
+              },
             },
           },
-        });
+        );
 
         if (paymentResult.error) {
-          setError(paymentResult.error.message || 'Payment failed.');
+          setError(paymentResult.error.message || "Payment failed.");
           setIsProcessing(false);
           return;
         }
@@ -123,12 +146,12 @@ const CheckoutForm = () => {
         return;
       }
 
-      if (paymentMethod === 'cod') {
+      if (paymentMethod === "cod") {
         setIsSuccess(true);
         clearCart();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to place order.');
+      setError(err instanceof Error ? err.message : "Failed to place order.");
     } finally {
       setIsProcessing(false);
     }
@@ -141,12 +164,16 @@ const CheckoutForm = () => {
           <div className="flex items-center justify-center mb-4 text-green-600">
             <FiCheckCircle className="w-14 h-14" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900">Order placed successfully</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Order placed successfully
+          </h2>
           <p className="text-gray-600 mt-3">
-            Thanks for your purchase. We will send you an update when your order ships.
+            Thanks for your purchase. We will send you an update when your order
+            ships.
           </p>
           <div className="mt-6 flex justify-center">
-            <Link href="/products"
+            <Link
+              href="/products"
               className="px-6 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors"
             >
               Continue shopping
@@ -184,7 +211,9 @@ const CheckoutForm = () => {
               <form onSubmit={handlePlaceOrder} className="space-y-6">
                 {/* Contact Information */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Contact Information
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="email"
@@ -209,7 +238,9 @@ const CheckoutForm = () => {
 
                 {/* Shipping Address */}
                 <div>
-                  <h3 className="text-lg font-semibold mb-4">Shipping Address</h3>
+                  <h3 className="text-lg font-semibold mb-4">
+                    Shipping Address
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                       type="text"
@@ -276,37 +307,37 @@ const CheckoutForm = () => {
                   <div className="space-y-4">
                     <label
                       className={`flex items-center p-4 border rounded-lg cursor-pointer ${
-                        paymentMethod === 'card'
-                          ? 'border-indigo-600 bg-indigo-50'
-                          : 'border-gray-200'
+                        paymentMethod === "card"
+                          ? "border-indigo-600 bg-indigo-50"
+                          : "border-gray-200"
                       }`}
                     >
                       <input
                         type="radio"
                         name="paymentMethod"
                         value="card"
-                        checked={paymentMethod === 'card'}
-                        onChange={() => setPaymentMethod('card')}
+                        checked={paymentMethod === "card"}
+                        onChange={() => setPaymentMethod("card")}
                         className="mr-3"
                       />
                       <FiCreditCard className="mr-2" />
                       Credit/Debit Card
                     </label>
 
-                    {paymentMethod === 'card' && (
+                    {paymentMethod === "card" && (
                       <div className="p-4 bg-gray-50 rounded-lg">
                         <CardElement
                           options={{
                             style: {
                               base: {
-                                fontSize: '16px',
-                                color: '#424770',
-                                '::placeholder': {
-                                  color: '#aab7c4',
+                                fontSize: "16px",
+                                color: "#424770",
+                                "::placeholder": {
+                                  color: "#aab7c4",
                                 },
                               },
                               invalid: {
-                                color: '#9e2146',
+                                color: "#9e2146",
                               },
                             },
                           }}
@@ -316,17 +347,63 @@ const CheckoutForm = () => {
 
                     <label
                       className={`flex items-center p-4 border rounded-lg cursor-pointer ${
-                        paymentMethod === 'cod'
-                          ? 'border-indigo-600 bg-indigo-50'
-                          : 'border-gray-200'
+                        paymentMethod === "bank_transfer"
+                          ? "border-indigo-600 bg-indigo-50"
+                          : "border-gray-200"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="bank_transfer"
+                        checked={paymentMethod === "bank_transfer"}
+                        onChange={() => setPaymentMethod("bank_transfer")}
+                        className="mr-3"
+                      />
+                      <FiHome className="mr-2" />
+                      Direct Bank Transfer
+                    </label>
+
+                    {paymentMethod === "bank_transfer" && (
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-3">
+                        <p className="text-sm font-semibold text-gray-700">
+                          Bank Details:
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Bank: Commercial Bank | Acc Name: E-Store PLC | Acc No: 1234 5678 9012
+                        </p>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Upload Payment Receipt / Slip (JPG, PNG, PDF):
+                          </label>
+                          <input
+                            type="file"
+                            accept=".jpg,.jpeg,.png,.pdf,.webp"
+                            onChange={(e) => setBankSlipFile(e.target.files[0] || null)}
+                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                          />
+                          {bankSlipFile && (
+                            <p className="text-xs text-green-600 mt-1 font-medium">
+                              Selected: {bankSlipFile.name}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    <label
+                      className={`flex items-center p-4 border rounded-lg cursor-pointer ${
+                        paymentMethod === "cod"
+                          ? "border-indigo-600 bg-indigo-50"
+                          : "border-gray-200"
                       }`}
                     >
                       <input
                         type="radio"
                         name="paymentMethod"
                         value="cod"
-                        checked={paymentMethod === 'cod'}
-                        onChange={() => setPaymentMethod('cod')}
+                        checked={paymentMethod === "cod"}
+                        onChange={() => setPaymentMethod("cod")}
                         className="mr-3"
                       />
                       <FiTruck className="mr-2" />
@@ -335,19 +412,20 @@ const CheckoutForm = () => {
 
                     <label
                       className={`flex items-center p-4 border rounded-lg cursor-pointer ${
-                        paymentMethod === 'paypal'
-                          ? 'border-indigo-600 bg-indigo-50'
-                          : 'border-gray-200'
+                        paymentMethod === "paypal"
+                          ? "border-indigo-600 bg-indigo-50"
+                          : "border-gray-200"
                       }`}
                     >
                       <input
                         type="radio"
                         name="paymentMethod"
                         value="paypal"
-                        checked={paymentMethod === 'paypal'}
-                        onChange={() => setPaymentMethod('paypal')}
+                        checked={paymentMethod === "paypal"}
+                        onChange={() => setPaymentMethod("paypal")}
                         className="mr-3"
                       />
+                      
                       PayPal
                     </label>
                   </div>
@@ -356,10 +434,12 @@ const CheckoutForm = () => {
                 {/* Place Order Button */}
                 <button
                   type="submit"
-                  disabled={isProcessing || (paymentMethod === 'card' && !stripe)}
+                  disabled={
+                    isProcessing || (paymentMethod === "card" && !stripe)
+                  }
                   className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {isProcessing ? 'Processing...' : 'Place Order'}
+                  {isProcessing ? "Processing..." : "Place Order"}
                 </button>
               </form>
             </div>
@@ -374,9 +454,13 @@ const CheckoutForm = () => {
                   <div key={item.id} className="flex justify-between">
                     <div>
                       <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-gray-600">Qty: {item.quantity}</p>
+                      <p className="text-sm text-gray-600">
+                        Qty: {item.quantity}
+                      </p>
                     </div>
-                    <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                    <p className="font-medium">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
                   </div>
                 ))}
                 <div className="border-t pt-4">

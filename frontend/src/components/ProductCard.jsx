@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image'; // Using Next.js Image component is highly recommended
 import { FiStar, FiPlus } from 'react-icons/fi';
 import { useWishlist } from '../services/WishlistContext';
+import { useCart } from '../services/CartContext';
 import wishlistIcon from '../assets/wishlist/wishlist.png';
 
 // A helper function to get the API URL, preventing hardcoded links
@@ -12,6 +13,7 @@ const getApiUrl = () => process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:800
 
 const ProductCard = ({ product }) => {
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { addToCart } = useCart();
 
   // Use the first available image, or a placeholder
   const imageUrl = product.images && product.images.length > 0
@@ -37,8 +39,8 @@ const ProductCard = ({ product }) => {
           <button
             onClick={(e) => {
               e.preventDefault(); // Prevent navigating when clicking the button
-              // Replace with your actual addToCart logic
-              alert(`Added ${product.name} to cart!`);
+              e.stopPropagation();
+              addToCart(product);
             }}
             className="absolute bottom-3 right-3 w-10 h-10 bg-white/70 backdrop-blur-sm rounded-full flex items-center justify-center text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white hover:text-orange-500 z-20"
           >

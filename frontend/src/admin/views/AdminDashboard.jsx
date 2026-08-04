@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from 'react';
-import { FiBox, FiDollarSign, FiShoppingBag, FiUsers } from 'react-icons/fi';
+import { FiBox, FiDollarSign, FiShoppingBag, FiUsers, FiStar, FiFileText } from 'react-icons/fi';
 import { api } from '../../services/api';
 import { useAuth } from '../../services/AuthContext';
 
@@ -88,13 +88,23 @@ const AdminDashboard = () => {
       value: stats.total_products,
       icon: <FiBox className="text-2xl text-orange-400" />,
     },
+    {
+      label: 'Reviews',
+      value: stats.total_reviews ?? 0,
+      icon: <FiStar className="text-2xl text-yellow-400" />,
+    },
+    {
+      label: 'Pending Transfers',
+      value: stats.pending_bank_transfers ?? 0,
+      icon: <FiFileText className="text-2xl text-teal-400" />,
+    },
   ];
 
   return (
     <div className="space-y-8">
       <div>
         <h2 className="text-2xl font-bold text-white mb-4">Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-6 gap-6">
           {summaryCards.map((card) => (
             <div
               key={card.label}

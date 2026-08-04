@@ -9,6 +9,7 @@ from app.db.session import get_db
 from app.models.order import Order
 from app.models.product import Product
 from app.models.user import User
+from app.models.review import Review
 
 router = APIRouter()
 
@@ -31,6 +32,11 @@ async def get_dashboard_stats(
     total_revenue = db.query(func.coalesce(func.sum(Order.total_amount), 0)).scalar() or 0
     total_customers = db.query(func.count(User.id)).scalar() or 0
     total_products = db.query(func.count(Product.id)).scalar() or 0
+    total_reviews = db.query(func.count(Review.id)).scalar() or 0
+    pending_bank_transfers = db.query(func.count(Order.id)).filter(
+        Order.payment_method == "bank_transfer",
+        Order.status.in_(["pending_verification", "slip_uploaded"])
+    ).scalar() or 0
 
     orders_by_status = dict(
         db.query(Order.status, func.count(Order.id)).group_by(Order.status).all()
@@ -73,6 +79,8 @@ async def get_dashboard_stats(
         "total_revenue": float(total_revenue),
         "total_customers": total_customers,
         "total_products": total_products,
+        "total_reviews": total_reviews,
+        "pending_bank_transfers": pending_bank_transfers,
         "orders_by_status": orders_by_status,
         "revenue_by_month": revenue_by_month,
         "recent_orders": recent_orders_data,

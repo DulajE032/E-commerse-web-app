@@ -200,14 +200,37 @@ export const api = {
   },
   
   updateOrderStatus: async (id, status, token) => {
-  return request(`${API_BASE}/orders/${id}/status?status=${status}`, {
-    method: 'PATCH',
-    headers: withAuthHeaders({}, token),
-  });
-},
+    return request(`${API_BASE}/orders/${id}/status?status=${status}`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  uploadBankSlip: async (orderId, file, token) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return request(`${API_BASE}/orders/${orderId}/upload-slip`, {
+      method: 'POST',
+      headers: withAuthHeaders({}, token),
+      body: formData,
+    });
+  },
+
+  verifyPayment: async (orderId, isApproved, token) => {
+    return request(`${API_BASE}/orders/${orderId}/verify-payment?is_approved=${isApproved}`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({}, token),
+    });
+  },
 
   getDashboardStats: async (token) => {
     return request(`${API_BASE}/dashboard/stats`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getUsers: async (token) => {
+    return request(`${API_BASE}/users`, {
       headers: withAuthHeaders({}, token),
     });
   },
@@ -301,6 +324,8 @@ export const api = {
       headers: withAuthHeaders({}, token),
     });
   },
-  
-  
+
+  getPublicStats: async () => {
+    return request(`${API_BASE}/stats/public`);
+  },
 };
