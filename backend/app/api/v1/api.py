@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     webhook,
     dashboard,
     wishlist,
+    stats,
 )
 
 api_router = APIRouter()
@@ -26,3 +27,4 @@ api_router.include_router(order.router, prefix="/orders", tags=["orders"])
 api_router.include_router(webhook.router, prefix="/webhooks", tags=["webhooks"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(wishlist.router, prefix="/wishlist", tags=["wishlist"])
+api_router.include_router(stats.router, prefix="/stats", tags=["stats"])

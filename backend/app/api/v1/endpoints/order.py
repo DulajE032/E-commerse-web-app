@@ -1,5 +1,5 @@
 import stripe
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from app.core.security import get_current_user, require_role
@@ -8,6 +8,7 @@ from app.db.session import get_db
 from app.models.order import Order
 from app.models.product import Product
 from app.schemas.order import CreateOrderRequest, OrderResponse
+from app.services.email_service import send_admin_new_order_email
 
 router = APIRouter()
 
@@ -18,6 +19,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 @router.post("/", response_model=OrderResponse)
 async def create_order(
     order_data: CreateOrderRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
@@ -107,14 +109,92 @@ async def create_order(
     # 4. For COD, mark as confirmed immediately
     if order_data.payment_method == "cod":
         new_order.status = "confirmed"
+    elif order_data.payment_method == "bank_transfer":
+        new_order.status = "pending_verification"
 
     db.commit()
     db.refresh(new_order)
+
+    # Send email notification to admin in background
+    background_tasks.add_task(
+        send_admin_new_order_email,
+        new_order.id,
+        new_order.email,
+        new_order.total_amount,
+    )
     
     # 5. Return order with client_secret (for card payments)
     response = OrderResponse.model_validate(new_order)
     response.client_secret = client_secret
     return response
+
+
+import os
+import uuid
+from fastapi import UploadFile, File
+
+ALLOWED_SLIP_EXTENSIONS = {".jpg", ".jpeg", ".png", ".pdf", ".webp"}
+SLIP_UPLOAD_DIR = os.path.join(os.getcwd(), "uploads", "slips")
+os.makedirs(SLIP_UPLOAD_DIR, exist_ok=True)
+
+
+@router.post("/{order_id}/upload-slip", response_model=OrderResponse)
+async def upload_bank_slip(
+    order_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Upload a bank transfer payment slip (Image or PDF)."""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    if current_user.role != "admin" and order.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized for this order")
+
+    ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
+    if ext not in ALLOWED_SLIP_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file format '{ext}'. Allowed formats: {', '.join(ALLOWED_SLIP_EXTENSIONS)}",
+        )
+
+    filename = f"slip_{order_id}_{uuid.uuid4().hex}{ext}"
+    file_path = os.path.join(SLIP_UPLOAD_DIR, filename)
+
+    content = await file.read()
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    order.bank_slip_url = f"/uploads/slips/{filename}"
+    order.status = "slip_uploaded"
+    db.commit()
+    db.refresh(order)
+    return order
+
+
+@router.patch("/{order_id}/verify-payment", response_model=OrderResponse)
+async def verify_payment(
+    order_id: int,
+    is_approved: bool,
+    db: Session = Depends(get_db),
+    admin_user=Depends(require_role("admin")),
+):
+    """Verify or reject a bank transfer order payment (admin endpoint)."""
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    if is_approved:
+        order.payment_status = "paid"
+        order.status = "confirmed"
+    else:
+        order.payment_status = "failed"
+        order.status = "payment_rejected"
+
+    db.commit()
+    db.refresh(order)
+    return order
 
 
 @router.get("/", response_model=list[OrderResponse])
