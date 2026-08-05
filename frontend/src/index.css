@@ -28,32 +28,16 @@ h1, h2, h3, h4, h5, h6 {
    ────────────────────────────────────────────── */
 .loader {
   aspect-ratio: 1;
-  padding: 10px;
-  box-sizing: border-box;
-  display: grid;
-  background: #fff;
-  filter: blur(5px) contrast(10);
-  mix-blend-mode: darken;
-}
-.loader:before,
-.loader:after {
-  content: "";
-  grid-area: 1/1;
-  background:
-    linear-gradient(#000 0 0) left,
-    linear-gradient(#000 0 0) right;
-  background-size: 20px 40px;
-  background-origin: content-box;
-  background-repeat: no-repeat;
-}
-.loader:after {
-  height: 20px;
-  width: 20px;
-  margin: auto 0;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
   border-radius: 50%;
-  background: #000;
-  animation: l10 1s infinite;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: loader-spin 0.8s linear infinite;
 }
-@keyframes l10 {
-  90%, 100% { transform: translate(300%); }
+
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
