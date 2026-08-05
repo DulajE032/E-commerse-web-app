@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { api } from '../../services/api';
+import { api, getImageUrl } from '../../services/api';
 import Loader from '../../components/Loader';
 
 const UpdateProduct = () => {
@@ -51,10 +51,10 @@ const UpdateProduct = () => {
       
       // Setup initial media preview if available
       if (productData.videos && productData.videos.length > 0) {
-        setImagePreview(`http://127.0.0.1:8000${productData.videos[0]}`);
+        setImagePreview(getImageUrl(productData.videos[0]));
         setFileType('video');
       } else if (productData.images && productData.images.length > 0) {
-        setImagePreview(`http://127.0.0.1:8000${productData.images[0]}`);
+        setImagePreview(getImageUrl(productData.images[0]));
         setFileType('image');
       }
       

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FiMinus, FiPlus, FiTrash2, FiArrowLeft, FiShoppingBag } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useCart } from '../services/CartContext';
+import { getImageUrl } from '../services/api';
 
 const CartPage = () => {
   const { cartItems, updateQuantity, removeFromCart, cartTotal } = useCart();
@@ -55,7 +56,7 @@ const CartPage = () => {
                 {/* Image */}
                 <div className="w-24 h-24 sm:w-32 sm:h-32 bg-[#F8F9FA] rounded-xl flex items-center justify-center p-2 shrink-0">
                   {item.images && item.images.length > 0 ? (
-                    <img src={`http://127.0.0.1:8000${item.images[0]}`} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
+                    <img src={getImageUrl(item.images[0])} alt={item.name} className="w-full h-full object-contain mix-blend-multiply" />
                   ) : (
                     <div className="text-gray-300 text-xs">No Image</div>
                   )}
