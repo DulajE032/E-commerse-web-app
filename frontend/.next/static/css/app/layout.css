@@ -255,6 +255,7 @@
     --color-gray-800: oklch(27.8% 0.033 256.848);
     --color-gray-900: oklch(21% 0.034 264.665);
     --color-gray-950: oklch(13% 0.028 261.692);
+    --color-black: #000;
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-sm: 24rem;
@@ -1538,6 +1539,12 @@
     background-color: color-mix(in srgb, oklch(76.9% 0.188 70.08) 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-amber-500) 10%, transparent);
+    }
+  }
+  .bg-black\/60 {
+    background-color: color-mix(in srgb, #000 60%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-black) 60%, transparent);
     }
   }
   .bg-blue-50 {
@@ -3392,6 +3399,11 @@
       text-align: left;
     }
   }
+  .md\:relative {
+    @media (width >= 48rem) {
+      position: relative;
+    }
+  }
   .md\:-top-14 {
     @media (width >= 48rem) {
       top: calc(var(--spacing) * -14);
@@ -3480,6 +3492,12 @@
   .md\:flex-none {
     @media (width >= 48rem) {
       flex: none;
+    }
+  }
+  .md\:translate-x-0 {
+    @media (width >= 48rem) {
+      --tw-translate-x: calc(var(--spacing) * 0);
+      translate: var(--tw-translate-x) var(--tw-translate-y);
     }
   }
   .md\:grid-cols-2 {
@@ -3875,34 +3893,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 .loader {
   aspect-ratio: 1;
-  padding: 10px;
-  box-sizing: border-box;
-  display: grid;
-  background: #fff;
-  filter: blur(5px) contrast(10);
-  mix-blend-mode: darken;
-}
-.loader:before,
-.loader:after {
-  content: "";
-  grid-area: 1/1;
-  background: linear-gradient(#000 0 0) left,
-    linear-gradient(#000 0 0) right;
-  background-size: 20px 40px;
-  background-origin: content-box;
-  background-repeat: no-repeat;
-}
-.loader:after {
-  height: 20px;
-  width: 20px;
-  margin: auto 0;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
   border-radius: 50%;
-  background: #000;
-  animation: l10 1s infinite;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: loader-spin 0.8s linear infinite;
 }
-@keyframes l10 {
-  90%, 100% {
-    transform: translate(300%);
+@keyframes loader-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 @property --tw-translate-x {
