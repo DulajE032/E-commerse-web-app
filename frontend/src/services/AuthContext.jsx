@@ -95,8 +95,9 @@ export const AuthProvider = ({ children }) => {
       adminLogin,
       signup,
       logout,
+      establishSession,
     }),
-    [token, user, isInitializing, login, adminLogin, signup, logout],
+    [token, user, isInitializing, login, adminLogin, signup, logout, establishSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
