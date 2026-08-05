@@ -103,7 +103,7 @@ export const api = {
   },
 
   createProduct: async (productData, token) => {
-    return request(`${API_BASE}/products`, {
+    return request(`${API_BASE}/products/`, {
       method: 'POST',
       headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
       body: JSON.stringify(productData),
@@ -127,7 +127,7 @@ export const api = {
 
   // Categories
   getCategories: async () => {
-    return request(`${API_BASE}/categories`);
+    return request(`${API_BASE}/categories/`);
   },
 
   // Upload
@@ -178,7 +178,7 @@ export const api = {
    }
  
    const qs = params.toString();
-   return request(`${API_BASE}/products${qs ? `?${qs}` : ''}`);
+   return request(`${API_BASE}/products/${qs ? `?${qs}` : ''}`);
  },
  
   getProductFilters: async () => {
@@ -187,7 +187,7 @@ export const api = {
   
   //order
   createOrder: async (orderData, token) => {
-    return request(`${API_BASE}/orders`, {
+    return request(`${API_BASE}/orders/`, {
       method: 'POST',
       headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
       body: JSON.stringify(orderData),
@@ -195,7 +195,7 @@ export const api = {
   },
   
   getOrders: async (token) => {
-    return request(`${API_BASE}/orders`, {
+    return request(`${API_BASE}/orders/`, {
       headers: withAuthHeaders({}, token),
     }
     );
@@ -245,14 +245,14 @@ export const api = {
   },
 
   getUsers: async (token) => {
-    return request(`${API_BASE}/users`, {
+    return request(`${API_BASE}/users/`, {
       headers: withAuthHeaders({}, token),
     });
   },
 
   // Wishlist — User-facing
   getWishlist: async (token) => {
-    return request(`${API_BASE}/wishlist`, {
+    return request(`${API_BASE}/wishlist/`, {
       headers: withAuthHeaders({}, token),
     });
   },
@@ -264,7 +264,7 @@ export const api = {
   },
 
   addToWishlist: async (productId, token) => {
-    return request(`${API_BASE}/wishlist`, {
+    return request(`${API_BASE}/wishlist/`, {
       method: 'POST',
       headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
       body: JSON.stringify({ product_id: productId }),
@@ -320,7 +320,7 @@ export const api = {
     });
   },
   createCategory: async (categoryData, token) => {
-    const response = await fetch(`${API_BASE}/categories`, {
+    const response = await fetch(`${API_BASE}/categories/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
