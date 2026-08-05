@@ -46,6 +46,16 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/visual-search/page.js"
+    ],
+    "/(public)/product/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/product/[id]/page.js"
+    ],
+    "/(public)/checkout/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/checkout/page.js"
     ]
   }
 }
