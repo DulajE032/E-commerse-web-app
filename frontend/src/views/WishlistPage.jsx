@@ -8,7 +8,7 @@ import { useWishlist } from '../services/WishlistContext';
 import { useCart } from '../services/CartContext';
 import { useAuth } from '../services/AuthContext';
 import { getImageUrl } from '../services/api';
-import Loader from '../components/Loader';
+
 import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
 
 const WishlistPage = () => {
@@ -82,7 +82,7 @@ const WishlistPage = () => {
         {/* Content */}
         {showLoader ? (
           <div className="flex justify-center py-20">
-            <Loader size={64} dotSize={16} border={8} />
+            <div className="loader" style={{ width: 64 }} />
           </div>
         ) : wishlistItems.length === 0 ? (
           <motion.div

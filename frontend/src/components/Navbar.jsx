@@ -92,7 +92,7 @@ const Navbar = () => {
 
   return (
     <>
-      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'shadow-[0_4px_20px_-10px_rgba(0,0,0,0.1)]' : ''}`}>
+      <header className="sticky top-0 z-50 w-full shadow-md transition-all duration-300">
         {/* Top Announcement Bar */}
         <AnimatePresence>
           {isAnnouncementVisible && (
@@ -144,11 +144,9 @@ const Navbar = () => {
               {navLinks.map((link) => (
                 <Link key={link.name} 
                   href={link.path} 
-                  className={`relative py-2 group transition-colors hover:text-slate-900 ${currentPath === link.path ? 'text-slate-900' : ''}`}
+                  className={`relative py-2 px-3 rounded-lg transition-all duration-200 hover:text-slate-900 hover:bg-slate-100 hover:shadow-sm ${currentPath === link.path ? 'text-slate-900 bg-slate-100 shadow-sm' : ''}`}
                 >
                   {link.name}
-                  {/* Hover Underline */}
-                  <span className={`absolute left-0 bottom-0 w-full h-[2px] bg-slate-900 origin-left transition-transform duration-300 ease-out ${currentPath === link.path ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
                 </Link>
               ))}
             </nav>

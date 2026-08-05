@@ -3,9 +3,10 @@ import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../services/AuthContext';
 
+
 const RouteLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-700">
-    Checking your session...
+  <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="loader" style={{ width: 80 }} />
   </div>
 );
 

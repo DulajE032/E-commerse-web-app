@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FiShoppingCart, FiShield, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 import { motion } from 'framer-motion';
-import Loader from '../components/Loader';
+
 import { GoogleLogin } from '@react-oauth/google';
 import { api } from '../services/api';
 
@@ -225,7 +225,7 @@ const SignupPage = () => {
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
-                      <Loader size={18} dotSize={6} border={3} />
+                      <div className="loader" style={{ width: 20 }} />
                       Creating Account...
                     </span>
                   ) : (
