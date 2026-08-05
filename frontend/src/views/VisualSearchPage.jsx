@@ -2,10 +2,8 @@
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { FiImage, FiSearch, FiSend, FiX, FiUser } from 'react-icons/fi';
-import { api } from '../services/api';
+import { api, IMAGE_BASE_URL } from '../services/api';
 import Loader from '../components/Loader';
-
-const BACKEND_BASE = 'http://127.0.0.1:8000';
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400';
 
 const VisualSearchPage = () => {
@@ -22,7 +20,7 @@ const VisualSearchPage = () => {
   const getImageUrl = (product) => {
     if (!product?.images?.length) return PLACEHOLDER_IMAGE;
     const img = product.images[0];
-    return img.startsWith('http') ? img : `${BACKEND_BASE}${img}`;
+    return img.startsWith('http') ? img : `${IMAGE_BASE_URL}${img}`;
   };
 
   const hydrateResults = async (rawResults) => {

@@ -2,20 +2,42 @@
 import React from 'react';
 
 const Loader = ({
-  size = 'xl',
+  size = 'md',
   className = '',
-  label = 'Loading',
+  label = 'Loading...',
 }) => {
-  // Map numeric sizes to closest DaisyUI-style classes if passed
-  const sizeClass = typeof size === 'number' 
-    ? (size <= 16 ? 'loading-xs' : size <= 24 ? 'loading-sm' : size <= 32 ? 'loading-md' : size <= 48 ? 'loading-lg' : 'loading-xl')
-    : `loading-${size}`;
+  // Map size prop to height/width classes
+  let sizeStyle = "h-4 w-24"; // default text placeholder
+  
+  if (typeof size === 'number') {
+    sizeStyle = `h-${Math.ceil(size / 4)} w-${Math.ceil(size / 4)} rounded-full`;
+  } else {
+    switch (size) {
+      case 'xs':
+        sizeStyle = "h-3 w-12 rounded";
+        break;
+      case 'sm':
+        sizeStyle = "h-4 w-16 rounded";
+        break;
+      case 'md':
+        sizeStyle = "h-5 w-24 rounded";
+        break;
+      case 'lg':
+        sizeStyle = "h-6 w-32 rounded";
+        break;
+      case 'xl':
+        sizeStyle = "h-12 w-full max-w-md rounded-xl";
+        break;
+      default:
+        sizeStyle = "h-4 w-24 rounded";
+    }
+  }
 
   return (
-    <span
-      role="status"
-      aria-label={label}
-      className={`loading loading-ring ${sizeClass} ${className}`.trim()}
+    <div 
+      role="status" 
+      aria-label={label} 
+      className={`animate-pulse bg-gray-200 dark:bg-gray-700 ${sizeStyle} ${className}`.trim()}
     />
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { FiTrendingUp, FiUsers, FiMail, FiHeart, FiPackage, FiAlertTriangle, FiCheckCircle, FiChevronDown, FiChevronUp, FiSearch, FiSend } from 'react-icons/fi';
-import { api } from '../../services/api';
+import { api, getImageUrl } from '../../services/api';
 import { useAuth } from '../../services/AuthContext';
 
 const WishlistAdmin = () => {
@@ -246,7 +246,7 @@ const WishlistAdmin = () => {
                             <div className="flex items-center gap-3">
                               {item.product.images && item.product.images.length > 0 ? (
                                 <img
-                                  src={`http://127.0.0.1:8000${item.product.images[0]}`}
+                                  src={getImageUrl(item.product.images[0])}
                                   alt=""
                                   className="w-10 h-10 object-contain rounded-lg bg-gray-600/30 p-1"
                                 />
@@ -345,7 +345,7 @@ const WishlistAdmin = () => {
                             <div key={item.id} className="flex items-center gap-4 bg-gray-700/30 rounded-lg p-3">
                               {item.product.images && item.product.images.length > 0 ? (
                                 <img
-                                  src={`http://127.0.0.1:8000${item.product.images[0]}`}
+                                  src={getImageUrl(item.product.images[0])}
                                   alt=""
                                   className="w-12 h-12 object-contain rounded-lg bg-gray-600/30 p-1 shrink-0"
                                 />
@@ -408,7 +408,7 @@ const WishlistAdmin = () => {
                     <div className="flex items-center gap-4">
                       {item.product.images && item.product.images.length > 0 ? (
                         <img
-                          src={`http://127.0.0.1:8000${item.product.images[0]}`}
+                          src={getImageUrl(item.product.images[0])}
                           alt=""
                           className="w-12 h-12 object-contain rounded-lg bg-gray-600/30 p-1 shrink-0"
                         />

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useWishlist } from '../services/WishlistContext';
 import { useCart } from '../services/CartContext';
 import { useAuth } from '../services/AuthContext';
+import { getImageUrl } from '../services/api';
 import Loader from '../components/Loader';
 import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
 
@@ -125,7 +126,7 @@ const WishlistPage = () => {
                     >
                       {product.images && product.images.length > 0 ? (
                         <img
-                          src={`http://127.0.0.1:8000${product.images[0]}`}
+                          src={getImageUrl(product.images[0])}
                           alt={product.name}
                           className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
                         />
