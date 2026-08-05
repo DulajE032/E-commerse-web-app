@@ -47,6 +47,22 @@ const SignupPage = () => {
     e.preventDefault();
     setError('');
     
+    if (!formData.fullName.trim() || formData.fullName.trim().length < 3) {
+      setError('Full name must be at least 3 characters long.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!isPasswordStrong) {
+      setError('Password does not meet the strength requirements.');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;

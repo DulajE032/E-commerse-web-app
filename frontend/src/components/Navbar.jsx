@@ -11,6 +11,7 @@ import { useWishlist } from '../services/WishlistContext';
 import { useAuth } from '../services/AuthContext';
 import { api, IMAGE_BASE_URL } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import Logo from './Logo';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,14 +130,7 @@ const Navbar = () => {
                >
                   <FiMenu className="w-6 h-6" />
                </button>
-               <Link href="/" className="flex items-center gap-2.5 group">
-                  <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                    <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain invert brightness-0" />
-                  </div>
-                  <span className="text-2xl font-black-ops text-slate-900 tracking-tight hidden sm:block group-hover:text-blue-600 transition-colors">
-                    PERA STORE
-                  </span>
-               </Link>
+               <Logo />
             </div>
 
             {/* Center: Desktop Navigation */}
@@ -346,12 +340,7 @@ const Navbar = () => {
             >
               {/* Drawer Header */}
               <div className="p-5 flex items-center justify-between border-b border-gray-100 bg-slate-50/50">
-                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center">
-                      <img src="/logo.png" alt="Logo" className="w-4 h-4 object-contain invert brightness-0" />
-                    </div>
-                    <span className="text-xl font-extrabold text-slate-900">peraStore</span>
-                 </Link>
+                 <Logo textClassName="!text-xl" />
                  <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors">
                     <FiX className="w-5 h-5" />
                  </button>

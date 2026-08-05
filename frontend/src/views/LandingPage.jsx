@@ -109,40 +109,42 @@ const LandingPageContent = () => {
 
   return (
     <div className="pb-20 bg-gray-50">
-      <section className="min-h-screen bg-slate-50 p-4 md:p-10 flex justify-center">
-        {/* 2. The White Card Container */}
-        <div className="bg-white w-full max-w-5xl rounded-[2rem] pt-16 pb-10 px-6 flex flex-col items-center text-center shadow-sm">
-          {/* 3. The Typography */}
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-2">
+      <section className="relative min-h-[75vh] md:min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Background Image and Overlays */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={heroImage}
+            alt="Robot Parts Hero"
+            fill
+            priority
+            className="object-cover object-center"
+          />
+          {/* Gradient overlay to ensure text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/50 to-slate-950/20" />
+        </div>
+
+        {/* Hero Content Overlay */}
+        <div className="relative z-10 w-full max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center text-white">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 drop-shadow-lg uppercase text-slate-100">
             Robot Parts
           </h1>
-          <p className="text-gray-500 text-lg mb-8 max-w-md">
+          <p className="text-slate-200 text-lg md:text-2xl mb-10 max-w-2xl font-light drop-shadow-md leading-relaxed">
             Premium components. Best Prices for Builders.
           </p>
 
-          {/* 4. The Button Group */}
-          <div className="flex gap-4 mb-16">
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
             <Link
               href="/products"
-              className="bg-gray-900 text-white px-8 py-2.5 rounded-full font-semibold hover:bg-gray-800 transition"
+              className="bg-white text-slate-900 px-10 py-3.5 rounded-full font-bold hover:bg-slate-100 transition shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 duration-200 text-center"
             >
               Explore shop
             </Link>
             <Link
               href="/visual-search"
-              className="border border-gray-300 text-gray-900 px-8 py-2.5 rounded-full font-semibold hover:bg-gray-50 transition"
+              className="bg-slate-900/40 backdrop-blur-md border border-white/30 text-white px-10 py-3.5 rounded-full font-bold hover:bg-white/20 transition shadow-lg transform hover:-translate-y-0.5 duration-200 text-center"
             >
               Visual Search
             </Link>
-          </div>
-
-          {/* 5. The Image */}
-          <div className="w-full max-w-2xl flex justify-center">
-            <img
-              src={heroImage.src || heroImage}
-              alt="Premium Tech"
-              className="w-full object-contain"
-            />
           </div>
         </div>
       </section>

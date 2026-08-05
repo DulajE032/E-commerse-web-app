@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag, FiHeart, FiGrid, FiUsers, FiMenu, FiX } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
+import Logo from '../components/Logo';
 
 const AdminLayout = ({ children }) => {
   const router = useRouter();
@@ -32,7 +33,7 @@ const AdminLayout = ({ children }) => {
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         <div className="p-6 text-2xl font-bold border-b border-gray-700 flex items-center justify-between">
-          <span>Admin Panel</span>
+          <Logo invert={true} textClassName="!text-lg" />
           <button
             onClick={() => setIsSidebarOpen(false)}
             className="md:hidden text-gray-400 hover:text-white p-1 focus:outline-none"
