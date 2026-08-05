@@ -41,5 +41,10 @@ class Settings:
     GITHUB_REPO_OWNER = os.getenv("GITHUB_REPO_OWNER", "")
     GITHUB_REPO_NAME = os.getenv("GITHUB_REPO_NAME", "")
 
+    # Google AI Credentials
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
+
+
 
 settings = Settings()
