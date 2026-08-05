@@ -263,7 +263,7 @@ const SignupPage = () => {
                   text="signup_with"
                   shape="rectangular"
                   theme="outline"
-                  width="100%"
+                  width={350}
                 />
               </div>
 
