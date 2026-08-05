@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { useAuth } from '../services/AuthContext';
-import Loader from '../components/Loader';
+
 
 const AdminLoginPage = () => {
   const navigate = useRouter();
@@ -96,7 +96,7 @@ const AdminLoginPage = () => {
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
-                <Loader size={16} dotSize={6} border={3} />
+                <div className="loader" style={{ width: 18 }} />
                 Signing in...
               </span>
             ) : (

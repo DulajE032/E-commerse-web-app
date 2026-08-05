@@ -23,46 +23,37 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), var(--font-inter), sans-serif;
 }
 
-.loading {
-  display: inline-block;
-  aspect-ratio: 1 / 1;
-  width: 1.5rem;
-  background-color: currentColor;
-  mask-size: 100%;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z' opacity='.25'/%3E%3Cpath d='M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.75s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
+/* ──────────────────────────────────────────────
+   Loader Animation
+   ────────────────────────────────────────────── */
+.loader {
+  aspect-ratio: 1;
+  padding: 10px;
+  box-sizing: border-box;
+  display: grid;
+  background: #fff;
+  filter: blur(5px) contrast(10);
+  mix-blend-mode: darken;
 }
-
-.loading-ring {
-  /* Inherits mask-image from .loading for simplicity in this implementation */
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  background:
+    linear-gradient(#000 0 0) left,
+    linear-gradient(#000 0 0) right;
+  background-size: 20px 40px;
+  background-origin: content-box;
+  background-repeat: no-repeat;
 }
-
-.loading-xl {
-  width: 4rem;
+.loader:after {
+  height: 20px;
+  width: 20px;
+  margin: auto 0;
+  border-radius: 50%;
+  background: #000;
+  animation: l10 1s infinite;
 }
-
-.loading-lg {
-  width: 3rem;
-}
-
-.loading-md {
-  width: 2rem;
-}
-
-.loading-sm {
-  width: 1.25rem;
-}
-
-.loading-xs {
-  width: 1rem;
-}
-
-@keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+@keyframes l10 {
+  90%, 100% { transform: translate(300%); }
 }

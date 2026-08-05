@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { FiImage, FiSearch, FiSend, FiX, FiUser } from 'react-icons/fi';
 import { api, IMAGE_BASE_URL } from '../services/api';
-import Loader from '../components/Loader';
+
 const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/400';
 
 const VisualSearchPage = () => {
@@ -159,7 +159,7 @@ const VisualSearchPage = () => {
                 AI
               </div>
               <div className="bg-white rounded-2xl rounded-tl-none py-6 px-10 shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-gray-100 flex items-center justify-center min-w-[120px]">
-                <Loader size={40} dotSize={10} border={4} />
+                <div className="loader" style={{ width: 40 }} />
               </div>
             </div>
           )}

@@ -19,7 +19,7 @@ import {
 import { motion } from "framer-motion";
 import { api, getImageUrl } from "../services/api";
 import { useCart } from "../services/CartContext";
-import Loader from "../components/Loader";
+
 import heroImage from "../assets/hero.jpg";
 import TechCapsuleCarousel from "../components/TechCapsuleCarousel";
 import Categories from "../components/Categories";
@@ -309,7 +309,7 @@ const LandingPageContent = () => {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {loading ? (
               <div className="col-span-full flex justify-center py-16">
-                <Loader size={64} dotSize={16} border={8} />
+                <div className="loader" style={{ width: 64 }} />
               </div>
             ) : products.length === 0 ? (
               <div className="col-span-full py-20 text-center flex flex-col items-center">

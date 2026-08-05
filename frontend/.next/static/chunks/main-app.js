@@ -1879,4 +1879,4 @@ eval(__webpack_require__.ts("\nObject.defineProperty(exports, \"__esModule\", ({
 /******/ var __webpack_exports__ = (__webpack_exec__("(app-pages-browser)/./node_modules/next/dist/compiled/@next/react-refresh-utils/dist/runtime.js"), __webpack_exec__("(app-pages-browser)/./node_modules/next/dist/client/app-next-dev.js"));
 /******/ _N_E = __webpack_exports__;
 /******/ }
-]);        
+]);

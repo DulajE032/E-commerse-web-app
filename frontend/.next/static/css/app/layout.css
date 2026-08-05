@@ -850,9 +850,6 @@
   .h-96 {
     height: calc(var(--spacing) * 96);
   }
-  .h-\[2px\] {
-    height: 2px;
-  }
   .h-\[18px\] {
     height: 18px;
   }
@@ -1063,9 +1060,6 @@
   .border-collapse {
     border-collapse: collapse;
   }
-  .origin-left {
-    transform-origin: 0;
-  }
   .origin-top-right {
     transform-origin: 100% 0;
   }
@@ -1103,14 +1097,6 @@
     --tw-scale-x: 110%;
     --tw-scale-y: 110%;
     --tw-scale-z: 110%;
-    scale: var(--tw-scale-x) var(--tw-scale-y);
-  }
-  .scale-x-0 {
-    --tw-scale-x: 0%;
-    scale: var(--tw-scale-x) var(--tw-scale-y);
-  }
-  .scale-x-100 {
-    --tw-scale-x: 100%;
     scale: var(--tw-scale-x) var(--tw-scale-y);
   }
   .scale-\[2\.5\] {
@@ -2428,10 +2414,6 @@
     --tw-shadow: 0 4px 15px var(--tw-shadow-color, rgba(0,0,0,0.03));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
-  .shadow-\[0_4px_20px_-10px_rgba\(0\,0\,0\,0\.1\)\] {
-    --tw-shadow: 0 4px 20px -10px var(--tw-shadow-color, rgba(0,0,0,0.1));
-    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-  }
   .shadow-\[0_4px_20px_rgba\(0\,0\,0\,0\.08\)\] {
     --tw-shadow: 0 4px 20px var(--tw-shadow-color, rgba(0,0,0,0.08));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -2618,14 +2600,6 @@
         --tw-scale-x: 110%;
         --tw-scale-y: 110%;
         --tw-scale-z: 110%;
-        scale: var(--tw-scale-x) var(--tw-scale-y);
-      }
-    }
-  }
-  .group-hover\:scale-x-100 {
-    &:is(:where(.group):hover *) {
-      @media (hover: hover) {
-        --tw-scale-x: 100%;
         scale: var(--tw-scale-x) var(--tw-scale-y);
       }
     }
@@ -3196,6 +3170,14 @@
     &:hover {
       @media (hover: hover) {
         --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+        box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+      }
+    }
+  }
+  .hover\:shadow-sm {
+    &:hover {
+      @media (hover: hover) {
+        --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
         box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
       }
     }
@@ -3882,11 +3864,6 @@
       grid-template-columns: repeat(6, minmax(0, 1fr));
     }
   }
-  .dark\:bg-gray-700 {
-    @media (prefers-color-scheme: dark) {
-      background-color: var(--color-gray-700);
-    }
-  }
 }
 body {
   font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -3896,37 +3873,36 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading), var(--font-inter), sans-serif;
 }
-.loading {
-  display: inline-block;
-  aspect-ratio: 1 / 1;
-  width: 1.5rem;
-  background-color: currentColor;
-  mask-size: 100%;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12,2A10,10,0,1,0,22,12,10,10,0,0,0,12,2Zm0,18a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z' opacity='.25'/%3E%3Cpath d='M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 12 12' to='360 12 12' dur='0.75s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E");
+.loader {
+  aspect-ratio: 1;
+  padding: 10px;
+  box-sizing: border-box;
+  display: grid;
+  background: #fff;
+  filter: blur(5px) contrast(10);
+  mix-blend-mode: darken;
 }
-.loading-xl {
-  width: 4rem;
+.loader:before,
+.loader:after {
+  content: "";
+  grid-area: 1/1;
+  background: linear-gradient(#000 0 0) left,
+    linear-gradient(#000 0 0) right;
+  background-size: 20px 40px;
+  background-origin: content-box;
+  background-repeat: no-repeat;
 }
-.loading-lg {
-  width: 3rem;
+.loader:after {
+  height: 20px;
+  width: 20px;
+  margin: auto 0;
+  border-radius: 50%;
+  background: #000;
+  animation: l10 1s infinite;
 }
-.loading-md {
-  width: 2rem;
-}
-.loading-sm {
-  width: 1.25rem;
-}
-.loading-xs {
-  width: 1rem;
-}
-@keyframes rotation {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
+@keyframes l10 {
+  90%, 100% {
+    transform: translate(300%);
   }
 }
 @property --tw-translate-x {
