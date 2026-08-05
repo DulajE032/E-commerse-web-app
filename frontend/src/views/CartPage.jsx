@@ -9,7 +9,7 @@ import { getImageUrl } from '../services/api';
 
 const CartPage = () => {
   const { cartItems, updateQuantity, removeFromCart, cartTotal } = useCart();
-  const navigate = useRouter();
+  const router = useRouter();
 
   const shipping = cartTotal > 0 ? 15.00 : 0;
   const tax = cartTotal * 0.08;
@@ -35,7 +35,7 @@ const CartPage = () => {
       <div className="max-w-7xl mx-auto px-4 md:px-8">
         
         <div className="flex items-center gap-4 mb-8">
-          <button onClick={() => navigate(-1)} className="p-2 bg-white rounded-full shadow-sm hover:text-orange-500 transition-colors">
+          <button onClick={() => router.back()} className="p-2 bg-white rounded-full shadow-sm hover:text-orange-500 transition-colors">
             <FiArrowLeft className="w-5 h-5" />
           </button>
           <h1 className="text-3xl font-extrabold text-gray-900">Shopping Cart</h1>
@@ -72,25 +72,26 @@ const CartPage = () => {
                     <span className="text-xl font-extrabold text-[#114B43]">${item.price.toFixed(2)}</span>
                     <button 
                       onClick={() => removeFromCart(item.id)}
-                      className="text-red-400 hover:text-red-600 transition-colors flex items-center gap-1 text-sm font-medium"
+                      className="text-gray-400 hover:text-red-500 transition-colors p-2"
+                      title="Remove item"
                     >
-                      <FiTrash2 /> Remove
+                      <FiTrash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
 
                 {/* Quantity Controls */}
-                <div className="flex items-center bg-gray-50 rounded-full border border-gray-200 shrink-0">
+                <div className="flex items-center gap-3 bg-gray-50 rounded-full px-4 py-2 border border-gray-200">
                   <button 
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors"
+                    className="text-gray-500 hover:text-gray-900 transition-colors"
                   >
                     <FiMinus className="w-4 h-4" />
                   </button>
-                  <span className="w-8 text-center font-bold text-gray-900 text-sm">{item.quantity}</span>
+                  <span className="font-bold text-gray-900 w-6 text-center">{item.quantity}</span>
                   <button 
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-900 transition-colors"
+                    className="text-gray-500 hover:text-gray-900 transition-colors"
                   >
                     <FiPlus className="w-4 h-4" />
                   </button>
@@ -100,40 +101,34 @@ const CartPage = () => {
           </div>
 
           {/* Order Summary */}
-          <div className="w-full lg:w-96 shrink-0">
-            <div className="bg-white rounded-3xl p-6 md:p-8 shadow-md border border-gray-100 sticky top-24">
-              <h3 className="text-xl font-extrabold text-gray-900 mb-6">Order Summary</h3>
-              
-              <div className="space-y-4 text-sm mb-6">
+          <div className="w-full lg:w-96">
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 sticky top-24">
+              <h2 className="text-xl font-extrabold text-gray-900 mb-6">Order Summary</h2>
+
+              <div className="space-y-4 mb-6 text-sm">
                 <div className="flex justify-between text-gray-600">
-                  <span>Subtotal ({cartItems.length} items)</span>
-                  <span className="font-medium text-gray-900">${cartTotal.toFixed(2)}</span>
+                  <span>Subtotal</span>
+                  <span className="font-bold text-gray-900">${cartTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Estimated Shipping</span>
-                  <span className="font-medium text-gray-900">${shipping.toFixed(2)}</span>
+                  <span className="font-bold text-gray-900">${shipping.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Estimated Tax</span>
-                  <span className="font-medium text-gray-900">${tax.toFixed(2)}</span>
+                  <span className="font-bold text-gray-900">${tax.toFixed(2)}</span>
+                </div>
+                <div className="border-t border-gray-100 pt-4 flex justify-between text-base font-extrabold text-gray-900">
+                  <span>Total</span>
+                  <span className="text-[#114B43] text-xl">${total.toFixed(2)}</span>
                 </div>
               </div>
 
-              <div className="border-t border-gray-200 pt-4 mb-8">
-                <div className="flex justify-between items-end">
-                  <span className="text-gray-900 font-bold">Total</span>
-                  <span className="text-3xl font-extrabold text-[#114B43]">${total.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <Link href="/checkout"
-                className="w-full bg-orange-500 text-white py-4 rounded-xl font-bold text-lg hover:bg-orange-600 transition-colors flex items-center justify-center shadow-md hover:shadow-lg"
+              <Link 
+                href="/checkout" 
+                className="w-full bg-[#114B43] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-opacity-95 transition-all shadow-md block text-center"
               >
                 Proceed to Checkout
-              </Link>
-              
-              <Link href="/products" className="block text-center mt-4 text-sm text-gray-500 hover:text-orange-500 font-medium transition-colors">
-                Continue Shopping
               </Link>
             </div>
           </div>

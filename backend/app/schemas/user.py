@@ -40,3 +40,11 @@ class UserRead(UserBase):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+# Add this new schema at the bottom of the file
+class GoogleAuthRequest(BaseModel):
+    """The frontend sends us the ID token Google gave it."""
+    id_token: str
+
+    model_config = ConfigDict(extra="forbid")

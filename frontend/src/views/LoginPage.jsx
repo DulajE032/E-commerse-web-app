@@ -6,10 +6,12 @@ import { FiShoppingCart, FiShield, FiArrowRight } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 import { motion } from 'framer-motion';
 import Loader from '../components/Loader';
+import { GoogleLogin } from '@react-oauth/google';
+import { api } from '../services/api';
 
 const LoginPage = () => {
-  const navigate = useRouter();
-  const { login } = useAuth();
+  const router = useRouter();
+  const { login, establishSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -30,7 +32,7 @@ const LoginPage = () => {
 
     try {
       await login(formData.email, formData.password);
-      navigate('/dashboard');
+      router.push('/dashboard');
     } catch (err) {
       setError(err.message || 'Invalid email or password. Please try again.');
     } finally {
@@ -79,88 +81,108 @@ const LoginPage = () => {
                 </motion.div>
             </div>
             {/* Ambient Graphic */}
-            <div className="absolute bottom-[-20%] right-[-10%] w-96 h-96 bg-blue-500/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-cyan-500/20 blur-2xl pointer-events-none"></div>
           </div>
 
           {/* Right Side - Form */}
-          <div className="w-full md:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-16 bg-white">
-            <div className="w-full max-w-sm">
-              
-              {/* Mobile Logo */}
-              <div className="flex md:hidden items-center gap-2 mb-10 justify-center">
-                <div className="bg-slate-900 p-2 rounded-xl">
-                  <FiShoppingCart className="w-6 h-6 text-cyan-400" />
-                </div>
-                <span className="text-2xl font-extrabold tracking-tight text-slate-900">peraStore</span>
-              </div>
-
-              <div className="mb-8 text-center md:text-left">
-                <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Log in</h2>
-                <p className="text-gray-500 font-medium">Welcome back! Please enter your details.</p>
-              </div>
+          <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-center bg-white">
+            <div className="max-w-md w-full mx-auto">
+              <h2 className="text-3xl font-extrabold text-slate-900 mb-2">Login</h2>
+              <p className="text-slate-500 mb-8 text-sm">Welcome back! Please enter your details.</p>
 
               {error && (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 text-sm flex items-start gap-3 rounded-2xl"
-                >
-                   <FiShield className="w-5 h-5 shrink-0 text-red-500" />
-                   <p className="font-medium">{error}</p>
-                </motion.div>
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm flex items-center gap-2 rounded-r">
+                  <FiShield className="w-5 h-5 shrink-0" />
+                  <p>{error}</p>
+                </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-bold text-gray-900 mb-2">Email Address</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
                   <input
                     type="email"
                     name="email"
                     required
                     value={formData.email}
                     onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 font-medium"
-                    placeholder="Enter your email"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all text-slate-800 placeholder-slate-400"
+                    placeholder="you@example.com"
                   />
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                     <label className="block text-sm font-bold text-gray-900">Password</label>
-                     <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-bold transition-colors">Forgot Password?</a>
-                  </div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
                   <input
                     type="password"
                     name="password"
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-5 py-4 rounded-xl bg-gray-50 border border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-gray-900 font-medium"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none transition-all text-slate-800 placeholder-slate-400"
                     placeholder="••••••••"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isLoading || !formData.email || !formData.password}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-2 group"
+                  disabled={isLoading}
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-slate-900/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6 group"
                 >
                   {isLoading ? (
                     <span className="flex items-center gap-2">
                       <Loader size={18} dotSize={6} border={3} />
-                      Authenticating...
+                      Logging in...
                     </span>
                   ) : (
-                    <>Sign In <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
+                    <>
+                      <span>Log In</span>
+                      <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
                   )}
                 </button>
               </form>
 
-              <div className="mt-8 text-center text-gray-600 font-medium">
-                 Don't have an account?{' '}
-                 <Link href="/signup" className="text-blue-600 font-bold hover:text-blue-700 underline-offset-4 hover:underline transition-all">
+              {/* Divider */}
+              <div className="flex items-center my-6 gap-3">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-slate-400 text-sm">or continue with</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+
+              {/* Google Sign-In Button */}
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    setIsLoading(true);
+                    setError('');
+                    try {
+                      const response = await api.googleAuth({ id_token: credentialResponse.credential });
+                      await establishSession(response.access_token);
+                      router.push('/dashboard');
+                    } catch (err) {
+                      setError('Google sign-in failed. Please try again.');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  onError={() => {
+                    setError('Google sign-in was cancelled or failed.');
+                  }}
+                  text="signin_with"
+                  shape="rectangular"
+                  theme="outline"
+                  width="100%"
+                />
+              </div>
+
+              <div className="mt-8 text-center text-sm text-slate-600">
+                <p>
+                  Don't have an account?{' '}
+                  <Link href="/signup" className="text-slate-900 font-bold hover:underline">
                     Sign up
-                 </Link>
+                  </Link>
+                </p>
               </div>
             </div>
           </div>

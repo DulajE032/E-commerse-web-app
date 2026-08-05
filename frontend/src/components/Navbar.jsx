@@ -24,9 +24,8 @@ const Navbar = () => {
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
-  const location = usePathname();
+  const currentPath = usePathname();
   const router = useRouter();
-  const currentPath = location.pathname;
 
   // Handle scroll effect for navbar
   useEffect(() => {

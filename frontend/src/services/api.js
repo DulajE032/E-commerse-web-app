@@ -22,7 +22,14 @@ const withAuthHeaders = (headers = {}, token = getStoredToken()) => {
 };
 
 const request = async (url, options = {}) => {
-  const res = await fetch(url, options);
+  let res;
+  try {
+    res = await fetch(url, options);
+  } catch (networkError) {
+    // Only genuine network failures (server down, CORS, DNS) land here
+    throw new Error(`Unable to connect to the backend server (${API_BASE}). Please check if the server is running.`);
+  }
+
   const data = await res.json().catch(() => null);
 
   if (!res.ok) {
@@ -65,6 +72,14 @@ export const api = {
   getProfile: async (token) => {
     return request(`${API_BASE}/auth/me`, {
       headers: withAuthHeaders({}, token),
+    });
+  },
+
+  googleAuth: async (payload) => {
+    return request(`${API_BASE}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
     });
   },
 

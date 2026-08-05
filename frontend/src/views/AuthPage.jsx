@@ -1,14 +1,18 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ShoppingBag, CheckCircle2, Shield } from 'lucide-react';
 import Loader from '../components/Loader';
+import { GoogleLogin } from '@react-oauth/google';
+import { useAuth } from '../services/AuthContext';
+import { api } from '../services/api';
 
 const AuthPage = () => {
-  const location = usePathname();
-  const navigate = useRouter();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { establishSession } = useAuth();
   // Check URL params to determine initial mode
-  const initialMode = new URLSearchParams(location.search).get('mode') === 'signup' ? 'signup' : 'login';
+  const initialMode = searchParams.get('mode') === 'signup' ? 'signup' : 'login';
   
   const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +81,7 @@ const AuthPage = () => {
       
       // Simulate fake token & redirect
       localStorage.setItem('token', 'dummy_jwt_token_123');
-      navigate.push('/dashboard');
+      router.push('/dashboard');
 
     } catch (err) {
       // Handle Axios error (e.g., 401 Unauthorized)
@@ -95,7 +99,7 @@ const AuthPage = () => {
       {/* Left Side - Image/Branding (Hidden on mobile) */}
       <div className="hidden lg:flex w-1/2 bg-blue-600 p-12 flex-col justify-between relative overflow-hidden">
         <div className="relative z-10">
-            <div className="flex items-center gap-2 text-white mb-12 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="flex items-center gap-2 text-white mb-12 cursor-pointer" onClick={() => router.push('/')}>
               <ShoppingBag className="w-8 h-8" />
               <span className="text-2xl font-bold font-sans tracking-tight">NexusAI</span>
             </div>
@@ -123,7 +127,7 @@ const AuthPage = () => {
         <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           
           {/* Mobile Logo */}
-          <div className="flex lg:hidden items-center gap-2 text-blue-600 mb-8 justify-center cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex lg:hidden items-center gap-2 text-blue-600 mb-8 justify-center cursor-pointer" onClick={() => router.push('/')}>
             <ShoppingBag className="w-8 h-8" />
             <span className="text-2xl font-bold font-sans tracking-tight text-gray-900">NexusAI</span>
           </div>
@@ -239,6 +243,39 @@ const AuthPage = () => {
               )}
             </button>
           </form>
+
+          {/* Divider */}
+          <div className="flex items-center my-6 gap-3">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-gray-400 text-sm">or continue with</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          {/* Google Sign-In Button */}
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={async (credentialResponse) => {
+                setIsLoading(true);
+                setError('');
+                try {
+                  const response = await api.googleAuth({ id_token: credentialResponse.credential });
+                  await establishSession(response.access_token);
+                  router.push('/dashboard');
+                } catch (err) {
+                  setError('Google sign-in failed. Please try again.');
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              onError={() => {
+                setError('Google sign-in was cancelled or failed.');
+              }}
+              width="100%"
+              text={isLogin ? "signin_with" : "signup_with"}
+              shape="rectangular"
+              theme="outline"
+            />
+          </div>
 
           <div className="mt-8 text-center text-sm text-gray-600">
             {isLogin ? (

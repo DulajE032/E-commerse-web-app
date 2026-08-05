@@ -6,10 +6,12 @@ import { FiShoppingCart, FiShield, FiArrowRight, FiCheckCircle } from 'react-ico
 import { useAuth } from '../services/AuthContext';
 import { motion } from 'framer-motion';
 import Loader from '../components/Loader';
+import { GoogleLogin } from '@react-oauth/google';
+import { api } from '../services/api';
 
 const SignupPage = () => {
-  const navigate = useRouter();
-  const { signup } = useAuth();
+  const router = useRouter();
+  const { signup, establishSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -59,9 +61,9 @@ const SignupPage = () => {
         password: formData.password,
       });
       if (user.role === 'admin') {
-        navigate.push('/admin/dashboard');
+        router.push('/admin/dashboard');
       } else {
-        navigate.push('/dashboard');
+        router.push('/dashboard');
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
@@ -231,6 +233,39 @@ const SignupPage = () => {
                   )}
                 </button>
               </form>
+
+              {/* Divider */}
+              <div className="flex items-center my-6 gap-3">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-gray-400 text-sm font-medium">or continue with</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+
+              {/* Google Sign-Up Button */}
+              <div className="flex justify-center">
+                <GoogleLogin
+                  onSuccess={async (credentialResponse) => {
+                    setIsLoading(true);
+                    setError('');
+                    try {
+                      const response = await api.googleAuth({ id_token: credentialResponse.credential });
+                      await establishSession(response.access_token);
+                      router.push('/dashboard');
+                    } catch (err) {
+                      setError('Google sign-up failed. Please try again.');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  onError={() => {
+                    setError('Google sign-up was cancelled or failed.');
+                  }}
+                  text="signup_with"
+                  shape="rectangular"
+                  theme="outline"
+                  width="100%"
+                />
+              </div>
 
               <div className="mt-6 text-center text-gray-600 font-medium">
                 Already have an account?{' '}
