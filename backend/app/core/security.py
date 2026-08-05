@@ -29,6 +29,9 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, password_hash: str) -> bool:
+    if not password_hash:
+        return False  # Google-only users have no password
+
     # Backward compatibility for existing users hashed with the legacy SHA256 flow.
     if password_hash.startswith("$2a$") or password_hash.startswith("$2b$") or password_hash.startswith("$2y$"):
         return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
