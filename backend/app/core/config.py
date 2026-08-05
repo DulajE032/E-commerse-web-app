@@ -36,5 +36,10 @@ class Settings:
     EMAILS_FROM_EMAIL = os.getenv("EMAILS_FROM_EMAIL", "noreply@example.com")
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
 
+    # GitHub Image Storage Settings
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+    GITHUB_REPO_OWNER = os.getenv("GITHUB_REPO_OWNER", "")
+    GITHUB_REPO_NAME = os.getenv("GITHUB_REPO_NAME", "")
+
 
 settings = Settings()

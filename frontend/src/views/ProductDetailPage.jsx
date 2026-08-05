@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useParams } from 'next/navigation';
 import { FiMinus, FiPlus, FiShoppingCart, FiCreditCard, FiStar, FiChevronRight, FiHeart } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import { api } from '../services/api';
+import { api, getImageUrl } from '../services/api';
 import { useCart } from '../services/CartContext';
 import { useAuth } from '../services/AuthContext';
 import { useWishlist } from '../services/WishlistContext';
@@ -56,9 +56,9 @@ const ProductDetailPage = () => {
       const hasVideos = productData.videos && productData.videos.length > 0;
       
       if (hasImages) {
-        setActiveMedia({ type: 'image', url: `http://127.0.0.1:8000${productData.images[0]}` });
+        setActiveMedia({ type: 'image', url: getImageUrl(productData.images[0]) });
       } else if (hasVideos) {
-        setActiveMedia({ type: 'video', url: `http://127.0.0.1:8000${productData.videos[0]}` });
+        setActiveMedia({ type: 'video', url: getImageUrl(productData.videos[0]) });
       } else {
         setActiveMedia({ type: 'image', url: 'https://via.placeholder.com/600' });
       }
@@ -117,8 +117,8 @@ const ProductDetailPage = () => {
   }
 
   const allMedia = [
-    ...(product.videos?.map(v => ({ type: 'video', url: `http://127.0.0.1:8000${v}` })) || []),
-    ...(product.images?.map(i => ({ type: 'image', url: `http://127.0.0.1:8000${i}` })) || [])
+    ...(product.videos?.map(v => ({ type: 'video', url: getImageUrl(v) })) || []),
+    ...(product.images?.map(i => ({ type: 'image', url: getImageUrl(i) })) || [])
   ];
   if (allMedia.length === 0) {
     allMedia.push({ type: 'image', url: 'https://via.placeholder.com/600' });
