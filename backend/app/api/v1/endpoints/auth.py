@@ -121,11 +121,14 @@ def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
             db.commit()
             db.refresh(user)
     else:
-        # New user — create them (no password needed)
+        # New user — create them (random password generated for database consistency)
+        import secrets
+        from app.core.security import hash_password
+        random_password = secrets.token_urlsafe(32)
         user = User(
             email=email,
             full_name=full_name,
-            password_hash=None,  # Google users have no password
+            password_hash=hash_password(random_password),
             google_id=google_id,
             role=UserRole.USER.value,
         )
