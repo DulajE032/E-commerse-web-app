@@ -31,8 +31,8 @@ class Settings:
     SMTP_PORT = int(os.getenv("SMTP_PORT", "1025"))
     SMTP_USER = os.getenv("SMTP_USER")
     SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-    SMTP_TLS = os.getenv("SMTP_TLS").lower() in ("true", "1", "yes")
-    SMTP_SSL = os.getenv("SMTP_SSL").lower() in ("true", "1", "yes")
+    SMTP_TLS = (os.getenv("SMTP_TLS") or "False").lower() in ("true", "1", "yes")
+    SMTP_SSL = (os.getenv("SMTP_SSL") or "False").lower() in ("true", "1", "yes")
     EMAILS_FROM_EMAIL = os.getenv("EMAILS_FROM_EMAIL")
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
 
