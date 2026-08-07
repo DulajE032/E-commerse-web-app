@@ -16,31 +16,21 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/layout.js"
     ],
-    "/(public)/products/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/products/page.js"
-    ],
-    "/(public)/signup/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/signup/page.js"
-    ],
-    "/(public)/dashboard/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/dashboard/page.js"
-    ],
     "/(public)/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/css/app/(public)/page.css",
       "static/chunks/app/(public)/page.js"
     ],
-    "/(public)/login/page": [
+    "/(public)/products/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(public)/login/page.js"
+      "static/chunks/app/(public)/products/page.js"
+    ],
+    "/(public)/cart/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/cart/page.js"
     ],
     "/(public)/visual-search/page": [
       "static/chunks/webpack.js",
@@ -52,15 +42,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/product/[id]/page.js"
     ],
+    "/(public)/wishlist/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/wishlist/page.js"
+    ],
+    "/(public)/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(public)/login/page.js"
+    ],
     "/(public)/checkout/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/checkout/page.js"
     ],
-    "/(public)/cart/page": [
+    "/(public)/dashboard/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(public)/cart/page.js"
+      "static/chunks/app/(public)/dashboard/page.js"
     ]
   }
 }

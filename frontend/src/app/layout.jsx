@@ -32,6 +32,8 @@ export const metadata = {
   description: 'AI-Powered E-commerce App',
 };
 
+import CompareDrawer from '../components/CompareDrawer';
+
 export default function RootLayout({ children }) {
   return (
     // ✅ Injecting the new highly professional font stack
@@ -39,6 +41,7 @@ export default function RootLayout({ children }) {
       <body>
         <Providers>
           {children}
+          <CompareDrawer />
           <ScrollButtons />
         </Providers>
       </body>

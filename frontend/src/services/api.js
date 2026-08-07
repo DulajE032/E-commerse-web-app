@@ -1,4 +1,4 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 export const IMAGE_BASE_URL = API_BASE.replace('/api/v1', '');
 
 export const getImageUrl = (path) => {

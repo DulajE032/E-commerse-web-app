@@ -144,13 +144,14 @@ def create_review(db: Session, product_id: int, user_id: int, review_in: ReviewC
     db.commit()
     db.refresh(review)
     
-    # Optionally update the product's average rating here
+    # Update the product's average rating and review_count
     product = get_product(db, product_id)
     if product:
         all_reviews = get_reviews(db, product_id)
         if all_reviews:
             avg_rating = sum(r.rating for r in all_reviews) / len(all_reviews)
-            product.rating = avg_rating
+            product.rating = round(avg_rating, 1)
+            product.review_count = len(all_reviews)
             db.commit()
             
     return review

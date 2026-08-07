@@ -32,7 +32,7 @@ const LoginPage = () => {
 
     try {
       await login(formData.email, formData.password);
-      router.push('/dashboard');
+      router.push('/');
     } catch (err) {
       setError(err.message || 'Invalid email or password. Please try again.');
     } finally {
@@ -159,7 +159,7 @@ const LoginPage = () => {
                     try {
                       const response = await api.googleAuth({ id_token: credentialResponse.credential });
                       await establishSession(response.access_token);
-                      router.push('/dashboard');
+                      router.push('/');
                     } catch (err) {
                       setError('Google sign-in failed. Please try again.');
                     } finally {
