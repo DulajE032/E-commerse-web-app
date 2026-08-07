@@ -15,6 +15,9 @@ class ProductBase(BaseModel):
     images: Optional[List[str]] = None
     videos: Optional[List[str]] = None
     rating: Optional[float] = 0.0
+    review_count: Optional[int] = Field(0, alias="reviewCount")
+    free_shipping: bool = Field(False, alias="freeShipping")
+    sales_count: Optional[int] = Field(0, alias="salesCount")
     featured: bool = False
     specifications: Optional[Dict[str, Any]] = None
 
@@ -40,6 +43,9 @@ class ProductUpdate(BaseModel):
     images: Optional[List[str]] = None
     videos: Optional[List[str]] = None
     rating: Optional[float] = None
+    review_count: Optional[int] = Field(None, alias="reviewCount")
+    free_shipping: Optional[bool] = Field(None, alias="freeShipping")
+    sales_count: Optional[int] = Field(None, alias="salesCount")
     featured: Optional[bool] = None
     specifications: Optional[Dict[str, Any]] = None
 
