@@ -13,7 +13,7 @@ import { useMinLoadingTime } from '../hooks/useMinLoadingTime';
 import ProductCard from '../components/ProductCard';
 import ProductSkeleton from '../components/ProductSkeleton';
 import ImageMagnifier from '../components/imagemagnifier';
-import wishlistIcon from '../assets/wishlist/wishlist.png';
+import WishlistIcon from '../components/WishlistIcon';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -156,17 +156,18 @@ const ProductDetailPage = () => {
                   )}
                   <button
                     onClick={() => toggleWishlist(product.id)}
+                    title={isInWishlist(product.id) ? "Remove from Wishlist" : "Add to Wishlist"}
                     className={`absolute top-6 right-6 p-3 rounded-full shadow-md transition-all duration-200 z-10 ${
                       isInWishlist(product.id)
                         ? 'bg-red-500 text-white scale-110'
-                        : 'bg-white text-gray-400 hover:text-red-500'
+                        : 'bg-white text-gray-400 hover:text-red-500 hover:bg-gray-50'
                     }`}
                   >
-                  <img 
-                    src={wishlistIcon.src || wishlistIcon}
-                    alt="Wishlist Icon"
-                    className="w-5 h-5 object-contain"
-                  />
+                    <WishlistIcon 
+                      className={`w-6 h-6 transition-all ${
+                        isInWishlist(product.id) ? 'text-white fill-white' : 'text-gray-400 hover:text-red-500'
+                      }`}
+                    />
                   </button>
                </motion.div>
                {allMedia.length > 1 && (

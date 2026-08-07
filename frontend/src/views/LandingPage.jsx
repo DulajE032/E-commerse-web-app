@@ -15,45 +15,46 @@ import {
   FiFilter,
   FiTag,
   FiCpu,
+  FiRepeat,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { api, getImageUrl } from "../services/api";
 import { useCart } from "../services/CartContext";
+import { useCompare } from "../services/CompareContext";
+import ProductCard from "../components/ProductCard";
 
 import heroImage from "../assets/hero.jpg";
 import TechCapsuleCarousel from "../components/TechCapsuleCarousel";
 import Categories from "../components/Categories";
 
-// 1. We rename your main component to "LandingPageContent"
 const LandingPageContent = () => {
   const navigate = useRouter();
-  const searchParams = useSearchParams(); // Read the URL
+  const searchParams = useSearchParams();
   const { addToCart } = useCart();
+  const { compareItems, setIsCompareOpen } = useCompare();
 
-  // Look for ?category= in the URL
   const categoryFromUrl = searchParams.get("category");
 
   const [products, setProducts] = useState([]);
   const [recommendedProducts, setRecommendedProducts] = useState([]);
+  const [newArrivals, setNewArrivals] = useState([]);
   const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState({ products_count: 0, customers_count: 0, successful_orders: 0 });
 
-  // Set default state to the URL value (Fixes the Refresh Amnesia bug)
-  const [selectedCategory, setSelectedCategory] = useState(
-    categoryFromUrl || null,
-  );
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromUrl || null);
 
   const [loading, setLoading] = useState(true);
   const [recLoading, setRecLoading] = useState(true);
+  const [newLoading, setNewLoading] = useState(true);
+  const [displayLimit, setDisplayLimit] = useState(8);
+  const [totalProducts, setTotalProducts] = useState(0);
   const [mounted, setMounted] = useState(false);
 
-  // New Helper Function to handle clicks and update the URL silently
   const handleCategoryClick = (categoryName) => {
     setSelectedCategory(categoryName);
+    setDisplayLimit(8);
     if (categoryName) {
-      navigate.push(`/?category=${encodeURIComponent(categoryName)}`, {
-        scroll: false,
-      });
+      navigate.push(`/?category=${encodeURIComponent(categoryName)}`, { scroll: false });
     } else {
       navigate.push(`/`, { scroll: false });
     }
@@ -61,29 +62,28 @@ const LandingPageContent = () => {
 
   useEffect(() => {
     setMounted(true);
-    // Fetch categories
+
     api
       .getCategories()
       .then((res) => {
         if (res && res.length > 0) setCategories(res);
-        else
-          setCategories([
-            { id: 1, name: "Electronics" },
-            { id: 2, name: "Accessories" },
-            { id: 3, name: "Audio" },
-          ]);
       })
       .catch(console.error);
 
-    // Fetch recommended products
     setRecLoading(true);
     api
-      .getProducts({ limit: 4, sortBy: "newest" })
-      .then((data) => setRecommendedProducts(data.products))
+      .getProducts({ limit: 4, sortBy: "featured" })
+      .then((data) => setRecommendedProducts(data.products || []))
       .catch(console.error)
       .finally(() => setRecLoading(false));
 
-    // Fetch public stats
+    setNewLoading(true);
+    api
+      .getProducts({ limit: 4, sortBy: "newest" })
+      .then((data) => setNewArrivals(data.products || []))
+      .catch(console.error)
+      .finally(() => setNewLoading(false));
+
     api
       .getPublicStats()
       .then((data) => {
@@ -98,19 +98,22 @@ const LandingPageContent = () => {
       .getProducts({
         category: selectedCategory,
         sortBy: "top_selling",
-        limit: 8,
+        limit: displayLimit,
       })
-      .then((data) => setProducts(data.products))
+      .then((data) => {
+        setProducts(data.products || []);
+        setTotalProducts(data.total || 0);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [selectedCategory]);
+  }, [selectedCategory, displayLimit]);
 
   if (!mounted) return null;
 
   return (
-    <div className="pb-20 bg-gray-50">
+    <div className="pb-20 bg-slate-50 relative">
+      {/* Hero Section */}
       <section className="relative min-h-[75vh] md:min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Background Image and Overlays */}
         <div className="absolute inset-0 z-0">
           <Image
             src={heroImage}
@@ -119,13 +122,11 @@ const LandingPageContent = () => {
             priority
             className="object-cover object-center"
           />
-          {/* Gradient overlay to ensure text legibility */}
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/50 to-slate-950/20" />
         </div>
 
-        {/* Hero Content Overlay */}
         <div className="relative z-10 w-full max-w-4xl mx-auto px-6 py-20 flex flex-col items-center text-center text-white">
-          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 drop-shadow-lg uppercase text-slate-100">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-4 drop-shadow-lg uppercase text-slate-100 font-heading">
             Robot Parts
           </h1>
           <p className="text-slate-200 text-lg md:text-2xl mb-10 max-w-2xl font-light drop-shadow-md leading-relaxed">
@@ -149,7 +150,7 @@ const LandingPageContent = () => {
         </div>
       </section>
 
-      {/* Tech Capsule Carousel Section */}
+      {/* Tech Capsule Carousel */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16">
         <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -164,15 +165,12 @@ const LandingPageContent = () => {
         </div>
       </section>
 
-      {/* Categories Section */}
+      {/* Categories */}
       <Categories />
 
-      {/* Public Statistics Section */}
+      {/* Public Statistics */}
       <section className="max-w-7xl mx-auto px-4 md:px-8 mt-24 mb-16">
         <div className="bg-gradient-to-br from-indigo-900 to-slate-900 rounded-[2.5rem] p-10 md:p-16 text-white relative overflow-hidden shadow-2xl shadow-indigo-950/30">
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay"></div>
-          <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none"></div>
-          
           <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-indigo-800/40">
             {[
               {
@@ -217,99 +215,53 @@ const LandingPageContent = () => {
         </div>
       </section>
 
-      {/* Trust Elements */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16 mb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              icon: FiShield,
-              title: "Secure Payments",
-              desc: "100% secure checkout with 256-bit encryption",
-            },
-            {
-              icon: FiTruck,
-              title: "Fast Delivery",
-              desc: "Free shipping on orders over $150",
-            },
-            {
-              icon: FiRefreshCw,
-              title: "Easy Returns",
-              desc: "30-day money back guarantee",
-            },
-          ].map((item, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.2 }}
-              className="bg-white rounded-3xl p-8 flex flex-col items-center text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:-translate-y-2 transition-transform duration-300"
-            >
-              <div className="bg-blue-50 text-blue-600 w-16 h-16 rounded-full flex items-center justify-center mb-6">
-                <item.icon className="w-8 h-8" />
-              </div>
-              <h3 className="text-slate-900 font-bold text-lg mb-2">
-                {item.title}
-              </h3>
-              <p className="text-slate-500 text-sm leading-relaxed">
-                {item.desc}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Top Selling Products & Filters */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="bg-white rounded-[2rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+      {/* Main Store Products Viewing Section (Manageable & Dynamic) */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16">
+        <div className="bg-white rounded-[2.5rem] p-6 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
             <div>
-              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">
-                Top Selling Products
+              <span className="text-xs font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full mb-3 inline-block">
+                Store Catalog
+              </span>
+              <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Featured & Top Selling Products
               </h2>
-              <p className="text-slate-500">
-                Discover what's trending right now. Use filters to narrow down.
+              <p className="text-slate-500 mt-2">
+                Manageable view of available store inventory. Filter by category or load more items.
               </p>
             </div>
 
-            {/* Filter & Category UI */}
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-              <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 md:flex-none">
-                {/* Updated to use handleCategoryClick */}
+            {/* Category Pills Filter */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide flex-1 md:flex-none max-w-full">
+              <button
+                onClick={() => handleCategoryClick(null)}
+                className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm border ${
+                  selectedCategory === null
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-white text-slate-600 border-gray-200 hover:bg-slate-50"
+                }`}
+              >
+                All Products
+              </button>
+              {categories.map((cat) => (
                 <button
-                  onClick={() => handleCategoryClick(null)}
+                  key={cat.id}
+                  onClick={() => handleCategoryClick(cat.name)}
                   className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm border ${
-                    selectedCategory === null
-                      ? "bg-slate-900 text-white border-slate-900"
+                    selectedCategory === cat.name
+                      ? "bg-blue-600 text-white border-blue-600"
                       : "bg-white text-slate-600 border-gray-200 hover:bg-slate-50"
                   }`}
                 >
-                  All
+                  {cat.name}
                 </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => handleCategoryClick(cat.name)}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-sm border ${
-                      selectedCategory === cat.name
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-slate-600 border-gray-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
-
-              <button className="bg-white border border-gray-200 text-slate-700 px-4 py-2.5 rounded-full text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
-                <FiFilter className="w-4 h-4" /> Filters
-              </button>
+              ))}
             </div>
           </div>
 
-          {/* Product Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {loading ? (
+          {/* Reusable ProductCard Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {loading && products.length === 0 ? (
               <div className="col-span-full flex justify-center py-16">
                 <div className="loader" style={{ width: 64 }} />
               </div>
@@ -317,201 +269,80 @@ const LandingPageContent = () => {
               <div className="col-span-full py-20 text-center flex flex-col items-center">
                 <FiFilter className="w-12 h-12 text-slate-300 mb-4" />
                 <h3 className="text-xl font-bold text-slate-800">
-                  No products found
+                  No products found in this category
                 </h3>
-                <p className="text-slate-500">
-                  Try selecting a different category.
+                <p className="text-slate-500 mt-1">
+                  Try selecting another category or explore all store products.
                 </p>
               </div>
             ) : (
-              products.map((product, idx) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  className="bg-white rounded-2xl p-4 md:p-5 border border-gray-100 hover:shadow-xl hover:border-blue-100 transition-all duration-300 group cursor-pointer flex flex-col h-full relative"
-                  onClick={() => navigate.push(`/product/${product.id}`)}
-                >
-                  {/* Image Box */}
-                  <div className="relative w-full aspect-[4/5] rounded-xl bg-slate-50 mb-5 overflow-hidden flex items-center justify-center p-6 group-hover:bg-slate-100 transition-colors">
-                    {product.images && product.images.length > 0 ? (
-                      <img
-                        src={getImageUrl(product.images[0])}
-                        alt={product.name}
-                        className="object-contain w-full h-full mix-blend-multiply"
-                      />
-                    ) : (
-                      <div className="text-slate-300 text-sm font-medium">
-                        No Image
-                      </div>
-                    )}
-
-                    {/* Quick Add overlay */}
-                    <div className="absolute inset-x-4 bottom-4 translate-y-[150%] group-hover:translate-y-0 transition-transform duration-300 ease-out z-20">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addToCart(product);
-                        }}
-                        className="w-full bg-slate-900 text-white py-3 rounded-lg font-bold shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <FiShoppingCart className="w-4 h-4" /> Quick Add
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="flex-1 flex flex-col text-left">
-                    <p className="text-blue-500 text-xs font-bold uppercase tracking-wider mb-1">
-                      {product.category}
-                    </p>
-                    <h3 className="text-slate-900 font-bold text-sm md:text-base leading-snug mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {product.name}
-                    </h3>
-                    <div className="mt-auto flex items-center justify-between">
-                      <span className="text-lg md:text-xl font-extrabold text-slate-900">
-                        ${product.price.toFixed(2)}
-                      </span>
-                      <div className="flex items-center text-amber-400 text-xs gap-1 font-bold">
-                        <FiStar className="fill-current w-3 h-3" /> 4.9
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+              products.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))
             )}
           </div>
+
+          {/* Progressive "Load More" Button */}
+          {products.length < totalProducts && (
+            <div className="mt-12 text-center">
+              <button
+                onClick={() => setDisplayLimit((prev) => prev + 8)}
+                className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-0.5"
+              >
+                {loading ? "Loading..." : `Load More Products (${products.length} of ${totalProducts})`}
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Recommended for You Section */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-24">
+      {/* New Arrivals Section (Store Products) */}
+      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-20">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              Recommended for You
+              New Arrivals
             </h2>
             <p className="text-slate-500 mt-1">
-              Based on your interests and recent activity.
+              The latest additions to our store catalog.
             </p>
           </div>
           <Link
             href="/products"
             className="text-blue-600 font-bold flex items-center gap-2 hover:gap-3 transition-all"
           >
-            See all <FiArrowRight />
+            Explore All <FiArrowRight />
           </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {recLoading
-            ? Array(4)
-                .fill(0)
-                .map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-3xl p-6 border border-gray-100 h-80 animate-pulse"
-                  >
-                    <div className="w-full h-40 bg-gray-100 rounded-2xl mb-4"></div>
-                    <div className="h-4 bg-gray-100 rounded w-2/3 mb-2"></div>
-                    <div className="h-4 bg-gray-100 rounded w-1/2"></div>
-                  </div>
-                ))
-            : recommendedProducts.map((product, idx) => (
-                <motion.div
-                  key={product.id}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: idx * 0.1 }}
-                  className="bg-white rounded-[2rem] p-4 border border-gray-100 hover:shadow-lg transition-all group flex gap-4 items-center cursor-pointer"
-                  onClick={() => navigate.push(`/product/${product.id}`)}
-                >
-                  <div className="w-24 h-24 bg-slate-50 rounded-2xl flex items-center justify-center p-3 group-hover:bg-slate-100 transition-colors shrink-0">
-                    {product.images && product.images[0] ? (
-                      <img
-                        src={getImageUrl(product.images[0])}
-                        alt={product.name}
-                        className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500 ease-out"
-                      />
-                    ) : (
-                      <div className="text-slate-300 text-[10px] font-medium text-center">
-                        No Image
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-slate-900 font-bold text-sm line-clamp-2 mb-1 group-hover:text-blue-600 transition-colors">
-                      {product.name}
-                    </h3>
-                    <p className="text-slate-900 font-extrabold text-base">
-                      ${product.price.toFixed(2)}
-                    </p>
-                    <div className="flex items-center text-amber-400 text-[10px] gap-1 mt-1">
-                      <FiStar className="fill-current w-2.5 h-2.5" /> 4.9
-                    </div>
-                  </div>
-                </motion.div>
+          {newLoading
+            ? Array(4).fill(0).map((_, i) => (
+                <div key={i} className="bg-white rounded-3xl p-6 border border-gray-100 h-80 animate-pulse" />
+              ))
+            : newArrivals.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
         </div>
       </section>
 
-      {/* Promotion Banner */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 mt-24">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="rounded-[2.5rem] bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 p-10 md:p-16 flex flex-col md:flex-row items-center justify-between relative overflow-hidden shadow-2xl shadow-blue-900/20"
+      {/* Floating Compare Button */}
+      {compareItems.length > 0 && (
+        <button
+          onClick={() => setIsCompareOpen(true)}
+          className="fixed bottom-6 right-6 z-40 bg-slate-900 text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-3 font-bold hover:bg-blue-600 transition-all transform hover:scale-105 border-2 border-white"
         >
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-          <div className="absolute -left-20 -top-20 w-64 h-64 bg-cyan-500/30 rounded-full blur-3xl pointer-events-none"></div>
-
-          <div className="relative z-10 text-white md:w-1/2 text-center md:text-left mb-8 md:mb-0">
-            <span className="bg-cyan-500/20 text-cyan-300 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border border-cyan-500/30 mb-6 inline-block shadow-sm">
-              AI Enhanced
-            </span>
-            <h2 className="text-3xl md:text-5xl font-extrabold mb-4 leading-tight text-white">
-              Experience Smart <br /> Shopping
-            </h2>
-            <p className="text-blue-100 mb-8 max-w-sm mx-auto md:mx-0 leading-relaxed text-sm md:text-base">
-              Upload an image and let our visual AI find identical or similar
-              products instantly. Try it now.
-            </p>
-            <Link
-              href="/visual-search"
-              className="bg-cyan-500 text-slate-900 font-bold px-8 py-4 rounded-full hover:bg-cyan-400 transition-colors inline-flex items-center gap-2 shadow-[0_0_20px_rgba(6,182,212,0.4)]"
-            >
-              <FiCamera className="w-5 h-5" /> Try Visual Search
-            </Link>
-          </div>
-
-          <div className="relative z-10 w-full max-w-sm md:w-1/3">
-            <img
-              src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1000&auto=format&fit=crop"
-              alt="Headphones Promotion"
-              className="rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-8 border-white/5 mix-blend-luminosity hover:mix-blend-normal transition-all duration-500"
-            />
-          </div>
-        </motion.div>
-      </section>
+          <FiRepeat className="w-5 h-5" />
+          <span>Compare ({compareItems.length})</span>
+        </button>
+      )}
     </div>
   );
 };
 
-// 2. We export a wrapper that includes <Suspense>.
-// This is required by Next.js 13+ when reading URL parameters!
 export default function LandingPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          Loading...
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <LandingPageContent />
     </Suspense>
   );

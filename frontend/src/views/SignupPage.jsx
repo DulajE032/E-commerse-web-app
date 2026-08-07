@@ -79,7 +79,7 @@ const SignupPage = () => {
       if (user.role === 'admin') {
         router.push('/admin/dashboard');
       } else {
-        router.push('/dashboard');
+        router.push('/');
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');

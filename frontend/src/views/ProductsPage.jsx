@@ -17,6 +17,8 @@ import { useWishlist } from "../services/WishlistContext";
 import Loader from "../components/Loader";
 import { useMinLoadingTime } from "../hooks/useMinLoadingTime";
 import ProductSkeleton from "../components/SkeletonForCard";
+import ProductCard from "../components/ProductCard";
+import { useDebounce } from "../hooks/useDebounce";
 
 const PRODUCTS_PER_PAGE = 12;
 
@@ -38,6 +40,8 @@ const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+  const debouncedPriceRange = useDebounce(priceRange, 400);
+
   const [sortBy, setSortBy] = useState("Recommended");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [brands, setBrands] = useState([]);
@@ -89,7 +93,7 @@ const ProductsPage = () => {
   }, [
     selectedCategory,
     selectedBrands,
-    priceRange,
+    debouncedPriceRange,
     inStockOnly,
     sortBy,
     searchQuery,
@@ -104,23 +108,23 @@ const ProductsPage = () => {
         limit: PRODUCTS_PER_PAGE,
         category: selectedCategory === "All" ? null : selectedCategory,
         brands: selectedBrands,
-        minPrice: priceRange.min === "" ? null : Number(priceRange.min),
-        maxPrice: priceRange.max === "" ? null : Number(priceRange.max),
+        minPrice: debouncedPriceRange.min === "" ? null : Number(debouncedPriceRange.min),
+        maxPrice: debouncedPriceRange.max === "" ? null : Number(debouncedPriceRange.max),
         inStock: inStockOnly ? true : null,
         sortBy: sortOptions[sortBy],
         search: searchQuery || null,
       })
       .then((data) => {
-        setProducts(data.products);
-        setTotalProducts(data.total);
-        setTotalPages(data.pages);
+        setProducts(data.products || []);
+        setTotalProducts(data.total || 0);
+        setTotalPages(data.pages || 0);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [
     selectedCategory,
     selectedBrands,
-    priceRange,
+    debouncedPriceRange,
     inStockOnly,
     sortBy,
     searchQuery,
@@ -373,78 +377,8 @@ const ProductsPage = () => {
                   </button>
                 </div>
               ) : (
-                products.map((product, idx) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: idx * 0.05 }}
-                    className="bg-white rounded-[1.5rem] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 hover:shadow-xl hover:border-slate-200 transition-all duration-300 group cursor-pointer flex flex-col h-full"
-                    onClick={() => navigate.push(`/product/${product.id}`)}
-                  >
-                    <div className="relative w-full aspect-[4/5] rounded-xl bg-slate-50 mb-4 overflow-hidden flex items-center justify-center p-4">
-                      {product.images && product.images.length > 0 ? (
-                        <img
-                          src={getImageUrl(product.images[0])}
-                          alt={product.name}
-                          className="object-contain w-full h-full mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="text-slate-300 text-sm font-medium">
-                          No Image
-                        </div>
-                      )}
-
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleWishlist(product.id);
-                        }}
-                        className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 z-10 ${
-                          isInWishlist(product.id)
-                            ? "bg-red-500 text-white scale-110"
-                            : "bg-white/90 backdrop-blur-sm text-gray-400 hover:text-red-500"
-                        }`}
-                      >
-                        <FiHeart
-                          className={`w-4 h-4 ${isInWishlist(product.id) ? "fill-current" : ""}`}
-                        />
-                      </button>
-
-                      <div className="absolute inset-x-4 bottom-4 translate-y-[150%] group-hover:translate-y-0 transition-transform duration-300 ease-out z-20 hidden md:block">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart(product);
-                          }}
-                          className="w-full bg-slate-900 text-white py-2.5 rounded-lg font-bold shadow-lg hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <FiShoppingCart className="w-4 h-4" /> Add
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 flex flex-col">
-                      <p className="text-slate-500 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-1">
-                        {product.category}
-                      </p>
-                      <h3 className="text-slate-900 font-bold text-sm leading-snug mb-2 line-clamp-2 group-hover:text-slate-600 transition-colors">
-                        {product.name}
-                      </h3>
-
-                      <div className="mt-auto flex items-end justify-between">
-                        <span className="text-lg font-extrabold text-slate-900">
-                          ${product.price.toFixed(2)}
-                        </span>
-                        <div className="flex items-center text-amber-400 text-[11px] gap-1 font-bold">
-                          <FiStar className="fill-current w-3.5 h-3.5" />{" "}
-                          {product.ratingSmall
-                            ? product.ratingSmall.toFixed(1)
-                            : "New"}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+                products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
                 ))
               )}
             </div>

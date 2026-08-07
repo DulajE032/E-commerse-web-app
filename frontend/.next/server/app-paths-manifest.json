@@ -1,8 +1,7 @@
 {
   "/(public)/page": "app/(public)/page.js",
-  "/(public)/login/page": "app/(public)/login/page.js",
+  "/(public)/dashboard/page": "app/(public)/dashboard/page.js",
   "/(public)/products/page": "app/(public)/products/page.js",
   "/(public)/product/[id]/page": "app/(public)/product/[id]/page.js",
-  "/(public)/checkout/page": "app/(public)/checkout/page.js",
-  "/(public)/cart/page": "app/(public)/cart/page.js"
+  "/(public)/wishlist/page": "app/(public)/wishlist/page.js"
 }

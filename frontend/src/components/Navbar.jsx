@@ -12,6 +12,7 @@ import { useAuth } from '../services/AuthContext';
 import { api, IMAGE_BASE_URL } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './Logo';
+import WishlistIcon from './WishlistIcon';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -223,7 +224,7 @@ const Navbar = () => {
                <div className="flex items-center gap-1 sm:gap-2">
                  <Link href="/wishlist" className="relative p-2 text-slate-700 hover:bg-pink-50 hover:text-pink-600 rounded-full transition-colors group">
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <img src="/assets/wishlistimag/wishlist.png" alt="Wishlist" className="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
+                      <WishlistIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                       <AnimatePresence>
                         {wishlistCount > 0 && (
                           <motion.span 
