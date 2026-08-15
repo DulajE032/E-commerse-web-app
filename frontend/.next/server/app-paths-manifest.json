@@ -1,7 +1,4 @@
 {
   "/(public)/page": "app/(public)/page.js",
-  "/(public)/products/page": "app/(public)/products/page.js",
-  "/(public)/dashboard/page": "app/(public)/dashboard/page.js",
-  "/(public)/product/[id]/page": "app/(public)/product/[id]/page.js",
-  "/(public)/wishlist/page": "app/(public)/wishlist/page.js"
+  "/(public)/products/page": "app/(public)/products/page.js"
 }
