@@ -282,7 +282,7 @@ const AuthPage = () => {
                 setError('');
                 try {
                   const response = await api.googleAuth({ id_token: credentialResponse.credential });
-                  await establishSession(response.access_token);
+                  await establishSession(response.access_token, response.refresh_token);
                   router.push('/dashboard');
                 } catch (err) {
                   setError('Google sign-in failed. Please try again.');

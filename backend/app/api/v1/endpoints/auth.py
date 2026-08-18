@@ -1,27 +1,42 @@
-# ✅ Added Request to the import list
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
-from app.core.config import settings
-from app.core.security import create_access_token, get_current_user, verify_password
-from app.services import crud_user
-from app.db.session import get_db
-from app.models.user import User
-from app.schemas.user import GoogleAuthRequest, TokenResponse, UserCreate, UserLogin, UserRead, UserRole, UserSignup
-from google.oauth2 import id_token
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from sqlalchemy.orm import Session
+
+from app.core.config import settings
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    get_current_user,
+    revoke_refresh_token,
+    verify_password,
+    verify_refresh_token,
+)
+from app.db.session import get_db
+from app.models.user import User
+from app.schemas.user import (
+    GoogleAuthRequest,
+    LogoutRequest,
+    RefreshTokenRequest,
+    TokenResponse,
+    UserCreate,
+    UserLogin,
+    UserRead,
+    UserRole,
+    UserSignup,
+)
+from app.services import crud_user
 
 router = APIRouter()
-
-# We still create the limiter here so we can use it on the routes below
 limiter = Limiter(key_func=get_remote_address)
-# ❌ Removed: router.state.limiter = limiter (This goes in main.py now)
+
 
 def normalize_email(email: str) -> str:
     return email.strip().lower()
 
-# (Signup endpoint remains exactly the same, no limiter needed here unless you want one!)
+
 @router.post("/signup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def signup(user_in: UserSignup, db: Session = Depends(get_db)):
     email = normalize_email(user_in.email)
@@ -38,7 +53,6 @@ def signup(user_in: UserSignup, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("5/minute")
-# ✅ Added request: Request
 def login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
     email = normalize_email(credentials.email)
     user = crud_user.get_user_by_email(db, email)
@@ -55,13 +69,13 @@ def login(request: Request, credentials: UserLogin, db: Session = Depends(get_db
             detail="Forbidden",
         )
 
-    token = create_access_token(subject=str(user.id), role=user.role)
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(subject=str(user.id), role=user.role)
+    refresh_token = create_refresh_token(db=db, user_id=user.id)
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
 
 @router.post("/admin-login", response_model=TokenResponse)
 @limiter.limit("2/minute")
-# ✅ Added request: Request
 def admin_login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
     email = normalize_email(credentials.email)
     user = crud_user.get_user_by_email(db, email)
@@ -76,8 +90,39 @@ def admin_login(request: Request, credentials: UserLogin, db: Session = Depends(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token = create_access_token(subject=str(user.id), role=user.role)
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(subject=str(user.id), role=user.role)
+    refresh_token = create_refresh_token(db=db, user_id=user.id)
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+
+@router.post("/refresh", response_model=TokenResponse)
+def refresh_token_endpoint(payload: RefreshTokenRequest, db: Session = Depends(get_db)):
+    db_token = verify_refresh_token(db=db, token=payload.refresh_token)
+    if not db_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token",
+        )
+
+    user = db.query(User).filter(User.id == db_token.user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User associated with token not found",
+        )
+
+    # Token rotation: revoke previous refresh token, issue a fresh pair
+    revoke_refresh_token(db=db, token=payload.refresh_token)
+    new_access_token = create_access_token(subject=str(user.id), role=user.role)
+    new_refresh_token = create_refresh_token(db=db, user_id=user.id)
+    return TokenResponse(access_token=new_access_token, refresh_token=new_refresh_token)
+
+
+@router.post("/logout")
+def logout_endpoint(payload: LogoutRequest, db: Session = Depends(get_db)):
+    if payload.refresh_token:
+        revoke_refresh_token(db=db, token=payload.refresh_token)
+    return {"message": "Logged out successfully"}
 
 
 @router.get("/me", response_model=UserRead)
@@ -90,38 +135,42 @@ def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
     """
     Receives a Google ID Token from the frontend.
     Verifies it, then finds or creates the user in our DB.
-    Returns our own JWT access token.
+    Returns access token and refresh token.
     """
     try:
-        # 1. Verify the token with Google's servers
+        client_id = settings.GOOGLE_CLIENT_ID.strip() if settings.GOOGLE_CLIENT_ID else None
         google_info = id_token.verify_oauth2_token(
             payload.id_token,
             google_requests.Request(),
-            settings.GOOGLE_CLIENT_ID,
+            client_id,
         )
     except ValueError as e:
-        # Token is invalid or expired
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Invalid Google token: {str(e)}",
         )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Could not connect to Google authentication service: {str(e)}",
+        )
 
-    # 2. Extract user info from the verified token
-    google_id = google_info["sub"]       # Google's unique user ID
-    email = google_info["email"]
+    google_id = google_info.get("sub")
+    email = google_info.get("email")
     full_name = google_info.get("name", "Google User")
 
-    # 3. Find or Create the user in our database
+    if not email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email not provided by Google")
+
+    email = normalize_email(email)
     user = crud_user.get_user_by_email(db, email)
 
     if user:
-        # User exists — update their google_id if not set
         if not user.google_id:
             user.google_id = google_id
             db.commit()
             db.refresh(user)
     else:
-        # New user — create them (random password generated for database consistency)
         import secrets
         from app.core.security import hash_password
         random_password = secrets.token_urlsafe(32)
@@ -136,6 +185,6 @@ def google_auth(payload: GoogleAuthRequest, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
-    # 4. Issue our own JWT — same as your existing login flow
-    token = create_access_token(subject=str(user.id), role=user.role)
-    return TokenResponse(access_token=token)
+    access_token = create_access_token(subject=str(user.id), role=user.role)
+    refresh_token = create_refresh_token(db=db, user_id=user.id)
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)

@@ -1,13 +1,22 @@
+import os
+import uuid
 import stripe
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.core.security import get_current_user, require_role
 from app.core.config import settings
+from app.core.security import get_current_user, require_role
 from app.db.session import get_db
 from app.models.order import Order
 from app.models.product import Product
-from app.schemas.order import CreateOrderRequest, OrderResponse
+from app.schemas.order import (
+    CreateOrderRequest,
+    OrderResponse,
+    OrderStatus,
+    PaymentMethod,
+    PaymentStatus,
+    UpdateOrderStatusRequest,
+)
 from app.services.email_service import send_admin_new_order_email
 
 router = APIRouter()
@@ -29,7 +38,8 @@ async def create_order(
     subtotal = 0.0
 
     for item in order_data.items:
-        product = db.query(Product).filter(Product.id == item.product_id).first()
+        # Use with_for_update to prevent race conditions on stock check
+        product = db.query(Product).filter(Product.id == item.product_id).with_for_update().first()
         if not product:
             db.rollback()
             raise HTTPException(
@@ -73,9 +83,9 @@ async def create_order(
         user_id=current_user.id,
         email=order_data.email,
         phone=order_data.phone,
-        payment_method=order_data.payment_method,
-        payment_status="pending",
-        status="pending",
+        payment_method=order_data.payment_method.value,
+        payment_status=PaymentStatus.PENDING.value,
+        status=OrderStatus.PENDING.value,
         total_amount=total,
         shipping_cost=order_data.shipping_cost,
         tax_amount=order_data.tax_amount,
@@ -89,7 +99,7 @@ async def create_order(
     client_secret = None
 
     # 3. If paying by card, create Stripe PaymentIntent
-    if order_data.payment_method == "card":
+    if order_data.payment_method == PaymentMethod.CARD:
         if not settings.STRIPE_SECRET_KEY:
             raise HTTPException(
                 status_code=500, detail="Stripe secret key not configured"
@@ -106,11 +116,11 @@ async def create_order(
             db.rollback()
             raise HTTPException(status_code=400, detail=str(e))
 
-    # 4. For COD, mark as confirmed immediately
-    if order_data.payment_method == "cod":
-        new_order.status = "confirmed"
-    elif order_data.payment_method == "bank_transfer":
-        new_order.status = "pending_verification"
+    # 4. Handle initial status for alternative payment methods
+    if order_data.payment_method == PaymentMethod.COD:
+        new_order.status = OrderStatus.CONFIRMED.value
+    elif order_data.payment_method == PaymentMethod.BANK_TRANSFER:
+        new_order.status = OrderStatus.PENDING_VERIFICATION.value
 
     db.commit()
     db.refresh(new_order)
@@ -128,10 +138,6 @@ async def create_order(
     response.client_secret = client_secret
     return response
 
-
-import os
-import uuid
-from fastapi import UploadFile, File
 
 ALLOWED_SLIP_EXTENSIONS = {".jpg", ".jpeg", ".png", ".pdf", ".webp"}
 SLIP_UPLOAD_DIR = os.path.join(os.getcwd(), "uploads", "slips")
@@ -167,7 +173,7 @@ async def upload_bank_slip(
         f.write(content)
 
     order.bank_slip_url = f"/uploads/slips/{filename}"
-    order.status = "slip_uploaded"
+    order.status = OrderStatus.SLIP_UPLOADED.value
     db.commit()
     db.refresh(order)
     return order
@@ -186,11 +192,11 @@ async def verify_payment(
         raise HTTPException(status_code=404, detail="Order not found")
 
     if is_approved:
-        order.payment_status = "paid"
-        order.status = "confirmed"
+        order.payment_status = PaymentStatus.PAID.value
+        order.status = OrderStatus.CONFIRMED.value
     else:
-        order.payment_status = "failed"
-        order.status = "payment_rejected"
+        order.payment_status = PaymentStatus.FAILED.value
+        order.status = OrderStatus.PAYMENT_REJECTED.value
 
     db.commit()
     db.refresh(order)
@@ -235,18 +241,19 @@ async def get_order(
     return order
 
 
-@router.patch("/{order_id}/status")
+@router.patch("/{order_id}/status", response_model=OrderResponse)
 async def update_order_status(
     order_id: int,
-    status: str,
+    body: UpdateOrderStatusRequest,
     db: Session = Depends(get_db),
     admin_user=Depends(require_role("admin")),
 ):
-    """Update order status (admin endpoint)."""
+    """Update order status (admin endpoint) with enum validation."""
     order = db.query(Order).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     
-    order.status = status
+    order.status = body.status.value
     db.commit()
-    return {"message": f"Order #{order_id} status updated to '{status}'"}
+    db.refresh(order)
+    return order

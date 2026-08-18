@@ -1,11 +1,11 @@
-import app.models
-# pyrefly: ignore [missing-import]
+import os
 from fastapi import Depends, FastAPI
-# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+import app.models
 from app.api.v1.api import api_router
 from app.core.config import settings
 from app.db.base import Base
@@ -15,19 +15,23 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.APP_NAME)
 
+origins = settings.CORS_ORIGINS if settings.CORS_ORIGINS else [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-from fastapi.staticfiles import StaticFiles
-
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
-import os
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
