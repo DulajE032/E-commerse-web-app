@@ -20,6 +20,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { api } from "../services/api";
 import { useAuth } from "../services/AuthContext";
 import { useCart } from "../services/CartContext";
+import TurnstileWidget from "../components/TurnstileWidget";
 
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
@@ -47,6 +48,8 @@ const CheckoutForm = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const turnstileRef = React.useRef(null);
 
   const shipping = useMemo(() => (cartTotal > 0 ? 15 : 0), [cartTotal]);
   const tax = 0;
@@ -103,6 +106,7 @@ const CheckoutForm = () => {
       })),
       shipping_cost: shipping,
       tax_amount: tax,
+      turnstile_token: turnstileToken,
     };
 
     try {
@@ -152,6 +156,8 @@ const CheckoutForm = () => {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to place order.");
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
     } finally {
       setIsProcessing(false);
     }
@@ -432,10 +438,18 @@ const CheckoutForm = () => {
                 </div>
 
                 {/* Place Order Button */}
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onVerify={(token) => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken(null)}
+                  onError={() => setTurnstileToken(null)}
+                  theme="light"
+                />
+
                 <button
                   type="submit"
                   disabled={
-                    isProcessing || (paymentMethod === "card" && !stripe)
+                    isProcessing || (paymentMethod === "card" && !stripe) || !turnstileToken
                   }
                   className="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >

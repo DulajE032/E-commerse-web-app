@@ -46,5 +46,9 @@ class Settings:
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
+    # Cloudflare Turnstile Bot Protection
+    TURNSTILE_SECRET_KEY: str = os.getenv("TURNSTILE_SECRET_KEY", "")
+    TURNSTILE_ENABLED: bool = os.getenv("TURNSTILE_ENABLED", "True").lower() in ("true", "1", "yes")
+
 
 settings = Settings()

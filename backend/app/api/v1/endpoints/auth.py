@@ -28,6 +28,7 @@ from app.schemas.user import (
     UserSignup,
 )
 from app.services import crud_user
+from app.services.turnstile import verify_turnstile_token
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -37,8 +38,12 @@ def normalize_email(email: str) -> str:
     return email.strip().lower()
 
 
-@router.post("/signup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def signup(user_in: UserSignup, db: Session = Depends(get_db)):
+@router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+async def signup(request: Request, user_in: UserSignup, db: Session = Depends(get_db)):
+    # Verify Cloudflare Turnstile token
+    if not await verify_turnstile_token(user_in.turnstile_token or "", request.client.host if request.client else None):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bot verification failed. Please try again.")
+
     email = normalize_email(user_in.email)
     if crud_user.get_user_by_email(db, email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
@@ -48,12 +53,19 @@ def signup(user_in: UserSignup, db: Session = Depends(get_db)):
         full_name=user_in.full_name,
         password=user_in.password,
     )
-    return crud_user.create_user(db=db, user_in=create_payload, role=UserRole.USER.value)
+    user = crud_user.create_user(db=db, user_in=create_payload, role=UserRole.USER.value)
+    access_token = create_access_token(subject=str(user.id), role=user.role)
+    refresh_token = create_refresh_token(db=db, user_id=user.id)
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
 
 @router.post("/login", response_model=TokenResponse)
 @limiter.limit("5/minute")
-def login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
+async def login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
+    # Verify Cloudflare Turnstile token
+    if not await verify_turnstile_token(credentials.turnstile_token or "", request.client.host if request.client else None):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bot verification failed. Please try again.")
+
     email = normalize_email(credentials.email)
     user = crud_user.get_user_by_email(db, email)
     if not user or not verify_password(credentials.password, user.password_hash):
@@ -76,7 +88,11 @@ def login(request: Request, credentials: UserLogin, db: Session = Depends(get_db
 
 @router.post("/admin-login", response_model=TokenResponse)
 @limiter.limit("2/minute")
-def admin_login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
+async def admin_login(request: Request, credentials: UserLogin, db: Session = Depends(get_db)):
+    # Verify Cloudflare Turnstile token
+    if not await verify_turnstile_token(credentials.turnstile_token or "", request.client.host if request.client else None):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Bot verification failed. Please try again.")
+
     email = normalize_email(credentials.email)
     user = crud_user.get_user_by_email(db, email)
     if (

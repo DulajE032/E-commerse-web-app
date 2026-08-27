@@ -54,6 +54,7 @@ class CreateOrderRequest(BaseModel):
     items: list[OrderItemSchema]
     shipping_cost: float = 15.0
     tax_amount: float = 0.0
+    turnstile_token: Optional[str] = None
 
 
 class UpdateOrderStatusRequest(BaseModel):

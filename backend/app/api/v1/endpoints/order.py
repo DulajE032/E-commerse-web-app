@@ -1,7 +1,7 @@
 import os
 import uuid
 import stripe
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -18,6 +18,7 @@ from app.schemas.order import (
     UpdateOrderStatusRequest,
 )
 from app.services.email_service import send_admin_new_order_email
+from app.services.turnstile import verify_turnstile_token
 
 router = APIRouter()
 
@@ -27,12 +28,17 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @router.post("/", response_model=OrderResponse)
 async def create_order(
+    request: Request,
     order_data: CreateOrderRequest,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
     """Create a new order and (if card payment) create a Stripe PaymentIntent."""
+    # Verify Cloudflare Turnstile token
+    if not await verify_turnstile_token(order_data.turnstile_token or "", request.client.host if request.client else None):
+        raise HTTPException(status_code=400, detail="Bot verification failed. Please try again.")
+
     # 1. Validate stock and build authoritative order lines from DB prices.
     normalized_items = []
     subtotal = 0.0
