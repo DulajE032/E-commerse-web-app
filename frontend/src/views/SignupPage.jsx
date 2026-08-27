@@ -8,12 +8,15 @@ import { motion } from 'framer-motion';
 
 import { GoogleLogin } from '@react-oauth/google';
 import { api } from '../services/api';
+import TurnstileWidget from '../components/TurnstileWidget';
 
 const SignupPage = () => {
   const router = useRouter();
   const { signup, establishSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const turnstileRef = React.useRef(null);
   
   const [formData, setFormData] = useState({
     fullName: '',
@@ -75,6 +78,7 @@ const SignupPage = () => {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
+        turnstileToken,
       });
       if (user.role === 'admin') {
         router.push('/admin/dashboard');
@@ -83,6 +87,8 @@ const SignupPage = () => {
       }
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.');
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -234,9 +240,17 @@ const SignupPage = () => {
                   />
                 </div>
 
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onVerify={(token) => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken(null)}
+                  onError={() => setTurnstileToken(null)}
+                  theme="light"
+                />
+
                 <button
                   type="submit"
-                  disabled={isLoading || !isPasswordStrong}
+                  disabled={isLoading || !isPasswordStrong || !turnstileToken}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-4 group"
                 >
                   {isLoading ? (

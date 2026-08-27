@@ -32,11 +32,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/signup/page.js"
     ],
-    "/(public)/products/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/products/page.js"
-    ],
     "/(public)/product/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",

@@ -57,13 +57,13 @@ export const AuthProvider = ({ children }) => {
     return profile;
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const response = await api.login({ email, password });
+  const login = useCallback(async (email, password, turnstileToken) => {
+    const response = await api.login({ email, password, turnstile_token: turnstileToken });
     return establishSession(response.access_token, response.refresh_token);
   }, [establishSession]);
 
-  const adminLogin = useCallback(async (email, password) => {
-    const response = await api.adminLogin({ email, password });
+  const adminLogin = useCallback(async (email, password, turnstileToken) => {
+    const response = await api.adminLogin({ email, password, turnstile_token: turnstileToken });
     const profile = await establishSession(response.access_token, response.refresh_token);
     if (profile.role !== 'admin') {
       throw new Error('Admin access required');
@@ -71,14 +71,15 @@ export const AuthProvider = ({ children }) => {
     return profile;
   }, [establishSession]);
 
-  const signup = useCallback(async ({ fullName, email, password }) => {
-    await api.signup({
+  const signup = useCallback(async ({ fullName, email, password, turnstileToken }) => {
+    const response = await api.signup({
       full_name: fullName,
       email,
       password,
+      turnstile_token: turnstileToken,
     });
-    return login(email, password);
-  }, [login]);
+    return establishSession(response.access_token, response.refresh_token);
+  }, [establishSession]);
 
   const logout = useCallback(async () => {
     const currentRefreshToken = getStoredRefreshToken();

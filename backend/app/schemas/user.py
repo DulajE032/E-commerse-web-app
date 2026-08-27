@@ -20,12 +20,13 @@ class UserCreate(UserBase):
 
 
 class UserSignup(UserCreate):
-    pass
+    turnstile_token: str | None = None
 
 
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    turnstile_token: str | None = None
 
     model_config = ConfigDict(extra="forbid")
 

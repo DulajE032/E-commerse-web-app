@@ -8,12 +8,15 @@ import { motion } from 'framer-motion';
 
 import { GoogleLogin } from '@react-oauth/google';
 import { api } from '../services/api';
+import TurnstileWidget from '../components/TurnstileWidget';
 
 const LoginPage = () => {
   const router = useRouter();
   const { login, establishSession } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const turnstileRef = React.useRef(null);
   
   const [formData, setFormData] = useState({
     email: '',
@@ -31,10 +34,12 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      await login(formData.email, formData.password, turnstileToken);
       router.push('/');
     } catch (err) {
       setError(err.message || 'Invalid email or password. Please try again.');
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -124,9 +129,17 @@ const LoginPage = () => {
                   />
                 </div>
 
+                <TurnstileWidget
+                  ref={turnstileRef}
+                  onVerify={(token) => setTurnstileToken(token)}
+                  onExpire={() => setTurnstileToken(null)}
+                  onError={() => setTurnstileToken(null)}
+                  theme="light"
+                />
+
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || !turnstileToken}
                   className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-slate-900/20 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6 group"
                 >
                   {isLoading ? (

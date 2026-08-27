@@ -118,7 +118,10 @@ export const api = {
     return request(`${API_BASE}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        turnstile_token: payload.turnstile_token || undefined,
+      }),
     });
   },
 
@@ -126,7 +129,10 @@ export const api = {
     return request(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        turnstile_token: payload.turnstile_token || undefined,
+      }),
     });
   },
 
@@ -134,7 +140,10 @@ export const api = {
     return request(`${API_BASE}/auth/admin-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        turnstile_token: payload.turnstile_token || undefined,
+      }),
     });
   },
 
@@ -288,7 +297,10 @@ export const api = {
     return request(`${API_BASE}/orders/`, {
       method: 'POST',
       headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
-      body: JSON.stringify(orderData),
+      body: JSON.stringify({
+        ...orderData,
+        turnstile_token: orderData.turnstile_token || undefined,
+      }),
     });
   },
 
