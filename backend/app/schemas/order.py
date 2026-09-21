@@ -22,9 +22,10 @@ class PaymentStatus(str, Enum):
     REFUNDED = "refunded"
 
 
+from app.schemas.payment import PaymentResponse
+
+
 class PaymentMethod(str, Enum):
-    CARD = "card"
-    PAYPAL = "paypal"
     COD = "cod"
     BANK_TRANSFER = "bank_transfer"
 
@@ -49,7 +50,7 @@ class ShippingAddressSchema(BaseModel):
 class CreateOrderRequest(BaseModel):
     email: EmailStr
     phone: Optional[str] = None
-    payment_method: PaymentMethod
+    payment_method: PaymentMethod = PaymentMethod.COD
     shipping_address: ShippingAddressSchema
     items: list[OrderItemSchema]
     shipping_cost: float = 15.0
@@ -74,15 +75,21 @@ class OrderResponse(BaseModel):
     status: str
     payment_status: str
     payment_method: str
+    bank_reference: Optional[str] = None
     total_amount: float
-    shipping_cost: float
-    tax_amount: float
+    shipping_cost: Optional[float] = 0.0
+    tax_amount: Optional[float] = 0.0
+
+
     items: Optional[list[Any]] = None
     shipping_address: Optional[dict[str, Any]] = None
     email: str
     phone: Optional[str] = None
     bank_slip_url: Optional[str] = None
     created_at: datetime
-    client_secret: Optional[str] = None  # Only for card payments
+    can_cancel: Optional[bool] = None
+    client_secret: Optional[str] = None
+    payment: Optional[PaymentResponse] = None
 
     model_config = ConfigDict(from_attributes=True)
+

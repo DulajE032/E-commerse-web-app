@@ -44,3 +44,58 @@ def send_admin_new_order_email(order_id: int, customer_email: str, total_amount:
         logger.info(f"Successfully sent admin notification email for order #{order_id}")
     except Exception as e:
         logger.error(f"Failed to send admin email notification for order #{order_id}: {e}")
+
+
+def send_bank_transfer_instructions_email(customer_email: str, order_id: int, reference_number: str, total_amount: float):
+    """Send bank transfer instructions with payment reference to customer."""
+    if not customer_email:
+        return
+
+    subject = f"Bank Transfer Instructions - Order #{order_id} (Ref: {reference_number})"
+    body = (
+        f"Dear Customer,\n\n"
+        f"Thank you for your order #{order_id}!\n\n"
+        f"To complete your order, please make a bank transfer using the details below:\n\n"
+        f"-----------------------------------------\n"
+        f"BANK TRANSFER PAYMENT DETAILS\n"
+        f"-----------------------------------------\n"
+        f"Bank Name: Commercial Bank\n"
+        f"Account Name: E-Commerce Store (Pvt) Ltd\n"
+        f"Account Number: 1000 2345 6789\n"
+        f"Branch: Colombo City Branch\n"
+        f"Total Amount Due: ${total_amount:.2f}\n"
+        f"YOUR PAYMENT REFERENCE: {reference_number}\n"
+        f"-----------------------------------------\n\n"
+        f"IMPORTANT:\n"
+        f"Please include your payment reference ({reference_number}) in the transfer remarks/narration.\n"
+        f"Once the transfer is complete, please upload your transfer slip in your account dashboard.\n\n"
+        f"Thank you for shopping with us!"
+    )
+
+    message = MIMEMultipart()
+    message["From"] = settings.EMAILS_FROM_EMAIL or "noreply@ecommerce.com"
+    message["To"] = customer_email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        if not settings.SMTP_HOST:
+            logger.info(f"SMTP not configured. Bank transfer email simulated for Order #{order_id}: Ref {reference_number}")
+            return
+
+        if settings.SMTP_SSL:
+            server = smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT)
+        else:
+            server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+            if settings.SMTP_TLS:
+                server.starttls()
+
+        if settings.SMTP_USER and settings.SMTP_PASSWORD:
+            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+
+        server.sendmail(settings.EMAILS_FROM_EMAIL or "noreply@ecommerce.com", customer_email, message.as_string())
+        server.quit()
+        logger.info(f"Successfully sent bank transfer email for order #{order_id} to {customer_email}")
+    except Exception as e:
+        logger.error(f"Failed to send bank transfer email to {customer_email}: {e}")
+

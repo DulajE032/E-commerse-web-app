@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag, FiHeart, FiGrid, FiUsers, FiMenu, FiX } from 'react-icons/fi';
+import { FiHome, FiBox, FiPlusCircle, FiLogOut, FiShoppingBag, FiHeart, FiGrid, FiUsers, FiMenu, FiX, FiMessageSquare } from 'react-icons/fi';
 import { useAuth } from '../services/AuthContext';
 import Logo from '../components/Logo';
 
@@ -64,7 +64,11 @@ const AdminLayout = ({ children }) => {
           <Link href="/admin/wishlist" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
             <FiHeart /> Wishlists
           </Link>
+          <Link href="/admin/feedback" onClick={() => setIsSidebarOpen(false)} className="flex items-center gap-3 p-3 rounded hover:bg-gray-700 transition">
+            <FiMessageSquare /> Feedback
+          </Link>
         </nav>
+
         <div className="p-4 border-t border-gray-700">
           <button
             onClick={handleLogout}

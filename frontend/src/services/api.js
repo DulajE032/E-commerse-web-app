@@ -341,10 +341,91 @@ export const api = {
     });
   },
 
-  verifyPayment: async (orderId, isApproved, token) => {
-    return request(`${API_BASE}/orders/${orderId}/verify-payment?is_approved=${isApproved}`, {
+  cancelOrder: async (orderId, token) => {
+    return request(`${API_BASE}/orders/${orderId}/cancel`, {
       method: 'PATCH',
       headers: withAuthHeaders({}, token),
+    });
+  },
+
+  verifyPayment: async (orderId, isApproved, token) => {
+    return request(`${API_BASE}/orders/${orderId}/verify-payment`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ is_approved: isApproved }),
+    });
+  },
+
+  // Notifications
+  getNotifications: async (token, limit = 20, offset = 0) => {
+    return request(`${API_BASE}/notifications/?limit=${limit}&offset=${offset}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getUnreadNotificationCount: async (token) => {
+    return request(`${API_BASE}/notifications/unread-count`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  markNotificationRead: async (id, token) => {
+    return request(`${API_BASE}/notifications/${id}/read`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  markAllNotificationsRead: async (token) => {
+    return request(`${API_BASE}/notifications/mark-all-read`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  // Feedback & Testimonials
+  submitOrderFeedback: async (orderId, { rating, comment }, token) => {
+    return request(`${API_BASE}/feedback/${orderId}`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ rating, comment }),
+    });
+  },
+
+  getMyFeedbacks: async (token) => {
+    return request(`${API_BASE}/feedback/my`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getFeaturedFeedbacks: async (limit = 6) => {
+    return request(`${API_BASE}/feedback/featured?limit=${limit}`);
+  },
+
+  getAllFeedbacksAdmin: async (params = {}, token) => {
+    const qs = new URLSearchParams();
+    if (params.is_featured !== undefined) qs.append('is_featured', params.is_featured);
+    if (params.limit) qs.append('limit', params.limit);
+    if (params.offset) qs.append('offset', params.offset);
+    const query = qs.toString() ? `?${qs.toString()}` : '';
+    return request(`${API_BASE}/feedback/admin/all${query}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  toggleFeedbackFeature: async (feedbackId, isFeatured, token) => {
+    return request(`${API_BASE}/feedback/${feedbackId}/feature`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ is_featured: isFeatured }),
+    });
+  },
+
+  respondToFeedbackAdmin: async (feedbackId, responseText, token) => {
+    return request(`${API_BASE}/feedback/${feedbackId}/respond`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ response: responseText }),
     });
   },
 
@@ -353,6 +434,7 @@ export const api = {
       headers: withAuthHeaders({}, token),
     });
   },
+
 
   getUsers: async (token) => {
     return request(`${API_BASE}/users/`, {

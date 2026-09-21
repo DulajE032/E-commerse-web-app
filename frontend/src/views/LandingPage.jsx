@@ -26,6 +26,8 @@ import ProductCard from "../components/ProductCard";
 import heroImage from "../assets/hero.jpg";
 import TechCapsuleCarousel from "../components/TechCapsuleCarousel";
 import Categories from "../components/Categories";
+import FeedbackSection from "../components/FeedbackSection";
+
 
 const LandingPageContent = () => {
   const navigate = useRouter();
@@ -154,10 +156,10 @@ const LandingPageContent = () => {
       <section className="max-w-7xl mx-auto px-4 md:px-8 mt-16">
         <div className="text-center mb-10">
           <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Our Premium Calculators
+            Innovation & Robotics Showcase
           </h2>
           <p className="text-slate-500 mt-2">
-            Easy online free tools for all your technical calculations.
+            Explore our autonomous robotics projects, precision sensor arrays, and embedded hardware.
           </p>
         </div>
         <div className="py-8">
@@ -325,6 +327,12 @@ const LandingPageContent = () => {
               ))}
         </div>
       </section>
+
+      {/* Customer Feedback & Testimonials Section */}
+      <div className="mt-20">
+        <FeedbackSection />
+      </div>
+
 
       {/* Floating Compare Button */}
       {compareItems.length > 0 && (

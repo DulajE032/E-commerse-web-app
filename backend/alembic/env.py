@@ -22,11 +22,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 from app.core.config import settings
 from app.db.base import Base
-from app.models.product import Product
-from app.models.user import User
-from app.models.category import Category
+import app.models  # imports all models so target_metadata registers them
 
 target_metadata = Base.metadata
+
 
 # Inject database URL
 if settings.DATABASE_URL:

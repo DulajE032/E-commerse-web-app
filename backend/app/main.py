@@ -18,17 +18,22 @@ app = FastAPI(title=settings.APP_NAME)
 origins = settings.CORS_ORIGINS if settings.CORS_ORIGINS else [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
@@ -45,3 +50,5 @@ def read_root():
 def db_health(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"database": "connected"}
+# Reload triggered
+
