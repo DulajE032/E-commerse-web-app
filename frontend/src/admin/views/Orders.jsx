@@ -141,6 +141,7 @@ const Orders = () => {
             <thead className="bg-gray-900 text-gray-400">
               <tr>
                 <th className="text-left px-6 py-4 font-medium">Order</th>
+                <th className="text-left px-6 py-4 font-medium">Reference</th>
                 <th className="text-left px-6 py-4 font-medium">Customer</th>
                 <th className="text-left px-6 py-4 font-medium">Total</th>
                 <th className="text-left px-6 py-4 font-medium">Status</th>
@@ -154,7 +155,11 @@ const Orders = () => {
               {filteredOrders.map((order) => (
                 <tr key={order.id} className="border-t border-gray-700 text-gray-200">
                   <td className="px-6 py-4 font-semibold">#{order.id}</td>
+                  <td className="px-6 py-4 font-mono text-xs text-amber-400 font-bold">
+                    {order.bank_reference || '—'}
+                  </td>
                   <td className="px-6 py-4">{order.email}</td>
+
                   <td className="px-6 py-4">${order.total_amount.toFixed(2)}</td>
                   <td className="px-6 py-4">
                     <span

@@ -13,8 +13,9 @@ class Order(Base):
     
     # Payment info
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
-    payment_method: Mapped[str] = mapped_column(String(50), nullable=False)  # "card", "paypal", "cod", "bank_transfer"
+    payment_method: Mapped[str] = mapped_column(String(50), nullable=False)  # "cod", "bank_transfer"
     payment_status: Mapped[str] = mapped_column(String(50), default="pending")  # "pending", "paid", "failed", "refunded"
+    bank_reference: Mapped[str | None] = mapped_column(String(50), unique=True, nullable=True, index=True)
     bank_slip_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     
     # Order info
@@ -35,5 +36,10 @@ class Order(Base):
     
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    payment = relationship("Payment", back_populates="order", uselist=False, cascade="all, delete-orphan")
+    feedback = relationship("Feedback", back_populates="order", uselist=False, cascade="all, delete-orphan")
+
 
 
