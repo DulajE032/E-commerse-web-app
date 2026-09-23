@@ -1,10 +1,10 @@
 "use client";
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-const CART_STORAGE_KEY = 'cart';
+const CART_STORAGE_KEY = "cart";
 
 const readCartFromStorage = () => {
-  if (typeof window === 'undefined') return [];
+  if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
@@ -18,13 +18,20 @@ const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState(() => readCartFromStorage());
+  const [cartItems, setCartItems] = useState([]);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
+
+  useEffect(() => {
+    setCartItems(readCartFromStorage());
+    setIsHydrated(true);
+  }, []);
 
   // Persist cart to localStorage whenever it changes
   useEffect(() => {
+    if (!isHydrated) return;
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-  }, [cartItems]);
+  }, [cartItems, isHydrated]);
 
   const addToCart = (product) => {
     setCartItems((prev) => {
@@ -32,12 +39,14 @@ export const CartProvider = ({ children }) => {
       if (existing) {
         // Increase quantity if already in cart
         return prev.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === product.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
         );
       }
       return [...prev, { ...product, quantity: 1 }];
     });
-    
+
     // Show Toast
     setToastMessage(`Added ${product.name} to cart`);
     setTimeout(() => setToastMessage(null), 3000);
@@ -53,17 +62,34 @@ export const CartProvider = ({ children }) => {
       return;
     }
     setCartItems((prev) =>
-      prev.map((item) => (item.id === productId ? { ...item, quantity } : item))
+      prev.map((item) =>
+        item.id === productId ? { ...item, quantity } : item,
+      ),
     );
   };
 
   const clearCart = () => setCartItems([]);
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartTotal = cartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart, cartCount, cartTotal, toastMessage, setToastMessage }}>
+    <CartContext.Provider
+      value={{
+        cartItems,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+        cartCount,
+        cartTotal,
+        toastMessage,
+        setToastMessage,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

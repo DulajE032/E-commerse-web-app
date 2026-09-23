@@ -13,6 +13,7 @@ import { api, IMAGE_BASE_URL } from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from './Logo';
 import WishlistIcon from './WishlistIcon';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,12 +23,19 @@ const Navbar = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAnnouncementVisible, setIsAnnouncementVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
   
   const { cartCount } = useCart();
   const { wishlistCount } = useWishlist();
   const { user, isAuthenticated, logout } = useAuth();
   const currentPath = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   // Handle scroll effect for navbar
   useEffect(() => {
@@ -221,42 +229,58 @@ const Navbar = () => {
                <div className="h-6 w-px bg-gray-200 hidden md:block mx-1"></div>
 
                {/* Action Icons */}
-               <div className="flex items-center gap-1 sm:gap-2">
-                 <Link href="/wishlist" className="relative p-2 text-slate-700 hover:bg-pink-50 hover:text-pink-600 rounded-full transition-colors group">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <WishlistIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                      <AnimatePresence>
-                        {wishlistCount > 0 && (
-                          <motion.span 
-                            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                            className="absolute top-1 right-1 translate-x-1/4 -translate-y-1/4 bg-pink-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
-                          >
-                            {wishlistCount}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                 </Link>
+              
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* 1. Notification Bell */}
+                <NotificationBell />
 
-                 <Link href="/cart" className="relative p-2 text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-full transition-colors group">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <FiShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-                      <AnimatePresence>
-                        {cartCount > 0 && (
-                          <motion.span 
-                            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                            className="absolute top-1 right-1 translate-x-1/4 -translate-y-1/4 bg-blue-600 text-white text-[10px] font-bold min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full border-2 border-white shadow-sm"
-                          >
-                            {cartCount}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                 </Link>
-               </div>
+                {/* 2. Wishlist Icon */}
+                <Link
+                  href="/wishlist"
+                  className="relative p-2 text-slate-700 hover:text-pink-600 hover:bg-pink-50 rounded-full transition-all group focus:outline-none focus:ring-2 focus:ring-pink-500/30"
+                  aria-label="Wishlist"
+                >
+                  <FiHeart className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110 group-hover:-rotate-12" />
+                  <AnimatePresence>
+                    {mounted && wishlistCount > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute top-1 right-1 translate-x-1/4 -translate-y-1/4 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-pink-500 rounded-full border-2 border-white shadow-md animate-pulse"
+                      >
+                        {wishlistCount > 9 ? "9+" : wishlistCount}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Link>
+
+                {/* 3. Cart Icon */}
+                <Link
+                  href="/cart"
+                  className="relative p-2 text-slate-700 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all group focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  aria-label="Shopping Cart"
+                >
+                  <FiShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110 group-hover:-rotate-12" />
+                  <AnimatePresence>
+                    {mounted && cartCount > 0 && (
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute top-1 right-1 translate-x-1/4 -translate-y-1/4 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-blue-600 rounded-full border-2 border-white shadow-md animate-pulse"
+                      >
+                        {cartCount > 9 ? "9+" : cartCount}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </Link>
+              </div>
+
 
                {/* User Profile / Auth */}
-               {isAuthenticated ? (
+               {mounted && isAuthenticated ? (
+
                  <div className="relative hidden sm:block ml-2">
                    <button
                      onClick={() => setIsProfileOpen((prev) => !prev)}

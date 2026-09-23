@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { useAuth } from '../services/AuthContext';
+import TurnstileWidget from '../components/TurnstileWidget';
 
 
 const AdminLoginPage = () => {
@@ -15,6 +16,8 @@ const AdminLoginPage = () => {
     email: '',
     password: '',
   });
+  const [turnstileToken, setTurnstileToken] = useState(null);
+  const turnstileRef = React.useRef(null);
 
   useEffect(() => {
     if (isInitializing || !isAuthenticated || !user) {
@@ -40,10 +43,12 @@ const AdminLoginPage = () => {
     setIsLoading(true);
 
     try {
-      await adminLogin(formData.email, formData.password);
+      await adminLogin(formData.email, formData.password, turnstileToken);
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.message || 'Invalid admin credentials');
+      setTurnstileToken(null);
+      turnstileRef.current?.reset();
     } finally {
       setIsLoading(false);
     }
@@ -89,9 +94,17 @@ const AdminLoginPage = () => {
             />
           </div>
 
+          <TurnstileWidget
+            ref={turnstileRef}
+            onVerify={(token) => setTurnstileToken(token)}
+            onExpire={() => setTurnstileToken(null)}
+            onError={() => setTurnstileToken(null)}
+            theme="dark"
+          />
+
           <button
             type="submit"
-            disabled={isLoading || !formData.email || !formData.password}
+            disabled={isLoading || !formData.email || !formData.password || !turnstileToken}
             className="w-full bg-blue-600 hover:bg-blue-700 rounded-lg py-2.5 font-medium disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {isLoading ? (

@@ -6,10 +6,11 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 4rem 0;
+  padding: 3rem 0 4rem 0;
   width: 100%;
   overflow: hidden;
   background-color: transparent;
+  position: relative;
 }
 
 .carousel-wrapper {
@@ -18,153 +19,126 @@
   justify-content: center;
   width: 100%;
   max-width: 1200px;
-  gap: 30px;
+  gap: 24px;
   padding: 0 1rem;
   box-sizing: border-box;
 }
 
 .tech-capsule-track {
   display: flex;
-  perspective: 2000px;
+  perspective: 1800px;
   transform-style: preserve-3d;
   position: relative;
-  min-height: 480px;
-  width: 900px;
+  min-height: 520px;
+  width: 960px;
   max-width: 100%;
   justify-content: center;
   align-items: center;
 }
 
-/* Light theme for cards */
+/* Full-Image 3D Card */
 .tech-card {
   position: absolute;
-  width: 320px;
-  height: 440px;
-  background: #ffffff;
-  border-radius: 12px;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1),
-              opacity 0.4s ease,
-              box-shadow 0.4s ease,
-              border-color 0.4s ease;
-  display: flex;
-  flex-direction: column;
+  width: 350px;
+  height: 480px;
+  border-radius: 22px;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-  border: 2px solid transparent;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.35);
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+              filter 0.5s ease,
+              opacity 0.4s ease,
+              box-shadow 0.5s ease,
+              border-color 0.4s ease;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  user-select: none;
 }
 
+/* Image fills entire card area */
+.tech-card-full-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Glass shine overlay for depth */
+.tech-card-glass-shine {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(255, 255, 255, 0.02) 40%,
+    rgba(0, 0, 0, 0.15) 100%
+  );
+  border-radius: inherit;
+  transition: opacity 0.4s ease;
+}
+
+/* Active Center Card */
 .tech-card.active {
-  transform: rotateY(0deg) translateZ(50px) scale(1);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  transform: rotateY(0deg) translateZ(60px) scale(1.05);
+  box-shadow: 0 25px 60px -12px rgba(99, 102, 241, 0.4),
+              0 12px 25px -8px rgba(15, 23, 42, 0.5);
   z-index: 5;
   border-color: #6366f1;
+  filter: brightness(1);
 }
 
-/* Inner side cards — moderate angle, slightly behind center */
+.tech-card.active:hover .tech-card-full-image {
+  transform: scale(1.04);
+}
+
+/* Left & Right Inner Cards (Moderate Angle & Depth) */
 .tech-card.left {
-  transform: rotateY(45deg) translateZ(-90px) translateX(-95%) scale(0.9);
-  background: #fafafa;
+  transform: rotateY(36deg) translateZ(-60px) translateX(-100%) scale(0.88);
+  filter: brightness(0.82);
   z-index: 4;
 }
 
 .tech-card.right {
-  transform: rotateY(-45deg) translateZ(-90px) translateX(95%) scale(0.9);
-  background: #fafafa;
+  transform: rotateY(-36deg) translateZ(-60px) translateX(100%) scale(0.88);
+  filter: brightness(0.82);
   z-index: 4;
 }
 
-/* Outer edge cards — steeper angle, peeking from edges */
+.tech-card.left:hover,
+.tech-card.right:hover {
+  filter: brightness(0.95);
+}
+
+/* Left & Right Outer Cards (Steeper Angle) */
 .tech-card.left-2 {
-  transform: rotateY(45deg) translateZ(-90px) translateX(-100%) scale(0.8);
+  transform: rotateY(42deg) translateZ(-140px) translateX(-145%) scale(0.76);
+  filter: brightness(0.65);
   z-index: 3;
 }
 
 .tech-card.right-2 {
-  transform: rotateY(-45deg) translateZ(-90px) translateX(100%) scale(0.8);
+  transform: rotateY(-42deg) translateZ(-140px) translateX(145%) scale(0.76);
+  filter: brightness(0.65);
   z-index: 3;
 }
 
 .tech-card.hidden {
   opacity: 0;
   pointer-events: none;
+  transform: translateZ(-200px) scale(0.5);
 }
 
-.tech-card-image-container {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-}
-
-.tech-card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.tech-card-content {
-  padding: 1.5rem;
-  color: #333;
-  text-align: center;
-  background: #ffffff;
-}
-
-.tech-card-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: #6366f1;
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.tech-card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  margin: 0 0 0.5rem 0;
-  color: #111827;
-}
-
-.tech-card-desc {
-  font-size: 0.85rem;
-  color: #6b7280;
-  margin-bottom: 1.5rem;
-  line-height: 1.4;
-}
-
-.tech-card-action {
-  opacity: 1;
-  transition: all 0.4s ease;
-}
-
-.tech-btn-add {
-  background: #6366f1;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 20px;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  transition: background 0.2s;
-}
-
-.tech-btn-add:hover {
-  background: #4f46e5;
-}
-
-/* Navigation buttons */
+/* Sleek Nav Buttons */
 .nav-btn {
   background: #6366f1;
   color: white;
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   border: none;
   display: flex;
@@ -172,17 +146,22 @@
   justify-content: center;
   cursor: pointer;
   z-index: 10;
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.45);
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .nav-btn:hover {
   background: #4f46e5;
-  transform: scale(1.05);
+  transform: scale(1.1);
+  box-shadow: 0 10px 24px -2px rgba(99, 102, 241, 0.6);
 }
 
-/* Pagination dots */
+.nav-btn:active {
+  transform: scale(0.95);
+}
+
+/* Pagination Dots */
 .pagination {
   display: flex;
   gap: 8px;
@@ -195,15 +174,16 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #e5e7eb;
+  background: #cbd5e1;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .dot.active {
   background: #6366f1;
-  width: 24px;
-  border-radius: 4px;
+  width: 28px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 
 /* ===========================================
@@ -215,35 +195,42 @@
     opacity: 0;
     pointer-events: none;
   }
+  
   .tech-capsule-track {
-    width: 600px;
+    width: 680px;
+    min-height: 480px;
+  }
+
+  .tech-card {
+    width: 310px;
+    height: 430px;
   }
 }
 
 /* ===========================================
-   TABLET (768px and below) - Show only center card
+   TABLET (768px and below) - Clean Center Focus
    =========================================== */
 @media (max-width: 768px) {
   .tech-capsule-container {
-    padding: 2rem 1rem;
+    padding: 2rem 0.5rem;
   }
 
   .carousel-wrapper {
-    gap: 20px;
+    gap: 16px;
   }
 
   .tech-capsule-track {
-    width: 280px;
-    min-height: 400px;
-    perspective: none; /* Disable 3D on mobile */
-    transform-style: flat; /* Flatten — no 3D movement visible */
+    width: 300px;
+    min-height: 420px;
+    perspective: none;
+    transform-style: flat;
   }
 
   .tech-card {
-    width: 280px;
-    height: 400px;
-    /* Override: use opacity-only fade, no 3D sliding */
+    width: 300px;
+    height: 420px;
     transition: opacity 0.4s ease, transform 0.01s;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
   }
 
   .tech-card.active {
@@ -251,60 +238,43 @@
     opacity: 1;
   }
 
-  /* Hide ALL side cards — pure fade, no movement */
   .tech-card.left,
   .tech-card.right,
   .tech-card.left-2,
   .tech-card.right-2 {
     opacity: 0;
     pointer-events: none;
-    transform: none; /* No 3D movement — just invisible */
+    transform: none;
   }
 
   .nav-btn {
-    width: 40px;
-    height: 40px;
+    width: 42px;
+    height: 42px;
   }
 }
 
 /* ===========================================
-   PHONE (480px and below) - Smaller center card
+   PHONE (480px and below)
    =========================================== */
 @media (max-width: 480px) {
   .carousel-wrapper {
-    gap: 12px;
+    gap: 10px;
   }
 
   .tech-capsule-track {
-    width: 250px;
+    width: 260px;
+    min-height: 370px;
   }
 
   .tech-card {
-    width: 250px;
-    height: 360px;
-  }
-
-  .tech-card-content {
-    padding: 1rem;
-  }
-
-  .tech-card-title {
-    font-size: 0.95rem;
-  }
-
-  .tech-card-desc {
-    font-size: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .tech-btn-add {
-    padding: 8px 14px;
-    font-size: 0.8rem;
+    width: 260px;
+    height: 370px;
+    border-radius: 18px;
   }
 
   .nav-btn {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
 }
 

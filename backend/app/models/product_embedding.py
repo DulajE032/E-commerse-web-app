@@ -12,4 +12,6 @@ class ProductEmbedding(Base):
     image_url:Mapped[str] = mapped_column(String(500), nullable=False)
     model_name: Mapped[str] = mapped_column(String(100), nullable=False, default="ViT-B-32")
     embedding: Mapped[list[float]] = mapped_column(ARRAY(Float), nullable=False)
+
+
     product : Mapped["Product"] = relationship("Product", back_populates="embeddings")

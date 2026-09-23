@@ -1,20 +1,21 @@
 "use client";
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { api } from './api';
+import { api, clearAuthTokens, getStoredRefreshToken, getStoredToken, setAuthTokens } from './api';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+  const [token, setToken] = useState(() => (typeof window !== 'undefined' ? getStoredToken() : null));
   const [user, setUser] = useState(null);
-  const [isInitializing, setIsInitializing] = useState(typeof window !== 'undefined' ? Boolean(localStorage.getItem('token')) : false);
+  const [isInitializing, setIsInitializing] = useState(typeof window !== 'undefined' ? Boolean(getStoredToken()) : false);
 
   useEffect(() => {
     let isMounted = true;
 
     const initialize = async () => {
-      if (!token) {
+      const storedToken = getStoredToken();
+      if (!storedToken) {
         if (isMounted) {
           setUser(null);
           setIsInitializing(false);
@@ -23,12 +24,13 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const profile = await api.getProfile(token);
+        const profile = await api.getProfile(storedToken);
         if (isMounted) {
           setUser(profile);
+          setToken(storedToken);
         }
       } catch {
-        localStorage.removeItem('token');
+        clearAuthTokens();
         if (isMounted) {
           setToken(null);
           setUser(null);
@@ -44,10 +46,10 @@ export const AuthProvider = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [token]);
+  }, []);
 
-  const establishSession = useCallback(async (accessToken) => {
-    localStorage.setItem('token', accessToken);
+  const establishSession = useCallback(async (accessToken, refreshToken) => {
+    setAuthTokens(accessToken, refreshToken);
     setToken(accessToken);
     const profile = await api.getProfile(accessToken);
     setUser(profile);
@@ -55,31 +57,40 @@ export const AuthProvider = ({ children }) => {
     return profile;
   }, []);
 
-  const login = useCallback(async (email, password) => {
-    const response = await api.login({ email, password });
-    return establishSession(response.access_token);
+  const login = useCallback(async (email, password, turnstileToken) => {
+    const response = await api.login({ email, password, turnstile_token: turnstileToken });
+    return establishSession(response.access_token, response.refresh_token);
   }, [establishSession]);
 
-  const adminLogin = useCallback(async (email, password) => {
-    const response = await api.adminLogin({ email, password });
-    const profile = await establishSession(response.access_token);
+  const adminLogin = useCallback(async (email, password, turnstileToken) => {
+    const response = await api.adminLogin({ email, password, turnstile_token: turnstileToken });
+    const profile = await establishSession(response.access_token, response.refresh_token);
     if (profile.role !== 'admin') {
       throw new Error('Admin access required');
     }
     return profile;
   }, [establishSession]);
 
-  const signup = useCallback(async ({ fullName, email, password }) => {
-    await api.signup({
+  const signup = useCallback(async ({ fullName, email, password, turnstileToken }) => {
+    const response = await api.signup({
       full_name: fullName,
       email,
       password,
+      turnstile_token: turnstileToken,
     });
-    return login(email, password);
-  }, [login]);
+    return establishSession(response.access_token, response.refresh_token);
+  }, [establishSession]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('token');
+  const logout = useCallback(async () => {
+    const currentRefreshToken = getStoredRefreshToken();
+    if (currentRefreshToken) {
+      try {
+        await api.serverLogout(currentRefreshToken);
+      } catch {
+        // Ignore server error on logout
+      }
+    }
+    clearAuthTokens();
     setToken(null);
     setUser(null);
     setIsInitializing(false);

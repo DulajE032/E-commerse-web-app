@@ -9,7 +9,20 @@ export const getImageUrl = (path) => {
   return path; // For public folder assets like /categories/phones.png
 };
 
-const getStoredToken = () => typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+export const getStoredToken = () => (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+export const getStoredRefreshToken = () => (typeof window !== 'undefined' ? localStorage.getItem('refresh_token') : null);
+
+export const setAuthTokens = (accessToken, refreshToken) => {
+  if (typeof window === 'undefined') return;
+  if (accessToken) localStorage.setItem('token', accessToken);
+  if (refreshToken) localStorage.setItem('refresh_token', refreshToken);
+};
+
+export const clearAuthTokens = () => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('token');
+  localStorage.removeItem('refresh_token');
+};
 
 const withAuthHeaders = (headers = {}, token = getStoredToken()) => {
   if (!token) {
@@ -21,13 +34,69 @@ const withAuthHeaders = (headers = {}, token = getStoredToken()) => {
   };
 };
 
-const request = async (url, options = {}) => {
+let refreshPromise = null;
+
+const refreshAccessToken = async () => {
+  if (refreshPromise) return refreshPromise;
+
+  const currentRefreshToken = getStoredRefreshToken();
+  if (!currentRefreshToken) {
+    clearAuthTokens();
+    return null;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const res = await fetch(`${API_BASE}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh_token: currentRefreshToken }),
+      });
+
+      if (!res.ok) {
+        clearAuthTokens();
+        return null;
+      }
+
+      const data = await res.json();
+      setAuthTokens(data.access_token, data.refresh_token);
+      return data.access_token;
+    } catch {
+      clearAuthTokens();
+      return null;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+};
+
+const request = async (url, options = {}, isRetry = false) => {
   let res;
   try {
     res = await fetch(url, options);
   } catch (networkError) {
-    // Only genuine network failures (server down, CORS, DNS) land here
     throw new Error(`Unable to connect to the backend server (${API_BASE}). Please check if the server is running.`);
+  }
+
+  const isAuthEndpoint =
+    url.includes('/auth/login') ||
+    url.includes('/auth/admin-login') ||
+    url.includes('/auth/google') ||
+    url.includes('/auth/signup') ||
+    url.includes('/auth/refresh');
+
+  // If token expired (401) and not already retrying, attempt silent refresh on protected endpoints
+  if (res.status === 401 && !isRetry && !isAuthEndpoint) {
+    const newAccessToken = await refreshAccessToken();
+    if (newAccessToken) {
+      const retryHeaders = {
+        ...(options.headers || {}),
+        Authorization: `Bearer ${newAccessToken}`,
+      };
+      return request(url, { ...options, headers: retryHeaders }, true);
+    }
   }
 
   const data = await res.json().catch(() => null);
@@ -49,7 +118,10 @@ export const api = {
     return request(`${API_BASE}/auth/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        turnstile_token: payload.turnstile_token || undefined,
+      }),
     });
   },
 
@@ -57,7 +129,10 @@ export const api = {
     return request(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        turnstile_token: payload.turnstile_token || undefined,
+      }),
     });
   },
 
@@ -65,7 +140,26 @@ export const api = {
     return request(`${API_BASE}/auth/admin-login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({
+        ...payload,
+        turnstile_token: payload.turnstile_token || undefined,
+      }),
+    });
+  },
+
+  refreshToken: async (refreshToken) => {
+    return request(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+  },
+
+  serverLogout: async (refreshToken) => {
+    return request(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
     });
   },
 
@@ -84,8 +178,6 @@ export const api = {
   },
 
   // Products
-  
-
   getProduct: async (id) => {
     return request(`${API_BASE}/products/${id}`);
   },
@@ -130,6 +222,21 @@ export const api = {
     return request(`${API_BASE}/categories/`);
   },
 
+  createCategory: async (categoryData, token) => {
+    return request(`${API_BASE}/categories/`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify(categoryData),
+    });
+  },
+
+  deleteCategory: async (id, token) => {
+    return request(`${API_BASE}/categories/${id}`, {
+      method: 'DELETE',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
   // Upload
   uploadImage: async (file, token) => {
     const formData = new FormData();
@@ -160,45 +267,47 @@ export const api = {
     });
     return data && Array.isArray(data.results) ? data.results : data;
   },
-  
+
   getProducts: async (filters = {}) => {
-   const params = new URLSearchParams();
- 
-   if (filters.page) params.append('page', filters.page);
-   if (filters.limit) params.append('limit', filters.limit);
-   if (filters.category) params.append('category', filters.category);
-   if (filters.search) params.append('search', filters.search);
-   if (filters.sortBy) params.append('sort_by', filters.sortBy);
-   if (filters.minPrice != null) params.append('min_price', filters.minPrice);
-   if (filters.maxPrice != null) params.append('max_price', filters.maxPrice);
-   if (filters.inStock === true) params.append('in_stock', 'true');
- 
-   if (Array.isArray(filters.brands)) {
-     filters.brands.forEach((b) => params.append('brands', b));
-   }
- 
-   const qs = params.toString();
-   return request(`${API_BASE}/products/${qs ? `?${qs}` : ''}`);
- },
- 
-  getProductFilters: async () => {
-   return request(`${API_BASE}/products/filters`);
+    const params = new URLSearchParams();
+
+    if (filters.page) params.append('page', filters.page);
+    if (filters.limit) params.append('limit', filters.limit);
+    if (filters.category) params.append('category', filters.category);
+    if (filters.search) params.append('search', filters.search);
+    if (filters.sortBy) params.append('sort_by', filters.sortBy);
+    if (filters.minPrice != null) params.append('min_price', filters.minPrice);
+    if (filters.maxPrice != null) params.append('max_price', filters.maxPrice);
+    if (filters.inStock === true) params.append('in_stock', 'true');
+
+    if (Array.isArray(filters.brands)) {
+      filters.brands.forEach((b) => params.append('brands', b));
+    }
+
+    const qs = params.toString();
+    return request(`${API_BASE}/products/${qs ? `?${qs}` : ''}`);
   },
-  
-  //order
+
+  getProductFilters: async () => {
+    return request(`${API_BASE}/products/filters`);
+  },
+
+  // Orders
   createOrder: async (orderData, token) => {
     return request(`${API_BASE}/orders/`, {
       method: 'POST',
       headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
-      body: JSON.stringify(orderData),
+      body: JSON.stringify({
+        ...orderData,
+        turnstile_token: orderData.turnstile_token || undefined,
+      }),
     });
   },
-  
+
   getOrders: async (token) => {
     return request(`${API_BASE}/orders/`, {
       headers: withAuthHeaders({}, token),
-    }
-    );
+    });
   },
 
   getMyOrders: async (token, status) => {
@@ -213,11 +322,12 @@ export const api = {
       headers: withAuthHeaders({}, token),
     });
   },
-  
+
   updateOrderStatus: async (id, status, token) => {
-    return request(`${API_BASE}/orders/${id}/status?status=${status}`, {
+    return request(`${API_BASE}/orders/${id}/status`, {
       method: 'PATCH',
-      headers: withAuthHeaders({}, token),
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ status }),
     });
   },
 
@@ -231,10 +341,91 @@ export const api = {
     });
   },
 
-  verifyPayment: async (orderId, isApproved, token) => {
-    return request(`${API_BASE}/orders/${orderId}/verify-payment?is_approved=${isApproved}`, {
+  cancelOrder: async (orderId, token) => {
+    return request(`${API_BASE}/orders/${orderId}/cancel`, {
       method: 'PATCH',
       headers: withAuthHeaders({}, token),
+    });
+  },
+
+  verifyPayment: async (orderId, isApproved, token) => {
+    return request(`${API_BASE}/orders/${orderId}/verify-payment`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ is_approved: isApproved }),
+    });
+  },
+
+  // Notifications
+  getNotifications: async (token, limit = 20, offset = 0) => {
+    return request(`${API_BASE}/notifications/?limit=${limit}&offset=${offset}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getUnreadNotificationCount: async (token) => {
+    return request(`${API_BASE}/notifications/unread-count`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  markNotificationRead: async (id, token) => {
+    return request(`${API_BASE}/notifications/${id}/read`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  markAllNotificationsRead: async (token) => {
+    return request(`${API_BASE}/notifications/mark-all-read`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  // Feedback & Testimonials
+  submitOrderFeedback: async (orderId, { rating, comment }, token) => {
+    return request(`${API_BASE}/feedback/${orderId}`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ rating, comment }),
+    });
+  },
+
+  getMyFeedbacks: async (token) => {
+    return request(`${API_BASE}/feedback/my`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  getFeaturedFeedbacks: async (limit = 6) => {
+    return request(`${API_BASE}/feedback/featured?limit=${limit}`);
+  },
+
+  getAllFeedbacksAdmin: async (params = {}, token) => {
+    const qs = new URLSearchParams();
+    if (params.is_featured !== undefined) qs.append('is_featured', params.is_featured);
+    if (params.limit) qs.append('limit', params.limit);
+    if (params.offset) qs.append('offset', params.offset);
+    const query = qs.toString() ? `?${qs.toString()}` : '';
+    return request(`${API_BASE}/feedback/admin/all${query}`, {
+      headers: withAuthHeaders({}, token),
+    });
+  },
+
+  toggleFeedbackFeature: async (feedbackId, isFeatured, token) => {
+    return request(`${API_BASE}/feedback/${feedbackId}/feature`, {
+      method: 'PATCH',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ is_featured: isFeatured }),
+    });
+  },
+
+  respondToFeedbackAdmin: async (feedbackId, responseText, token) => {
+    return request(`${API_BASE}/feedback/${feedbackId}/respond`, {
+      method: 'POST',
+      headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
+      body: JSON.stringify({ response: responseText }),
     });
   },
 
@@ -243,6 +434,7 @@ export const api = {
       headers: withAuthHeaders({}, token),
     });
   },
+
 
   getUsers: async (token) => {
     return request(`${API_BASE}/users/`, {
@@ -316,26 +508,6 @@ export const api = {
   sendWishlistCampaign: async (productId, token) => {
     return request(`${API_BASE}/wishlist/admin/campaign/${productId}`, {
       method: 'POST',
-      headers: withAuthHeaders({}, token),
-    });
-  },
-  createCategory: async (categoryData, token) => {
-    const response = await fetch(`${API_BASE}/categories/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(categoryData) 
-    });
-
-    if (!response.ok) throw new Error('Failed to create category');
-    return await response.json();
-  },
-
-  deleteCategory: async (id, token) => {
-    return request(`${API_BASE}/categories/${id}`, {
-      method: 'DELETE',
       headers: withAuthHeaders({}, token),
     });
   },
