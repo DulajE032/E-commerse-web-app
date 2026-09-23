@@ -99,3 +99,91 @@ def send_bank_transfer_instructions_email(customer_email: str, order_id: int, re
     except Exception as e:
         logger.error(f"Failed to send bank transfer email to {customer_email}: {e}")
 
+
+def send_payment_verified_email(customer_email: str, order_id: int, total_amount: float):
+    """Send payment verified confirmation email to customer."""
+    if not customer_email:
+        return
+
+    subject = f"Payment Verified - Order #{order_id} Confirmed"
+    body = (
+        f"Dear Customer,\n\n"
+        f"Good news! Your bank transfer payment of ${total_amount:.2f} for Order #{order_id} has been verified.\n\n"
+        f"Your order is now confirmed and our team is preparing it for shipment.\n"
+        f"You can track the progress of your order at any time from your account dashboard.\n\n"
+        f"Thank you for choosing our store!"
+    )
+
+    message = MIMEMultipart()
+    message["From"] = settings.EMAILS_FROM_EMAIL or "noreply@ecommerce.com"
+    message["To"] = customer_email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        if not settings.SMTP_HOST:
+            logger.info(f"SMTP not configured. Payment verified email simulated for Order #{order_id}")
+            return
+
+        if settings.SMTP_SSL:
+            server = smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT)
+        else:
+            server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+            if settings.SMTP_TLS:
+                server.starttls()
+
+        if settings.SMTP_USER and settings.SMTP_PASSWORD:
+            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+
+        server.sendmail(settings.EMAILS_FROM_EMAIL or "noreply@ecommerce.com", customer_email, message.as_string())
+        server.quit()
+        logger.info(f"Successfully sent payment verified email for order #{order_id} to {customer_email}")
+    except Exception as e:
+        logger.error(f"Failed to send payment verified email for order #{order_id}: {e}")
+
+
+def send_payment_rejected_email(customer_email: str, order_id: int, reason: str):
+    """Send payment rejected notification email to customer."""
+    if not customer_email:
+        return
+
+    subject = f"Action Required: Payment Slip Rejected - Order #{order_id}"
+    body = (
+        f"Dear Customer,\n\n"
+        f"We were unable to verify your bank transfer slip for Order #{order_id}.\n\n"
+        f"Reason / Admin Notes:\n"
+        f"{reason}\n\n"
+        f"What to do next:\n"
+        f"Please log in to your account dashboard, review the notes, and re-upload a valid payment slip showing the correct order amount and reference.\n\n"
+        f"If you believe this is a mistake or have questions, please reply to this email or contact support.\n\n"
+        f"Thank you."
+    )
+
+    message = MIMEMultipart()
+    message["From"] = settings.EMAILS_FROM_EMAIL or "noreply@ecommerce.com"
+    message["To"] = customer_email
+    message["Subject"] = subject
+    message.attach(MIMEText(body, "plain"))
+
+    try:
+        if not settings.SMTP_HOST:
+            logger.info(f"SMTP not configured. Payment rejected email simulated for Order #{order_id}")
+            return
+
+        if settings.SMTP_SSL:
+            server = smtplib.SMTP_SSL(settings.SMTP_HOST, settings.SMTP_PORT)
+        else:
+            server = smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT)
+            if settings.SMTP_TLS:
+                server.starttls()
+
+        if settings.SMTP_USER and settings.SMTP_PASSWORD:
+            server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+
+        server.sendmail(settings.EMAILS_FROM_EMAIL or "noreply@ecommerce.com", customer_email, message.as_string())
+        server.quit()
+        logger.info(f"Successfully sent payment rejected email for order #{order_id} to {customer_email}")
+    except Exception as e:
+        logger.error(f"Failed to send payment rejected email for order #{order_id}: {e}")
+
+

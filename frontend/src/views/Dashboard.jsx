@@ -107,6 +107,52 @@ const OrderCardItem = ({
 
   const items = order.items || [];
 
+  const getPaymentBadge = () => {
+    const method = order.payment_method?.toLowerCase();
+    const payStatus = (order.payment?.status || order.payment_status || '').toUpperCase();
+    if (method === 'cod') {
+      if (payStatus === 'VERIFIED' || order.status?.toLowerCase() === 'delivered' || order.payment_status?.toLowerCase() === 'paid') {
+        return {
+          label: 'Payment Collected (COD)',
+          style: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        };
+      }
+      return {
+        label: 'Pay on Delivery (COD)',
+        style: 'bg-slate-100 text-slate-800 border-slate-300',
+      };
+    }
+    // Bank Transfer
+    switch (payStatus) {
+      case 'VERIFIED':
+        return {
+          label: 'Payment Verified',
+          style: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        };
+      case 'SUBMITTED':
+        return {
+          label: 'Slip Under Review',
+          style: 'bg-blue-100 text-blue-800 border-blue-300',
+        };
+      case 'REJECTED':
+        return {
+          label: 'Payment Rejected — Please Re-upload',
+          style: 'bg-rose-100 text-rose-800 border-rose-300',
+        };
+      case 'PENDING':
+      default:
+        return {
+          label: 'Payment Pending',
+          style: 'bg-amber-100 text-amber-800 border-amber-300',
+        };
+    }
+  };
+
+  const paymentBadge = getPaymentBadge();
+  const isRejected =
+    order.status?.toLowerCase() === 'payment_rejected' ||
+    (order.payment?.status || '').toUpperCase() === 'REJECTED';
+
   return (
     <div className="border border-slate-200 rounded-3xl p-6 bg-white hover:border-slate-300 transition-all shadow-sm space-y-4">
       {/* Header */}
@@ -143,15 +189,48 @@ const OrderCardItem = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${getStatusBadge(order.status)}`}>
-            {order.status}
+            {order.status?.replace('_', ' ')}
           </span>
-          <span className="text-lg font-black text-slate-900">
+          <span className={`px-2.5 py-1 rounded-full text-xs font-bold tracking-wider border ${paymentBadge.style}`}>
+            {paymentBadge.label}
+          </span>
+          <span className="text-lg font-black text-slate-900 ml-2">
             ${order.total_amount ? Number(order.total_amount).toFixed(2) : '0.00'}
           </span>
         </div>
       </div>
+
+      {/* Payment Rejected Alert Banner */}
+      {isRejected && (
+        <div className="bg-rose-50 border border-rose-200 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-rose-900 font-black text-xs">
+              <FiAlertCircle className="w-4 h-4 text-rose-600" />
+              <span>Payment Slip Verification Failed</span>
+            </div>
+            {order.payment?.admin_notes && (
+              <p className="text-xs text-rose-800 bg-white/80 p-2.5 rounded-xl border border-rose-200">
+                <strong>Reason / Admin Note:</strong> {order.payment.admin_notes}
+              </p>
+            )}
+            <p className="text-[11px] text-rose-600">
+              Please check your payment slip, confirm the amount (${Number(order.total_amount).toFixed(2)}) and reference ({order.bank_reference || 'N/A'}), and re-upload.
+            </p>
+          </div>
+          <label className="inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs cursor-pointer transition shadow-sm shrink-0">
+            <FiUpload className="w-4 h-4" />
+            {uploadingSlip ? 'Uploading...' : 'Re-upload Slip Now'}
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              className="hidden"
+              onChange={(e) => onUploadSlip(order.id, e.target.files[0])}
+            />
+          </label>
+        </div>
+      )}
 
       {/* 2-Hour Cancellation Banner or Feedback CTA */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
@@ -212,35 +291,83 @@ const OrderCardItem = ({
 
       {/* Status Timeline */}
       <div className="py-2 border-b border-slate-100">
-        <div className="flex items-center justify-between max-w-xl mx-auto px-2 text-xs font-bold text-slate-500">
-          <div className={`flex flex-col items-center gap-1 ${['pending', 'confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'text-slate-900' : ''}`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['pending', 'confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
-              <FiClock className="w-3.5 h-3.5" />
+        {isBankTransfer ? (
+          <div className="flex items-center justify-between max-w-2xl mx-auto px-2 text-xs font-bold text-slate-500">
+            {/* 1. Placed */}
+            <div className="flex flex-col items-center gap-1 text-slate-900">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-900 text-white">
+                <FiClock className="w-3.5 h-3.5" />
+              </div>
+              <span>Placed</span>
             </div>
-            <span>Placed</span>
-          </div>
-          <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
-          <div className={`flex flex-col items-center gap-1 ${['confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'text-slate-900' : ''}`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
-              <FiCheck className="w-3.5 h-3.5" />
+            <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
+
+            {/* 2. Slip Uploaded */}
+            <div className={`flex flex-col items-center gap-1 ${['slip_uploaded', 'confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) || order.bank_slip_url ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['slip_uploaded', 'confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) || order.bank_slip_url ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
+                <FiUpload className="w-3.5 h-3.5" />
+              </div>
+              <span>Slip Uploaded</span>
             </div>
-            <span>Confirmed</span>
-          </div>
-          <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
-          <div className={`flex flex-col items-center gap-1 ${['shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'text-slate-900' : ''}`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
-              <FiTruck className="w-3.5 h-3.5" />
+            <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
+
+            {/* 3. Verified */}
+            <div className={`flex flex-col items-center gap-1 ${['confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) || order.payment?.status === 'VERIFIED' ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) || order.payment?.status === 'VERIFIED' ? 'bg-slate-900 text-white' : order.status === 'payment_rejected' ? 'bg-rose-600 text-white' : 'bg-slate-100'}`}>
+                {order.status === 'payment_rejected' ? <FiXCircle className="w-3.5 h-3.5" /> : <FiCheck className="w-3.5 h-3.5" />}
+              </div>
+              <span>{order.status === 'payment_rejected' ? 'Rejected' : 'Verified'}</span>
             </div>
-            <span>Shipped</span>
-          </div>
-          <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
-          <div className={`flex flex-col items-center gap-1 ${order.status?.toLowerCase() === 'delivered' ? 'text-slate-900' : ''}`}>
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${order.status?.toLowerCase() === 'delivered' ? 'bg-emerald-600 text-white' : 'bg-slate-100'}`}>
-              <FiCheck className="w-3.5 h-3.5" />
+            <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
+
+            {/* 4. Shipped */}
+            <div className={`flex flex-col items-center gap-1 ${['shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
+                <FiTruck className="w-3.5 h-3.5" />
+              </div>
+              <span>Shipped</span>
             </div>
-            <span>Delivered</span>
+            <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
+
+            {/* 5. Delivered */}
+            <div className={`flex flex-col items-center gap-1 ${order.status?.toLowerCase() === 'delivered' ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${order.status?.toLowerCase() === 'delivered' ? 'bg-emerald-600 text-white' : 'bg-slate-100'}`}>
+                <FiCheck className="w-3.5 h-3.5" />
+              </div>
+              <span>Delivered</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between max-w-xl mx-auto px-2 text-xs font-bold text-slate-500">
+            <div className={`flex flex-col items-center gap-1 ${['pending', 'confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['pending', 'confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
+                <FiClock className="w-3.5 h-3.5" />
+              </div>
+              <span>Placed</span>
+            </div>
+            <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
+            <div className={`flex flex-col items-center gap-1 ${['confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['confirmed', 'shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
+                <FiCheck className="w-3.5 h-3.5" />
+              </div>
+              <span>Confirmed</span>
+            </div>
+            <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
+            <div className={`flex flex-col items-center gap-1 ${['shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${['shipped', 'delivered'].includes(order.status?.toLowerCase()) ? 'bg-slate-900 text-white' : 'bg-slate-100'}`}>
+                <FiTruck className="w-3.5 h-3.5" />
+              </div>
+              <span>Shipped</span>
+            </div>
+            <div className="flex-1 h-1 bg-slate-200 mx-2"></div>
+            <div className={`flex flex-col items-center gap-1 ${order.status?.toLowerCase() === 'delivered' ? 'text-slate-900' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center ${order.status?.toLowerCase() === 'delivered' ? 'bg-emerald-600 text-white' : 'bg-slate-100'}`}>
+                <FiCheck className="w-3.5 h-3.5" />
+              </div>
+              <span>Delivered</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Items Preview Row & Details Toggle */}
@@ -316,9 +443,18 @@ const OrderCardItem = ({
               <div>
                 <h4 className="font-extrabold text-slate-900 uppercase tracking-wider mb-1">Payment Information</h4>
                 <p className="text-slate-700 font-bold uppercase">{order.payment_method}</p>
-                <p className="text-slate-500">
-                  Status: <span className="font-bold text-slate-800">{order.payment_status}</span>
-                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-slate-500">Payment Status:</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${paymentBadge.style}`}>
+                    {paymentBadge.label}
+                  </span>
+                </div>
+
+                {order.payment?.admin_notes && (
+                  <div className="mt-2 bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-rose-800 text-xs">
+                    <strong>Admin Note:</strong> {order.payment.admin_notes}
+                  </div>
+                )}
 
                 {isBankTransfer && order.bank_reference && (
                   <div className="mt-2 bg-white p-2.5 rounded-xl border border-amber-200">
@@ -336,8 +472,8 @@ const OrderCardItem = ({
                   </div>
                 )}
 
-                {/* Bank slip upload */}
-                {isBankTransfer && order.status !== 'confirmed' && order.status !== 'cancelled' && (
+                {/* Bank slip upload / re-upload */}
+                {isBankTransfer && !['confirmed', 'shipped', 'delivered', 'cancelled'].includes(order.status?.toLowerCase()) && (
                   <div className="mt-3">
                     <label className="inline-flex items-center gap-2 bg-slate-900 text-white px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer hover:bg-slate-800 transition-colors shadow-sm">
                       <FiUpload className="w-4 h-4" />

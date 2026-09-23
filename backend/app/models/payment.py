@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy import Integer, String, Float, DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
@@ -20,9 +20,12 @@ class Payment(Base):
     payment_instructions_pdf: Mapped[str | None] = mapped_column(String(500), nullable=True)
     
     status: Mapped[str] = mapped_column(String(20), default="PENDING", nullable=False)  # "PENDING", "SUBMITTED", "VERIFIED", "REJECTED"
+    admin_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    verified_by: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
     
     created_at: Mapped[DateTime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     verified_at: Mapped[DateTime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     order = relationship("Order", back_populates="payment")
-    user = relationship("User")
+    user = relationship("User", foreign_keys=[user_id])
+    verifier = relationship("User", foreign_keys=[verified_by])

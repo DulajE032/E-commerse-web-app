@@ -66,6 +66,7 @@ class UpdateOrderStatusRequest(BaseModel):
 
 class VerifyPaymentRequest(BaseModel):
     is_approved: bool
+    admin_notes: Optional[str] = None
 
     model_config = ConfigDict(extra="forbid")
 
