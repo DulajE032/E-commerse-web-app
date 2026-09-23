@@ -25,6 +25,8 @@ from app.schemas.order import (
 from app.services.email_service import (
     send_admin_new_order_email,
     send_bank_transfer_instructions_email,
+    send_payment_verified_email,
+    send_payment_rejected_email,
 )
 from app.api.v1.endpoints.notification import create_notification
 
@@ -279,6 +281,19 @@ async def upload_bank_slip(
     if current_user.role != "admin" and order.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized for this order")
 
+    # Disallow slip upload if order is already confirmed, shipped, delivered, or cancelled
+    terminal_statuses = [
+        OrderStatus.CONFIRMED.value,
+        OrderStatus.SHIPPED.value,
+        OrderStatus.DELIVERED.value,
+        OrderStatus.CANCELLED.value,
+    ]
+    if order.status in terminal_statuses:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot upload slip for an order that is already {order.status}.",
+        )
+
     ext = os.path.splitext(file.filename)[1].lower() if file.filename else ""
     if ext not in ALLOWED_SLIP_EXTENSIONS:
         raise HTTPException(
@@ -320,6 +335,7 @@ async def upload_bank_slip(
 async def verify_payment(
     order_id: int,
     request_data: VerifyPaymentRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     admin_user=Depends(require_role("admin")),
 ):
@@ -329,6 +345,12 @@ async def verify_payment(
         raise HTTPException(status_code=404, detail="Order not found")
 
     is_approved = request_data.is_approved
+    admin_notes = request_data.admin_notes
+
+    if order.payment:
+        order.payment.admin_notes = admin_notes
+        order.payment.verified_by = admin_user.id
+
     if is_approved:
         order.payment_status = PaymentStatus.PAID.value
         order.status = OrderStatus.CONFIRMED.value
@@ -344,19 +366,36 @@ async def verify_payment(
             type="payment_verified",
             order_id=order.id,
         )
+        background_tasks.add_task(
+            send_payment_verified_email,
+            order.email,
+            order.id,
+            order.total_amount,
+        )
     else:
         order.payment_status = PaymentStatus.FAILED.value
         order.status = OrderStatus.PAYMENT_REJECTED.value
         if order.payment:
             order.payment.status = "REJECTED"
+            order.payment.verified_at = None
 
         create_notification(
             db=db,
             user_id=order.user_id,
             title="Payment Slip Rejected",
-            message=f"Your payment slip for Order #{order.id} could not be verified. Please re-upload or contact support.",
+            message=(
+                f"Your payment slip for Order #{order.id} was rejected: {admin_notes}"
+                if admin_notes
+                else f"Your payment slip for Order #{order.id} could not be verified. Please re-upload or contact support."
+            ),
             type="payment_rejected",
             order_id=order.id,
+        )
+        background_tasks.add_task(
+            send_payment_rejected_email,
+            order.email,
+            order.id,
+            admin_notes or "The provided payment slip could not be verified.",
         )
 
     db.commit()
@@ -452,6 +491,13 @@ async def update_order_status(
             order_id=order.id,
         )
     elif new_status == OrderStatus.DELIVERED.value:
+        # Auto-set COD payment to VERIFIED on delivery
+        if order.payment_method and order.payment_method.lower() == "cod":
+            order.payment_status = PaymentStatus.PAID.value
+            if order.payment:
+                order.payment.status = "VERIFIED"
+                order.payment.verified_at = datetime.now(timezone.utc)
+
         create_notification(
             db=db,
             user_id=order.user_id,

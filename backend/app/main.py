@@ -46,9 +46,13 @@ def read_root():
     return {"Hello": "AI powerd E-commerce web app"}
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
+
+
 @app.get("/health/db")
 def db_health(db: Session = Depends(get_db)):
     db.execute(text("SELECT 1"))
     return {"database": "connected"}
-# Reload triggered
 
