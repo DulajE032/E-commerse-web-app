@@ -348,11 +348,11 @@ export const api = {
     });
   },
 
-  verifyPayment: async (orderId, isApproved, token) => {
+  verifyPayment: async (orderId, isApproved, adminNotes, token) => {
     return request(`${API_BASE}/orders/${orderId}/verify-payment`, {
       method: 'PATCH',
       headers: withAuthHeaders({ 'Content-Type': 'application/json' }, token),
-      body: JSON.stringify({ is_approved: isApproved }),
+      body: JSON.stringify({ is_approved: isApproved, admin_notes: adminNotes }),
     });
   },
 

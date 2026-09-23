@@ -26,6 +26,8 @@ class PaymentResponse(BaseModel):
     bank_slip_url: Optional[str] = None
     payment_instructions_pdf: Optional[str] = None
     status: str
+    admin_notes: Optional[str] = None
+    verified_by: Optional[int] = None
     created_at: datetime
     verified_at: Optional[datetime] = None
 
